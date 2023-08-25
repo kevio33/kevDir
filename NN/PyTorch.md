@@ -783,9 +783,102 @@ tensor([[[[0.7311, 0.8808],
 
 ----------
 
-#### (6)Loss
+#### (6)Loss Function
 
-##### BCELoss()
+##### functions：
+
+**1) L1LOSS()**
+
+```python
+torch.nn.L1Loss(size_average=None, reduce=None, reduction='mean')
+# reduction 可以选择mean或sum，前者损失值求平均，后者不求平均
+```
+
+计算公式是：
+$$
+l_n = | x_n - y_n|
+$$
+
+> ```python
+> import torch
+> from torch import nn
+> 
+> output = torch.tensor([1,2,4],dtype=torch.float32)
+> target = torch.tensor([1,2,6],dtype=torch.float32)
+> 
+> loss = nn.L1Loss()
+> resLoss = loss(output,target)
+> print(resLoss)
+> 
+> #输出
+> tensor(0.6667)
+> 
+> # 如果参数修改：
+> loss = nn.L1Loss(reduction="sum")
+> #输出
+> tensor(2.)
+> ```
+
+-------------
+
+**2) MSELOSS**
+$$
+l_n=(x_n−y_n)^2
+$$
+
+---------------
+
+**3) CROSSENTROPYLOSS**
+
+交叉熵损失
+
+> 参考：[交叉熵损失](https://blog.csdn.net/geter_CS/article/details/84857220)
+
+![1692945586111](PyTorch.assets/1692945586111.png)
+
+> ```python
+> import torch
+> from torch import nn
+> import torchvision
+> from torch.utils.data import DataLoader
+> 
+> dataset = torchvision.datasets.CIFAR10('../data',train=False,transform=torchvision.transforms.ToTensor(),download=True)
+> 
+> dataloader = DataLoader(dataset,batch_size = 1)
+> 
+> class MyModule(nn.Module):
+> 
+>     def __init__(self):
+>         super().__init__()
+>         self.seq = nn.Sequential(
+>             nn.Conv2d(in_channels=3,out_channels=32,kernel_size=5,padding=2),#通过计算得到，要想output的size为32*32，padding最小取2
+>             nn.MaxPool2d(kernel_size=2),
+>             nn.Conv2d(32,32,5,padding=2),
+>             nn.MaxPool2d(kernel_size=2),
+>             nn.Conv2d(32,64,5,padding=2),
+>             nn.MaxPool2d(kernel_size=2),
+>             nn.Flatten(),
+>             nn.Linear(64*4*4,64),
+>             nn.Linear(64,10)
+>         )
+> 
+>     def forward(self,x):
+>         x = self.seq(x)
+>         return x
+>     
+> mymo = MyModule()
+> myLoss = nn.CrossEntropyLoss()
+> for data in dataloader:
+>     img,target = data
+>     output = mymo(img)
+>     result_loss = myLoss(output,target)#计算损失值
+>     result_loss.backward()#反向传播
+>     print(result_loss)
+> ```
+
+------
+
+**4) BCELoss()**
 
 > 参考—— [torch.nn.BCELoss()](https://blog.csdn.net/qq_43115981/article/details/115357685) 
 
@@ -796,6 +889,57 @@ tensor([[[[0.7311, 0.8808],
 > 第二个参数是标签值，就是与预测值进行损失计算，看判别器的判别结果是否正确。
 
 ----
+
+##### backward
+
+损失函数的值可以作为反向传播的依据，并以此做优化
+
+```python
+import torch
+from torch import nn,optim
+import torchvision
+from torch.utils.data import DataLoader
+
+dataset = torchvision.datasets.CIFAR10('../data',train=False,transform=torchvision.transforms.ToTensor(),download=False)
+
+dataloader = DataLoader(dataset,batch_size = 1)
+
+class MyModule(nn.Module):
+
+    def __init__(self):
+        super().__init__()
+        self.seq = nn.Sequential(
+            nn.Conv2d(in_channels=3,out_channels=32,kernel_size=5,padding=2),#通过计算得到，要想output的size为32*32，padding最小取2
+            nn.MaxPool2d(kernel_size=2),
+            nn.Conv2d(32,32,5,padding=2),
+            nn.MaxPool2d(kernel_size=2),
+            nn.Conv2d(32,64,5,padding=2),
+            nn.MaxPool2d(kernel_size=2),
+            nn.Flatten(),
+            nn.Linear(64*4*4,64),
+            nn.Linear(64,10)
+        )
+
+    def forward(self,x):
+        x = self.seq(x)
+        return x
+    
+mymo = MyModule()
+myLoss = nn.CrossEntropyLoss()
+myoprim = optim.SGD(mymo.parameters(),lr=0.01)# lr代表learning rate
+for data in dataloader:
+    img,target = data
+    output = mymo(img)
+    result_loss = myLoss(output,target)
+    myoprim.zero_grad()#将之前的梯度清零，避免影响下一次优化
+    result_loss.backward()
+    myoprim.step()#进行优化
+    print(result_loss)
+```
+
+
+
+---------
 
 #### (7)sequential
 
@@ -870,11 +1014,60 @@ model = nn.Sequential(OrderedDict([
 
 ------------
 
+### 2.3 torch.optim
+
+> 参考：
+>
+> [pytorch_optim](https://pytorch.org/docs/stable/optim.html)
+
+优化器，通过损失函数反向传播降低梯度
+
+```python
+import torch
+from torch import nn,optim
+import torchvision
+from torch.utils.data import DataLoader
+
+dataset = torchvision.datasets.CIFAR10('../data',train=False,transform=torchvision.transforms.ToTensor(),download=False)
+
+dataloader = DataLoader(dataset,batch_size = 1)
+
+class MyModule(nn.Module):
+
+    def __init__(self):
+        super().__init__()
+        self.seq = nn.Sequential(
+            nn.Conv2d(in_channels=3,out_channels=32,kernel_size=5,padding=2),#通过计算得到，要想output的size为32*32，padding最小取2
+            nn.MaxPool2d(kernel_size=2),
+            nn.Conv2d(32,32,5,padding=2),
+            nn.MaxPool2d(kernel_size=2),
+            nn.Conv2d(32,64,5,padding=2),
+            nn.MaxPool2d(kernel_size=2),
+            nn.Flatten(),
+            nn.Linear(64*4*4,64),
+            nn.Linear(64,10)
+        )
+
+    def forward(self,x):
+        x = self.seq(x)
+        return x
+    
+mymo = MyModule()
+myLoss = nn.CrossEntropyLoss()
+myoprim = optim.SGD(mymo.parameters(),lr=0.01)# lr代表learning rate
+for data in dataloader:
+    img,target = data
+    output = mymo(img)
+    result_loss = myLoss(output,target)
+    myoprim.zero_grad()#将之前的梯度清零，避免影响下一次优化
+    result_loss.backward()
+    myoprim.step()#进行优化
+    print(result_loss)
+```
 
 
 
-
-
+---------
 
 
 

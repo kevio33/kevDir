@@ -80,6 +80,73 @@
 
 > https://blog.csdn.net/Dteam_f/article/details/121615753
 
+**概念**
+
+> **python模块（Module）**：
+> 以.py结尾的python文件，其中的成员可以包括“变量、函数、类 ”等等。
+>
+> **python包（package）**：
+> 简单来说，包就是文件夹，但该文件夹下一般存在 __init__.py 文件（python3不严格要求，但强烈建议）, 该文件的内容可以为空。__init__.py 用于标识当前文件夹是一个包，当一个包被import时，首先会自动加载它的__init__.py文件。
+>
+> **搜索路径：**
+> 当导入一个模块，Python 解析器对模块位置的搜索顺序是：
+>
+> - 当前目录
+> - 如果不在当前目录，Python 则搜索在 shell 变量 PYTHONPATH 下的每个目录。
+> - 如果都找不到，Python会察看默认路径。UNIX下，默认路径一般为/usr/local/lib/pythonx.x/… ，anaconda安装一般为/xxx/anacondax/pythonx.x/lib/… 。
+
+**语法：**
+
+> ## import [module | package] ：
+>
+> import语句用来载入模块，使用这种语法格式的 import 语句，会导入指定模块中的所有成员（包括变量、函数、类等）。当需要使用模块中的成员时，需用该模块名作为前缀，否则 Python 解释器会报错。
+>
+> > ```python
+> > import PIL.Image
+> > 
+> > PIL.Image.new #正确
+> > 
+> > new #错误
+> > ```
+> >
+> > PIL是包，Image是模块。Import 模块（Image）后，需要使用其中的函数（new）还是需要写上完整的前缀（PIL.Image.new）  
+> >
+> >  ```python
+> > import PIL
+> > 
+> > PIL.Image #如果没有init指明，则报错
+> >  ```
+> >
+> > 包（PIL）可也被直接import，但是如果只是导入一个包而不指名任何模块，且包中的__init__.py没有任何初始化操作，那么并不可以使用包内的模块及模块内的函数。 
+> >
+> > ```python
+> > import PIL.Image.new #错误
+> > ```
+> >
+> >  import语句不能直接引用模块内的成员。 
+>
+> ## from [module | package] import [member | module]：
+>
+> from … import … 可以从模块中引用它内部的成员（函数，变量等），此时可以不加模块的前缀直接使用。（建议使用某模块少量成员时使用此方法）
+>
+> from … import … 可以从包中引用模块，此时可以直接使用”模块名.成员名“来调用模块内的所有成员。
+>
+> > ```python
+> > from PIL.Image import new
+> > 
+> > new
+> > ```
+> >
+> >  PIL.Image 是模块，new是模块内的函数，new可以不加模块前缀（Image）直接使用。 
+> >
+> > ```python
+> > from PIL import Image
+> > 
+> > Image.new
+> > ```
+> >
+> >  其中PIL是包，Image是模块。引用后可以使用”模块名.成员名“来调用模块内的所有成员。 
+
 
 
 ### 2.函数
