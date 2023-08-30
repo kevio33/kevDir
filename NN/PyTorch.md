@@ -1067,9 +1067,46 @@ for data in dataloader:
 
 
 
+
+
+### 2.4 模型保存和加载
+
+有两种方式保存模型
+
+> - **模型结构+模型参数**
+>
+>   > ```python
+>   > from torchvision import models
+>   > from torch import nn
+>   > import torch
+>   > 
+>   > resnet = models.resnet18(pretrained = True)
+>   > torch.save(resnet,"resnet18_model.pth")
+>   > 
+>   > #加载模型
+>   > model = torch.load("resnet18_model.pth")
+>   > ```
+>   >
+>   > ![1693376270862](PyTorch.assets/1693376270862.png)
+>
+> - **模型参数**
+>
+>   > ```python
+>   > from torchvision import models
+>   > from torch import nn
+>   > import torch
+>   > 
+>   > resnet = models.resnet18(pretrained = True)
+>   > torch.save(resnet.state_dict(),"resnet18_model.pth")
+>   > 
+>   > #加载模型
+>   > resnet = models.resnet18(pretrained = False)
+>   > resnet.load_state_dict(torch.load("resnet18_model.pth"))
+>   > ```
+
+
+
 ---------
-
-
 
 ## 3.TorchVision
 
@@ -1283,6 +1320,59 @@ download (bool, optional) –  如果为 true，则从互联网下载数据集�
 > ```
 >
 > ![1689229058372](PyTorch.assets/1689229058372.png)
+
+
+
+### (3)models
+
+> 参考：
+>
+> [torchvision.models](https://pytorch.org/vision/stable/models.html)
+
+包含了很多图像处理的网络模型，可以拿来直接使用和更改
+
+#### ResNet
+
+> 以残差网络为例子：
+>
+> ```python
+> from torchvision.models import resnet50, ResNet50_Weights
+> 
+> # Using pretrained weights:
+> resnet50(weights=ResNet50_Weights.IMAGENET1K_V1)
+> resnet50(weights="IMAGENET1K_V1")
+> resnet50(pretrained=True)  # deprecated
+> resnet50(True)  # deprecated
+> 
+> # Using no weights:
+> resnet50(weights=None)
+> resnet50()
+> resnet50(pretrained=False)  # deprecated
+> resnet50(False)  # deprecated
+> ```
+>
+> ```python
+> from torchvision import models
+> 
+> resnet = models.resnet18(pretrained = True)
+> print(resnet)
+> ```
+>
+> 上面代码，控制台会打印残差网络的结构
+>
+> ![1693364821198](PyTorch.assets/1693364821198.png)
+>
+> 如果想在模型添加自己的步骤，可以按以下操作：
+>
+> ```python
+> from torchvision import models
+> from torch import nn
+> 
+> resnet = models.resnet18(pretrained = True)
+> resnet.add_module('add_linear',nn.Linear(1000,10))
+> ```
+>
+> 
 
 
 

@@ -94,3 +94,18 @@ git push
 
 
 
+## 二.command
+
+> 参考：
+>
+> [菜鸟——git命令](https://www.runoob.com/git/git-basic-operations.html)
+
+> base step 4
+>
+> ```bash
+> git add .
+> git commit -m ''
+> git pull
+> git push
+> ```
+
