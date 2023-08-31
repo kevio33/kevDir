@@ -1,2 +1,2 @@
-# kevDir
-kevin's dirary
+# kevNote
+kevin's notebook
