@@ -46,7 +46,7 @@ NDK其实多了一个把.so和.apk打包的工具，这个是很重要的。
 
 
 
-## 四.配置
+## 四、配置
 
 ### 1.两种方式
 
@@ -64,6 +64,15 @@ NDK其实多了一个把.so和.apk打包的工具，这个是很重要的。
 **Android 2.2版本以上已经内部集成NDK，只需要在SDK Manager里面下载NDK和CMake即可**
 
 ![1616657847580](NDK1.assets/1616657847580.png)
+
+然后新建项目，选择`C++`项目，创建完之后会有一个cpp目录
+
+![1693545966449](NDK1.assets/1693545966449.png)
+
+| 文件名         | 作用             | 说明                                                         |
+| -------------- | ---------------- | ------------------------------------------------------------ |
+| CMakeLists.txt | 构建配置文件     | CMakeLists.txt是用于配置NDK项目的构建系统的文件。它指定了构建所需的源文件、依赖项、编译选项等。在构建过程中，CMake会根据该文件的指示生成对应的构建脚本，用于编译本地代码并生成本地库。 |
+| native-lib.cpp | 本地代码实现文件 | native-lib.cpp是包含本地代码实现的文件。它定义了通过Java和本地代码之间进行通信的本地方法。该文件中的函数实现将被编译为本地库，供Java代码调用。 |
 
 
 
@@ -295,197 +304,197 @@ target_link_libraries( # Specifies the target library.
 
 在Java中调用Native代码，要通过**注册Native函数**来实现，分为两种注册方式
 
-- **静态注册**
+##### **静态注册**
 
-  > 静态注册就是**根据函数名来遍历Java和JNI函数之间的关联**，而且要求JNI层函数的名字必须遵循特定的格式。具体的实现很简单，首先在Java代码中声明native函数，然后通过`javah`来生成native函数的具体形式，接下来在JNI代码中实现这些函数即可。
-  >
-  > ```java
-  > public class JniDemo1{
-  >     static {
-  >         System.loadLibrary("samplelib_jni");
-  >     }
-  > 
-  >     private native void nativeMethod();
-  > }
-  > ```
-  >
-  > 通过`javah`来产生jni代码，假设你的包名为`com.gebilaolitou.jnidemo`
-  >
-  > ```shell
-  > javah -d ./jni/ -classpath /Users/YOUR_NAME/Library/Android/sdk/platforms/android-21/android.jar:../../build/intermediates/classes/debug/ com.gebilaolitou.jnidemo.JniDemo1
-  > ```
-  >
-  > 通过观察发现命名规范
-  >
-  > **`Java前缀+全路径类名+方法名（参数1JNIEnv,参数2jobject,其他参数）`**
+> 静态注册就是**根据函数名来遍历Java和JNI函数之间的关联**，而且要求JNI层函数的名字必须遵循特定的格式。具体的实现很简单，首先在Java代码中声明native函数，然后通过`javah`来生成native函数的具体形式，接下来在JNI代码中实现这些函数即可。
+>
+> ```java
+> public class JniDemo1{
+>     static {
+>         System.loadLibrary("samplelib_jni");
+>     }
+> 
+>     private native void nativeMethod();
+> }
+> ```
+>
+> 通过`javah`来产生jni代码，假设你的包名为`com.gebilaolitou.jnidemo`
+>
+> ```shell
+> javah -d ./jni/ -classpath /Users/YOUR_NAME/Library/Android/sdk/platforms/android-21/android.jar:../../build/intermediates/classes/debug/ com.gebilaolitou.jnidemo.JniDemo1
+> ```
+>
+> 通过观察发现命名规范
+>
+> **`Java前缀+全路径类名+方法名（参数1JNIEnv,参数2jobject,其他参数）`**
 
-- **动态注册**
+##### **动态注册**
 
-  > 动态注册，也就是通过`RegisterNatives`方法把C/C++中的方法映射到Java中的native方法，而无需遵循特定的方法命名格式。
-  >
-  > **案例：**
-  >
-  > 首先是加载so库
-  >
-  > ```java
-  > public class JniDemo1{
-  >     static {
-  >           System.loadLibrary("samplelib_jni");
-  >      }
-  > }
-  > ```
-  >
-  > 在JNI中实现
-  >
-  > ```cpp
-  > #include <jni.h>
-  > #include "Log4Android.h"
-  > #include <stdio.h>
-  > #include <stdlib.h>
-  > 
-  > using namespace std;
-  > 
-  > #ifdef __cplusplus
-  > extern "C" {
-  > #endif
-  > 
-  > static const char *className = "com/gebilaolitou/jnidemo/JNIDemo2";//注册的Java类名，根据自己名字更改
-  > 
-  > static void sayHello(JNIEnv *env, jobject, jlong handle) {
-  >  LOGI("JNI", "native: say hello ###");
-  > }
-  > 
-  > //方法数组：代表了一个native方法的数组，如果你在一个Java类中有一个native方法，这里它的size就是1，如果是两个native方法，它的size就是2
-  > static JNINativeMethod gJni_Methods_table[] = {
-  >  {"sayHello", "(J)V", (void*)sayHello},
-  > };
-  > 
-  > //首先通过clazz = (env)->FindClass( className);找到声明native方法的类
-  > //然后通过调用RegisterNatives函数将注册函数的Java类，以及注册函数的数组，以及个数注册在一起，这样就实现了绑定。
-  > static int jniRegisterNativeMethods(JNIEnv* env, const char* className,
-  >  const JNINativeMethod* gMethods, int numMethods)
-  > {
-  >  jclass clazz;
-  > 
-  >  LOGI("JNI","Registering %s natives\n", className);
-  >  clazz = (env)->FindClass( className);
-  >  if (clazz == NULL) {
-  >      LOGE("JNI","Native registration unable to find class '%s'\n", className);
-  >      return -1;
-  >  }
-  > 
-  >  int result = 0;
-  >  if ((env)->RegisterNatives(clazz, gJni_Methods_table, numMethods) < 0) {
-  >      LOGE("JNI","RegisterNatives failed for '%s'\n", className);
-  >      result = -1;
-  >  }
-  > 
-  >  (env)->DeleteLocalRef(clazz);
-  >  return result;
-  > }
-  > 
-  > jint JNI_OnLoad(JavaVM* vm, void* reserved){
-  >  LOGI("JNI", "enter jni_onload");
-  > 
-  >  JNIEnv* env = NULL;
-  >  jint result = -1;
-  > 
-  >  //这里调用了GetEnv函数时为了获取JNIEnv结构体指针，其实JNIEnv结构体指向了一个函数表，该函数表指向了对应的JNI函数，我们通过这些JNI函数实现JNI编程。
-  >  if (vm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) {
-  >      return result;
-  >  }
-  > 
-  > 	//调用了jniRegisterNativeMethods函数来实现注册
-  >  jniRegisterNativeMethods(env, className, gJni_Methods_table, sizeof(gJni_Methods_table) / sizeof(JNINativeMethod));
-  > 
-  >  return JNI_VERSION_1_4;
-  > }
-  > 
-  > #ifdef __cplusplus
-  > }
-  > #endif
-  > ```
-  >
-  > 
-  >
-  > > **JNINativeMethod**
-  > >
-  > > 其实就像之前说到的JNIEnv，JNI提供了函数映射表，通过调用函数指针实现调用JNI函数，而这个映射表就是通过**`JNINativeMethod`**实现的
-  > >
-  > > ```cpp
-  > > typedef struct { 
-  > >  const char* name; //代表的是Java中的函数名
-  > >  const char* signature; //代表的是Java中的参数和返回值
-  > >  void* fnPtr; //代表的是的指向C函数的函数指针
-  > > } JNINativeMethod; 
-  > > ```
-  > >
-  > > **着重说一下这个签名：**
-  > >
-  > > 因为Java是支持**函数重载**的（可以定义相同方法名，但是不同参数的方法），然后Java根据其不同的参数，找到其对应的实现的方法。所以JNI如果仅仅是根据函数名，没有办法找到重载的函数的，所以为了解决这个问题，JNI就衍生了一个概念——"签名"，即**将参数类型和返回值类型的组合**。如果拥有一个该函数的签名信息和这个函数的函数名，我们就可以顺序的找到对应的Java层中的函数了。
-  > >
-  > > 例如可以通过javap命令查看java函数对应的签名
-  > >
-  > > ```java
-  > > javap -s -p MainActivity.class
-  > > 
-  > > Compiled from "MainActivity.java"
-  > > public class com.example.hellojni.MainActivity extends android.app.Activity {
-  > > static {};
-  > >  Signature: ()V
-  > > 
-  > > public com.example.hellojni.MainActivity();
-  > >  Signature: ()V //返回类型为空
-  > > 
-  > > protected void onCreate(android.os.Bundle);
-  > >  Signature: (Landroid/os/Bundle;)V
-  > > 
-  > > public boolean onCreateOptionsMenu(android.view.Menu);
-  > >  Signature: (Landroid/view/Menu;)Z //参数类型是引用类型，而返回类型是基本类型
-  > > 
-  > > public native java.lang.String stringFromJNI(); //native 方法
-  > >  Signature: ()Ljava/lang/String;  //返回类型是引用类型，所以要把类型的包名也加上
-  > > 
-  > > public native int max(int, int); //native 方法
-  > >  Signature: (II)I    //签名
-  > > }
-  > > ```
-  > >
-  > > **可以看到上面的数据类型是大写字母 `V、Z`等等，这是因为JNI制定了签名规则**
-  > >
-  > > ```
-  > > 具体格式如下：
-  > > 
-  > > (参数1类型标示；参数2类型标示；参数3类型标示...)返回值类型标示
-  > > ```
-  > >
-  > > **引用类型：**
-  > >
-  > > > 当参数为引用类型的时候，参数类型的标示的根式为`"L包名"`，其中包名的.(点)要换成"/"，看我上面的例子就差不多，比如String就是Ljava/lang/String，Menu为Landroid/view/Menu。
-  > >
-  > > **基本类型**
-  > >
-  > > | 类型标示 | Java类型 |
-  > > | -------- | :------: |
-  > > | Z        | boolean  |
-  > > | B        |   byte   |
-  > > | C        |   char   |
-  > > | S        |  short   |
-  > > | I        |   int    |
-  > > | J        |   long   |
-  > > | F        |  float   |
-  > > | D        |  double  |
-  > > | V        |   void   |
-  > >
-  > > **数组**
-  > >
-  > > | 类型标示           | Java类型 |
-  > > | ------------------ | :------: |
-  > > | [签名              |   数组   |
-  > > | [i                 |  int[]   |
-  > > | [Ljava/lang/Object | String[] |
-  >
-  > 
+> 动态注册，也就是通过`RegisterNatives`方法把C/C++中的方法映射到Java中的native方法，而无需遵循特定的方法命名格式。
+>
+> **案例：**
+>
+> 首先是加载so库
+>
+> ```java
+> public class JniDemo1{
+>     static {
+>           System.loadLibrary("samplelib_jni");
+>      }
+> }
+> ```
+>
+> 在JNI中实现
+>
+> ```cpp
+> #include <jni.h>
+> #include "Log4Android.h"
+> #include <stdio.h>
+> #include <stdlib.h>
+> 
+> using namespace std;
+> 
+> #ifdef __cplusplus
+> extern "C" {
+> #endif
+> 
+> static const char *className = "com/gebilaolitou/jnidemo/JNIDemo2";//注册的Java类名，根据自己名字更改
+> 
+> static void sayHello(JNIEnv *env, jobject, jlong handle) {
+>  LOGI("JNI", "native: say hello ###");
+> }
+> 
+> //方法数组：代表了一个native方法的数组，如果你在一个Java类中有一个native方法，这里它的size就是1，如果是两个native方法，它的size就是2
+> static JNINativeMethod gJni_Methods_table[] = {
+>  {"sayHello", "(J)V", (void*)sayHello},
+> };
+> 
+> //首先通过clazz = (env)->FindClass( className);找到声明native方法的类
+> //然后通过调用RegisterNatives函数将注册函数的Java类，以及注册函数的数组，以及个数注册在一起，这样就实现了绑定。
+> static int jniRegisterNativeMethods(JNIEnv* env, const char* className,
+>  const JNINativeMethod* gMethods, int numMethods)
+> {
+>  jclass clazz;
+> 
+>  LOGI("JNI","Registering %s natives\n", className);
+>  clazz = (env)->FindClass( className);
+>  if (clazz == NULL) {
+>      LOGE("JNI","Native registration unable to find class '%s'\n", className);
+>      return -1;
+>  }
+> 
+>  int result = 0;
+>  if ((env)->RegisterNatives(clazz, gJni_Methods_table, numMethods) < 0) {
+>      LOGE("JNI","RegisterNatives failed for '%s'\n", className);
+>      result = -1;
+>  }
+> 
+>  (env)->DeleteLocalRef(clazz);
+>  return result;
+> }
+> 
+> jint JNI_OnLoad(JavaVM* vm, void* reserved){
+>  LOGI("JNI", "enter jni_onload");
+> 
+>  JNIEnv* env = NULL;
+>  jint result = -1;
+> 
+>  //这里调用了GetEnv函数时为了获取JNIEnv结构体指针，其实JNIEnv结构体指向了一个函数表，该函数表指向了对应的JNI函数，我们通过这些JNI函数实现JNI编程。
+>  if (vm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) {
+>      return result;
+>  }
+> 
+> 	//调用了jniRegisterNativeMethods函数来实现注册
+>  jniRegisterNativeMethods(env, className, gJni_Methods_table, sizeof(gJni_Methods_table) / sizeof(JNINativeMethod));
+> 
+>  return JNI_VERSION_1_4;
+> }
+> 
+> #ifdef __cplusplus
+> }
+> #endif
+> ```
+>
+> 
+>
+> > **JNINativeMethod**
+> >
+> > 其实就像之前说到的JNIEnv，JNI提供了函数映射表，通过调用函数指针实现调用JNI函数，而这个映射表就是通过**`JNINativeMethod`**实现的
+> >
+> > ```cpp
+> > typedef struct { 
+> >  const char* name; //代表的是Java中的函数名
+> >  const char* signature; //代表的是Java中的参数和返回值
+> >  void* fnPtr; //代表的是的指向C函数的函数指针
+> > } JNINativeMethod; 
+> > ```
+> >
+> > **着重说一下这个签名：**
+> >
+> > 因为Java是支持**函数重载**的（可以定义相同方法名，但是不同参数的方法），然后Java根据其不同的参数，找到其对应的实现的方法。所以JNI如果仅仅是根据函数名，没有办法找到重载的函数的，所以为了解决这个问题，JNI就衍生了一个概念——"签名"，即**将参数类型和返回值类型的组合**。如果拥有一个该函数的签名信息和这个函数的函数名，我们就可以顺序的找到对应的Java层中的函数了。
+> >
+> > 例如可以通过javap命令查看java函数对应的签名
+> >
+> > ```java
+> > javap -s -p MainActivity.class
+> > 
+> > Compiled from "MainActivity.java"
+> > public class com.example.hellojni.MainActivity extends android.app.Activity {
+> > static {};
+> >  Signature: ()V
+> > 
+> > public com.example.hellojni.MainActivity();
+> >  Signature: ()V //返回类型为空
+> > 
+> > protected void onCreate(android.os.Bundle);
+> >  Signature: (Landroid/os/Bundle;)V
+> > 
+> > public boolean onCreateOptionsMenu(android.view.Menu);
+> >  Signature: (Landroid/view/Menu;)Z //参数类型是引用类型，而返回类型是基本类型
+> > 
+> > public native java.lang.String stringFromJNI(); //native 方法
+> >  Signature: ()Ljava/lang/String;  //返回类型是引用类型，所以要把类型的包名也加上
+> > 
+> > public native int max(int, int); //native 方法
+> >  Signature: (II)I    //签名
+> > }
+> > ```
+> >
+> > **可以看到上面的数据类型是大写字母 `V、Z`等等，这是因为JNI制定了签名规则**
+> >
+> > ```
+> > 具体格式如下：
+> > 
+> > (参数1类型标示；参数2类型标示；参数3类型标示...)返回值类型标示
+> > ```
+> >
+> > **引用类型：**
+> >
+> > > 当参数为引用类型的时候，参数类型的标示的根式为`"L包名"`，其中包名的.(点)要换成"/"，看我上面的例子就差不多，比如String就是Ljava/lang/String，Menu为Landroid/view/Menu。
+> >
+> > **基本类型**
+> >
+> > | 类型标示 | Java类型 |
+> > | -------- | :------: |
+> > | Z        | boolean  |
+> > | B        |   byte   |
+> > | C        |   char   |
+> > | S        |  short   |
+> > | I        |   int    |
+> > | J        |   long   |
+> > | F        |  float   |
+> > | D        |  double  |
+> > | V        |   void   |
+> >
+> > **数组**
+> >
+> > | 类型标示           | Java类型 |
+> > | ------------------ | :------: |
+> > | [签名              |   数组   |
+> > | [i                 |  int[]   |
+> > | [Ljava/lang/Object | String[] |
+>
+> 
 
 
 
