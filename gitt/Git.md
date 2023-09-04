@@ -109,3 +109,12 @@ git push
 > git push
 > ```
 
+
+
+## 三、文件
+
+### 1、`.gitignore`
+
+> 参考：
+>
+> https://www.freecodecamp.org/chinese/news/gitignore-file-how-to-ignore-files-and-folders-in-git/

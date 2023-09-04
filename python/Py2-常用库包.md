@@ -712,3 +712,93 @@ X[:, m:n]：取二维数组中第m到n-1列数据
 >
 > 若条件不满足，抛出 **"ValueError: frames are not aligned"** 异常。
 
+# 二、解压缩文件
+
+> 参考：
+>
+> [解压zip、rar](https://www.cnblogs.com/zhuminghui/p/11699313.html)
+>
+> [解压rar](https://juejin.cn/s/python%20%E8%A7%A3%E5%8E%8B%E7%BC%A9%20rar)
+
+## 1.zip
+
+**使用自带的zipfile包**
+
+```python
+zipfile.ZipFile(filename[,mode[,compression[,allowZip64]]])
+
+# mode：可选 r,w,a 代表不同的打开文件的方式；r 只读；w 重写；a 添加
+# compression：指出这个 zipfile 用什么压缩方法，默认是 ZIP_STORED，另一种选择是 ZIP_DEFLATED；
+# allowZip64：bool型变量，当设置为True时可以创建大于 2G 的 zip 文件，默认值 True；
+```
+
+
+
+```python
+zip_file = zipfile.ZipFile(path)
+
+zip_list = zip_file.namelist() # 得到压缩包里所有文件
+
+for f in zip_list:
+    zip_file.extract(f, folder_abs) # 循环解压文件到指定目录
+ 
+zip_file.close() # 关闭文件，必须有，释放内存
+```
+
+```python
+zipfile.is_zipfile('xxx.zip') # 判断文件是否是个有效的zipfile
+zipfile.namelist('xxx.zip') # 列表，存储zip文件中所有子文件的path（相对于zip文件包而言的）
+zipfile.infolist('xxx.zip') # 列表，存储每个zip文件中子文件的ZipInfo对象
+zipfile.printdir() # 打印输出zip文件的目录结构，包括每个文件的path，修改时间和大小
+zipfile.open(name[,mode[,pwd]]) # 获取一个子文件的文件对象，可以对其进行read,readline,write等操作
+zipfile.setpassword(psw)，为zip文件设置默认密码
+zipfile.testzip() # 读取zip中的所有文件，验证他们的CRC校验和。返回第一个损坏文件的名称，如果所有文件都是完整的就返回None
+zipfile.write(filename[,arcname[,compression_type]]) # 将zip外的文件filename写入到名为arcname的子文件中（当然arcname也是带有相对zip包的路径的），打开方式为w或a
+zipfile.extract(member, path=None, pwd=None) # 解压一个zip中的文件，path为解压存储路径，pwd为密码
+zipfile.extractall(path[,pwd]) # 解压zip中的所有文件，path为解压存储路径，pwd为密码
+```
+
+
+
+
+
+## 2.rar
+
+> 参考：
+>
+> [解压rar安装依赖之后，还需要另外下载一个依赖]((https://blog.csdn.net/xrinosvip/article/details/120396624))
+
+**使用三方库：unrar/rarfile**
+
+```python
+import rarfile
+
+# 打开 RAR 文件
+rar = rarfile.RarFile('example.rar')
+
+# 解压缩文件到指定路径
+rar.extractall(path='path/to/extract')
+
+# 关闭 RAR 文件
+rar.close()
+
+example.rar 是要解压缩的 RAR 文件的路径，path/to/extract 是要解压缩到的文件夹路径。如果没有指定路径，则会解压缩到当前目录下。
+```
+
+
+
+# 三、处理文件
+
+## 1.yml
+
+> 参考：
+>
+> https://cloud.tencent.com/developer/article/1571186
+
+
+
+# 四、进度条
+
+> 参考：
+>
+> https://blog.csdn.net/langb2014/article/details/54798823

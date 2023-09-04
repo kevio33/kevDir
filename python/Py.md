@@ -270,6 +270,25 @@ def uniquePaths(self, m: int, n: int) -> int:
 
 
 
+##### call()
+
+如果在创建class的时候写了**call**（）方法， 那么该class实例化出实例后， 实例名()就是调用**call**（）方法。 
+
+```python
+class Animal(object):
+
+    __call__(self, words):
+        print "Hello: ", words
+
+if __name__ == "__main__":
+    cat = Animal()
+    cat("I am cat!")
+
+>>> Hello: I am cat!
+```
+
+
+
 
 
 ### 3.程序结构
@@ -916,6 +935,8 @@ if X is None:
 
 #### (6)队列
 
+> https://www.jianshu.com/p/6acf82c84fc5
+
 ```python
 from queue import Queue
 ```
@@ -1510,6 +1531,16 @@ while True:
 > - re 模块：re 模块提供了正则表达式处理函数，可以用于文本搜索、替换、分割等。
 > - json 模块：json 模块提供了 JSON 编码和解码函数，可以将 Python 对象转换为 JSON 格式，并从 JSON 格式中解析出 Python 对象。
 > - urllib 模块：urllib 模块提供了访问网页和处理 URL 的功能，包括下载文件、发送 POST 请求、处理 cookies 等。
+
+#### OS库
+
+> 参考：
+>
+> [菜鸟——os](https://www.runoob.com/python/os-file-methods.html)
+
+**列出目录下子目录**
+
+> 参考——https://www.techiedelight.com/zh/list-all-subdirectories-in-directory-python/
 
 #### 文件通配符
 
