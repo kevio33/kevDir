@@ -801,4 +801,26 @@ example.rar 是要解压缩的 RAR 文件的路径，path/to/extract 是要解�
 
 > 参考：
 >
+> [进度条配置](https://blog.csdn.net/qq_33472765/article/details/82940843?spm=1001.2101.3001.6650.1&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7ERate-1-82940843-blog-54798823.235%5Ev38%5Epc_relevant_sort&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7ERate-1-82940843-blog-54798823.235%5Ev38%5Epc_relevant_sort&utm_relevant_index=2)
+>
 > https://blog.csdn.net/langb2014/article/details/54798823
+>
+> 
+
+
+
+# 五、计算CRC
+
+> 参考： [Python 计算文件的CRC校验码|极客笔记 (deepinout.com)](https://deepinout.com/python/python-qa/821_python_compute_crc_of_file_in_python.html#:~:text=要计算文件的CRC校验码，我们需要使用Python中的crcmod库。 crcmod库是Python的一个第三方库，提供了用于计算CRC校验码的函数和方法。 首先，我们需要安装crcmod库。 可以使用pip命令来安装crcmod库：,pip install crcmod 安装完成后，我们就可以开始计算文件的CRC校验码了。 下面是一个示例代码：) 
+
+
+
+# 六、OCR
+
+> [提取文字](https://blog.51cto.com/u_15303040/3110833)
+>
+> **git:**
+>
+> [easyOCR](https://github.com/JaidedAI/EasyOCR)
+
+> cv.imread乱码：https://blog.csdn.net/liuqinshouss/article/details/78696032

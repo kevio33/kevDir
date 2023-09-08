@@ -1081,7 +1081,7 @@ for data in dataloader:
 >   > import torch
 >   > 
 >   > resnet = models.resnet18(pretrained = True)
->   > torch.save(resnet,"resnet18_model.pth")
+>   > torch.save(resnet,"resnet18_model.pth")#后缀可以自定义
 >   > 
 >   > #加载模型
 >   > model = torch.load("resnet18_model.pth")
@@ -1103,6 +1103,10 @@ for data in dataloader:
 >   > resnet = models.resnet18(pretrained = False)
 >   > resnet.load_state_dict(torch.load("resnet18_model.pth"))
 >   > ```
+
+
+
+### 2.5  完整训练套路
 
 
 
