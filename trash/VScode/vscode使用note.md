@@ -184,3 +184,11 @@
 ![1693124560768](vscode使用note.assets/1693124560768.png)
 
 **③然后再次安装pylance，重启vscode即可**
+
+
+
+# 二、usage
+
+## 1.自动格式化代码
+
+![1695190746467](vscode使用note.assets/1695190746467.png)
