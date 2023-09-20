@@ -521,19 +521,19 @@ print(email_message)
 
 ###### 方法
 
-| 方法                             | 描述                                                       |
-| -------------------------------- | ---------------------------------------------------------- |
-| index(sub[,start[,end]])         | 找到子字符串sub首次出现的位置，否则报错                    |
-| find(sub[,start[,end]])          | 找到子字符串sub首次出现的位置，否则返回-1                  |
-| startswith(prefix[,start[,end]]) | 检查是否以prefix开头                                       |
-| count(sub[,start[,end]])         | 计算子字符串sub出现的次数                                  |
-| decode([encoding[, errors]])     | 以dencoding解码字符串，返回unicode字符串(只用于字节字符串) |
-| encode([encoding[, errors]])     | 以encoding编码字符串(只用于unicode字符串)                  |
-| upper()                          | 返回大写形式                                               |
-| lower()                          | 返回小写形式                                               |
-| split(sep[,maxsplit])            | 以sep为分隔符分割字符串，maxsplit为最大分割次数            |
-| join(t)                          | 使用当前字符串为分隔符连接t中的字符串                      |
-| format(*args, **kwargs)**        | 格式化字符串                                               |
+| 方法                             | 描述                                                         |
+| -------------------------------- | ------------------------------------------------------------ |
+| index(sub[,start[,end]])         | 找到子字符串sub首次出现的位置，否则报错                      |
+| find(sub[,start[,end]])          | 找到子字符串sub首次出现的位置，否则返回-1；(`rfind`从右边开始) |
+| startswith(prefix[,start[,end]]) | 检查是否以prefix开头                                         |
+| count(sub[,start[,end]])         | 计算子字符串sub出现的次数                                    |
+| decode([encoding[, errors]])     | 以dencoding解码字符串，返回unicode字符串(只用于字节字符串)   |
+| encode([encoding[, errors]])     | 以encoding编码字符串(只用于unicode字符串)                    |
+| upper()                          | 返回大写形式                                                 |
+| lower()                          | 返回小写形式                                                 |
+| split(sep[,maxsplit])            | 以sep为分隔符分割字符串，maxsplit为最大分割次数              |
+| join(t)                          | 使用当前字符串为分隔符连接t中的字符串                        |
+| format(*args, **kwargs)**        | 格式化字符串                                                 |
 
 
 
