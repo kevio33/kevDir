@@ -155,6 +155,70 @@
 
 
 
+### (2)配置cmake
+
+> 参考：
+>
+> [vscode cmake](https://blog.csdn.net/weixin_43470971/article/details/119621643?spm=1001.2101.3001.6650.1&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-1-119621643-blog-93545513.235%5Ev38%5Epc_relevant_sort_base3&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-1-119621643-blog-93545513.235%5Ev38%5Epc_relevant_sort_base3&utm_relevant_index=2)
+>
+> https://www.jianshu.com/p/ad29eee7b736
+
+C++ 工程，有四个必要的`json`配置文件，先`ctrl+shift+p`打开输入指令分别是：
+
+- `c_cpp_properties.json `：配置项目结构，自动生成和更新，输入`C/C++:Edit configuration` 
+- `task.json`: 构建和编译运行项目，输入`Task:Configure Task`，模板，Others
+- `launch.json`: 调试，读取可执行文件
+
+**下载Cmake**
+
+**在Vscode中创建cmake配置文件：使用的编译器等等**
+
+![1695276544499](vscode使用note.assets/1695276544499.png)
+
+**然后会让你输入要编译的项目名，直接输入写的cpp代码目录即可**
+
+**之后目录下面出现`build`目录和`CMakeLists.txt`**
+
+![1695276738712](vscode使用note.assets/1695276738712.png)
+
+`CMakeLists.txt`文件内容如下
+
+```
+cmake_minimum_required(VERSION 3.0.0)
+project(CPPTEST VERSION 0.1.0 LANGUAGES C CXX)#项目名字和版本
+
+include(CTest)#包含测试框架，我们可以不用
+enable_testing()
+
+add_executable(CPPTEST  test.cpp Student.cpp Student.h)#添加源文件
+
+set(CPACK_PROJECT_NAME ${PROJECT_NAME})
+set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+include(CPack)
+```
+
+
+
+**在命令行运行编译文件**
+
+```shell
+cmake --build build #build指build文件夹路径
+```
+
+然后会在build目录下生成可执行文件，直接运行即可
+
+![1695276924440](vscode使用note.assets/1695276924440.png)
+
+![1695276942253](vscode使用note.assets/1695276942253.png)
+
+如果要更换可执行文件生成位置
+
+```
+set(EXECUTABLE_OUTPUT_PATH ..)
+```
+
+
+
 ## 2.配置python
 
 **配置调试环境**

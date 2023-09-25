@@ -1,6 +1,106 @@
 # 一、基础
 
-## 1.io
+## 1.数据类型
+
+### (1)字符串
+
+两种类型字符串表示形式：
+
+- C风格字符串
+- C++引入的string类型
+
+**C风格字符串**
+
+--------
+
+ 这种形式字符串实际上是使用 **null** 字符 **\0** 终止的一维字符数组。 
+
+```c
+char site[7] = {'R', 'U', 'N', 'O', 'O', 'B', '\0'};
+//或者写成（不需要手动把\0放到末尾，编译器初始化数组时候自动加上）
+char site[] = "RUNOOB";
+```
+
+
+
+**可以用指针指向字符数组，形成字符串指针**
+
+```c++
+char *p = "hello,world!";
+
+//访问元素
+char c = *p;// 访问字符数组中的第一个元素
+char c = *(p+1);// 访问字符数组中的第二个元素
+char c = *(p + strlen(p) - 1);// 访问字符数组中的最后一个元素
+```
+
+
+
+
+
+**string类**
+
+-----
+
+C++标准库`string`类型
+
+```c++
+#include <iostream>
+#include <string>
+ 
+using namespace std;
+ 
+int main ()
+{
+   string str1 = "runoob";
+   string str2 = "google";
+   string str3;
+   int  len ;
+ 
+   // 复制 str1 到 str3
+   str3 = str1;
+   cout << "str3 : " << str3 << endl;
+ 
+   // 连接 str1 和 str2
+   str3 = str1 + str2;
+   cout << "str1 + str2 : " << str3 << endl;
+ 
+   // 连接后，str3 的总长度
+   len = str3.size();
+   cout << "str3.size() :  " << len << endl;
+ 
+   return 0;
+}
+```
+
+
+
+
+
+### (2)auto
+
+ auto是一个关键字，可以用于声明变量。auto变量的类型由初始化表达式来推断。 
+
+```c++
+#include <iostream>
+using namespace std;
+
+int main() {
+    // 声明一个int类型的auto变量
+    auto x = 10;
+    // 声明一个std::string类型的auto变量
+    auto y = "Hello, world!";
+    
+    cout << x << endl;
+    cout << y << endl;
+
+    return 0;
+}
+```
+
+
+
+## 2.io
 
 ### (1)控制台io
 
@@ -11,7 +111,7 @@
 
 
 
-## 2.指针运算符
+## 3.指针运算符
 
 > [指针运算符](https://www.runoob.com/cplusplus/cpp-pointer-operators.html)
 
@@ -71,7 +171,7 @@ Value of &ref2: 0x7ffce63490bc    (等于&var)
 
 
 
-## 3.引用
+## 4.引用
 
 引用是变量的别名，特点是：
 
@@ -158,7 +258,9 @@ int main() {
 }
 ```
 
-## 4.函数
+## 5.函数
+
+### (1)默认形参
 
 c++支持默认形参
 
@@ -166,5 +268,119 @@ c++支持默认形参
 void func(int a = 10,double a){
     
 }
+```
+
+### (2)无名形参
+
+ C++中，形参可以只指定类型，不指定名称。这种形参被称为“无名形参”或“占位符形参”。在函数定义中，可以使用类型名代替形参名来定义一个无名形参。 
+
+无名形参有以下应用场景
+
+> - 需要指定参数类型，但不需要实际参数情况
+>
+>   ```c++
+>   int sum(int, int);
+>   
+>   int main() {
+>     int a, b;
+>     cin >> a >> b;
+>   
+>     // 调用函数，不传入任何实参
+>     int result = sum(a, b);
+>     cout << result << endl;
+>   }
+>   ```
+>
+>   
+>
+> - 定义函数模板
+>
+>   ```c++
+>   template <typename T>
+>   T sum(T a, T b) {
+>     return a + b;
+>   }
+>   
+>   int main() {
+>     int a = 10;
+>     int b = 20;
+>   
+>     // 调用函数，传入两个整数
+>     int result = sum<int>(a, b);
+>     cout << result << endl;
+>   
+>     // 调用函数，传入两个浮点数
+>     float c = 1.5;
+>     float d = 2.5;
+>     float result2 = sum<float>(c, d);
+>     cout << result2 << endl;
+>   }
+>   ```
+>
+>   
+
+## 6.面向对象
+
+**声明类：**
+
+-----
+
+![1695263869021](c++.assets/1695263869021.png)
+
+头文件声明类及其成员变量和函数，不实现函数，**因为头文件被多个源文件包含，如果在头文件中实现函数，那么每个源文件都会包含相同的函数实现，这会导致代码膨胀和重复定义的错误。** 
+
+
+
+**实现类的函数和成员变量:**
+
+----------
+
+![1695263963473](c++.assets/1695263963473.png)
+
+创建`cpp`文件实现类的成员函数，`this`是类指针，指向这个类，可以用于访问成员函数和变量。
+
+
+
+### (1)`.`和`->`
+
+> 参考：
+>
+> [C++中的.和::和：和->的区别](https://blog.csdn.net/s15868887695/article/details/56834685)
+
+- `A.B`则A为对象或者结构体；
+- `A->B`则A为指针，->是成员提取，A->B是提取A中的成员B，A只能是指向类、结构、联合的指针；
+- `::`是作用域运算符，A::B表示作用域A中的名称B，A可以是名字空间、类、结构；
+- `：`一般用来表示继承；
+
+
+
+**Example：**
+
+ c++中当定义类对象是指针对象时候，就需要用到->指向类中的成员；当定义一般对象时候时就需要用到"."指向类中的成员。 
+
+```c++
+class A
+{　　
+    public play();
+}
+
+
+
+//如果定义如下
+A *p //则使用：p->play(); 左边是结构指针。
+A p //则使用：p.paly(); 左边是结构变量。
+
+```
+
+### (2)创建类对象
+
+```c++
+//方式一，创建类的对象
+Tests *data = new Tests;
+data->prints();
+//方式二，创建类的对象
+Tests().prints();
+//方式三, 调用静态函数，不用创建类的对象
+Tests::printss();
 ```
 
