@@ -2774,3 +2774,15 @@ while not workQueue.empty():
     pass
 ```
 
+
+
+
+
+## 三、问题
+
+### 1.pip速度慢
+
+```bash
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple
+```
+

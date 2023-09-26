@@ -824,3 +824,33 @@ example.rar 是要解压缩的 RAR 文件的路径，path/to/extract 是要解�
 > [easyOCR](https://github.com/JaidedAI/EasyOCR)
 
 > cv.imread乱码：https://blog.csdn.net/liuqinshouss/article/details/78696032
+
+> [tesseract](https://www.osgeo.cn/python-tutorial/imgs-docx-imgs.html)
+>
+> [配置环境](https://blog.csdn.net/weixin_53660567/article/details/123664015)
+
+# 七、读ppt
+
+> [读ppt](https://cloud.tencent.com/developer/article/1708628)
+>
+> [读ppt2](https://blog.csdn.net/AI_LINNGLONG/article/details/104358105)
+
+
+
+## 1.ppt转pptx
+
+> https://docs.aspose.com/slides/python-net/convert-ppt-to-pptx/
+
+## 2.读ppt
+
+
+
+# 八、读eml
+
+> [python 三方库](https://yanxizhen.github.io/2019/python3.7%E4%B8%8B%E4%BD%BF%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9email%E6%89%A9%E5%B1%95%E5%BA%93flanker%E5%A4%9A%E8%BF%9B%E7%A8%8B/)
+>
+> [flanker](https://github.com/mailgun/flanker)
+>
+> [python内置库](https://www.cnblogs.com/QKSword/p/10777075.html)
+>
+> https://www.jb51.net/article/232335.htm
