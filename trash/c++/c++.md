@@ -171,6 +171,80 @@ Value of &ref2: 0x7ffce63490bc    (等于&var)
 
 
 
+### (4)悬空指针
+
+悬空指针的产生原因主要有以下几种：
+
+- 指针指向的内存空间被释放，但指针本身没有被置为空。
+- 指针指向的内存空间被释放，但指针被传递给了另一个函数或方法。
+- 指针指向的内存空间被释放，但指针被用作函数或方法的返回值。
+
+```c++
+// 指针指向的内存空间被释放，但指针本身没有被置为空
+int* p = new int(10);
+delete p; // 释放内存空间,指针 p 仍然指向已经释放的内存空间
+
+// 指针指向的内存空间被释放，但指针被传递给了另一个函数或方法
+void foo(int* p) {
+  delete p; // 释放内存空间
+}
+foo(p); // 指针 p 仍然指向已经释放的内存空间，报错
+```
+
+
+
+**避免办法：**
+
+```c++
+// 指针指向的内存空间被释放，但指针本身没有被置为空
+int* p = new int(10);
+delete p; // 释放内存空间,指针 p 仍然指向已经释放的内存空间
+p = NULL;
+
+// 指针指向的内存空间被释放，但指针被传递给了另一个函数或方法
+void foo(int* p) {
+  delete p; // 释放内存空间
+}
+foo(p); // 指针 p 仍然指向已经释放的内存空间，报错
+```
+
+
+
+### (5)常量指针
+
+```c++
+int num = 9;
+int num2 = 10;
+const int * numberP = &num;
+
+*numberP = 100;//报错，不允许修改常量指针存放地址对应的值
+numberP = &num2;//正确，运行重新指向常量指针存放的地址
+```
+
+
+
+### (6)指针常量
+
+```c++
+int num = 9;
+int num2 = 10;
+int *const numberP = &num;
+*num = 100;//正确，运行修改指针常量存放地址对应的值
+numberP = &num2;//错误，不允许重新指向指针常量存放的地址
+```
+
+### (7)常量指针常量
+
+都不允许修改
+
+```c++
+const int * const numerP = &num;
+```
+
+
+
+
+
 ## 4.引用
 
 引用是变量的别名，特点是：
@@ -364,8 +438,6 @@ class A
     public play();
 }
 
-
-
 //如果定义如下
 A *p //则使用：p->play(); 左边是结构指针。
 A p //则使用：p.paly(); 左边是结构变量。
@@ -382,5 +454,221 @@ data->prints();
 Tests().prints();
 //方式三, 调用静态函数，不用创建类的对象
 Tests::printss();
+```
+
+#### 开辟堆、栈空间
+
+```c++
+Student s1 ;//栈区开辟空间
+    s1.setName("John");
+    cout<<s1.getName()<<endl;
+
+    /*堆区开辟空间*/
+    Student *s2 = new Student();
+    s2->setName("Mary");
+    cout<<s2->getName()<<endl;
+    delete s2;//必须手动释放堆空间
+```
+
+
+
+#### 聚合初始化器 
+
+使用 聚合初始化器 初始化一个类对象
+
+```c++
+class Person {
+public:
+    int age;
+    char* name;
+};
+
+int main() {
+    Person person = {1, "hello"};
+
+    std::cout << person.age << " " << person.name << std::endl;
+
+    return 0;
+}
+```
+
+
+
+### (3)构造函数
+
+特殊构造函数写法
+
+```c++
+Student(char *name):name(name),age(age){
+    cout<<"赋值给name"<<endl;
+}
+
+//等价于
+Student(char *name){
+    this->name = name;
+    this->age = age;
+}
+```
+
+又例如当前构造函数要调用多参数构造函数
+
+```c++
+//会先调用两个参数构造函数，再调用本构造函数
+Student(char *name):Student(name,87){
+    cout<<"赋值给name"<<endl;
+}
+
+Student(char *name,int age){
+    this->name = name;
+    this->age = age;
+}
+```
+
+
+
+#### 拷贝构造函数
+
+使用`=`会调用默认的拷贝构造函数
+
+```c++
+Student s1 = {"John"}; // 栈区开辟空间
+
+Student s2; // 默认拷贝构造函数
+s2 = s1;
+cout << &s2 << endl;
+cout << &s1 << endl;
+
+输出：
+0x61fe00
+0x61fe08
+```
+
+**自定义拷贝构造函数，覆盖默认拷贝构造函数**
+
+```c++
+//自定义拷贝构造函数
+Student(const Student &s){
+    cout << "copy constructor" << endl;
+    this->name = s.name;
+}
+
+
+//调用自定义拷贝构造函数
+Student s1 = {"kevin"};
+Student s2 = s1;
+
+//调用默认拷贝构造函数
+Student s3;
+s3 = s1;
+```
+
+> **注意：**
+>
+> ```c++
+> Student *st1 = new Student("jack",23);
+> 
+> Student *st2 = st1;//这个不会调用拷贝构造函数，这是st2指向st1的地址
+> ```
+>
+> 
+
+
+
+### (4)析构函数
+
+析构函数用于释放对象的内存空间，调用`delete`时，析构函数必被调用，而调用`free`时，析构函数不会调用。**析构函数不具备任何参数**
+
+```c++
+~Student(){
+    ....
+}
+```
+
+> 例如当对象中为某个对象分配的内存空间
+>
+> ```c++
+> Student(char *name){
+>     this->name = (char *)(malloc(sizeof(char *) * 10)) ;
+>     strycpy(this->name,name);
+> }
+> ```
+>
+> 此时应该再析构函数里释放内存
+>
+> ```c++
+> ~Student(){
+>     if(this->name){
+>         free(this->name);
+>         this->name = NULL;//执行NULL的地址，避免悬空指针
+>     }
+> }
+> ```
+
+
+
+
+
+
+
+## 7.命名空间
+
+为了防止不同库下面的函数重名情况
+
+```c++
+include <iostream>
+using namespace std;
+ 
+// 第一个命名空间
+namespace first_space{
+   void func(){
+      cout << "Inside first_space" << endl;
+   }
+}
+// 第二个命名空间
+namespace second_space{
+   void func(){
+      cout << "Inside second_space" << endl;
+   }
+}
+int main ()
+{
+ 
+   // 调用第一个命名空间中的函数
+   first_space::func();
+   
+   // 调用第二个命名空间中的函数
+   second_space::func(); 
+ 
+   return 0;
+}
+```
+
+### 嵌套
+
+```c++
+namespace namespace_name1 {
+   // 代码声明
+   namespace namespace_name2 {
+      // 代码声明
+   }
+}
+
+// 访问 namespace_name2 中的成员
+using namespace namespace_name1::namespace_name2;
+ 
+// 访问 namespace_name1 中的成员
+using namespace namespace_name1;
+```
+
+### 不连续的命名空间
+
+命名空间可以放在不同文件下面。
+
+因此下面的命名空间定义可以是定义一个新的命名空间，也可以是为已有的命名空间增加新的元素： 
+
+```c++
+namespace namespace_name {
+    // 代码声明
+}
 ```
 

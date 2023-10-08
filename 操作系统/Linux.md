@@ -1358,3 +1358,9 @@ Linux中包括两种链接：硬链接(Hard Link)和软链接(Soft Link),软链�
 ### 4.权限
 
 在使用linux时候发现，最开始安装会创建用户kevin，kevin权限仅限于在家目录：/home/kevin，在家目录以外需要sudo或者切换root才有权限
+
+
+
+### 5.yum 、apt
+
+[区别](https://blog.51cto.com/u_494981/1383655)
