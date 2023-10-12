@@ -218,7 +218,7 @@ int num2 = 10;
 const int * numberP = &num;
 
 *numberP = 100;//报错，不允许修改常量指针存放地址对应的值
-numberP = &num2;//正确，运行重新指向常量指针存放的地址
+numberP = &num2;//正确，允许重新指向常量指针存放的地址
 ```
 
 
@@ -240,8 +240,6 @@ numberP = &num2;//错误，不允许重新指向指针常量存放的地址
 ```c++
 const int * const numerP = &num;
 ```
-
-
 
 
 
@@ -446,28 +444,21 @@ A p //则使用：p.paly(); 左边是结构变量。
 
 ### (2)创建类对象
 
-```c++
-//方式一，创建类的对象
-Tests *data = new Tests;
-data->prints();
-//方式二，创建类的对象
-Tests().prints();
-//方式三, 调用静态函数，不用创建类的对象
-Tests::printss();
-```
-
 #### 开辟堆、栈空间
 
 ```c++
-Student s1 ;//栈区开辟空间
-    s1.setName("John");
-    cout<<s1.getName()<<endl;
+Student s1 ;//栈区开辟空间，由系统自动分配、释放
+s1.setName("John");
+cout<<s1.getName()<<endl;
 
-    /*堆区开辟空间*/
-    Student *s2 = new Student();
-    s2->setName("Mary");
-    cout<<s2->getName()<<endl;
-    delete s2;//必须手动释放堆空间
+/*堆区开辟空间*/
+Student *s2 = new Student();
+s2->setName("Mary");
+cout<<s2->getName()<<endl;
+delete s2;//必须手动释放堆空间
+
+//调用静态函数，不用创建类的对象
+Tests::printss();
 ```
 
 
@@ -528,7 +519,7 @@ Student(char *name,int age){
 
 #### 拷贝构造函数
 
-使用`=`会调用默认的拷贝构造函数
+①使用`=`会调用**默认的**拷贝构造函数
 
 ```c++
 Student s1 = {"John"}; // 栈区开辟空间
@@ -568,6 +559,119 @@ s3 = s1;
 > Student *st1 = new Student("jack",23);
 > 
 > Student *st2 = st1;//这个不会调用拷贝构造函数，这是st2指向st1的地址
+> ```
+>
+
+**③函数参数有对象也会拷贝**
+
+```c++
+void showStudent(Student stu)
+{
+    cout << "show function:" << &stu << endl; // 这里看看是否调用拷贝构造函数
+}
+
+int main()
+{
+    Student s1("John"); // 栈区开辟空间
+    cout << "main s1:" << &s1 << endl;
+    showStudent(s1);
+}
+
+输出：
+main s1:0x61fe00
+custom copy constructor
+show function:0x61fe08
+```
+
+
+
+#### 浅拷贝与深拷贝
+
+> 参考——[浅拷贝、深拷贝](https://www.cnblogs.com/hellowooorld/p/11259560.html)
+
+当出现类的等号赋值时，即会调用拷贝函数
+
+**区别：**
+
+> - 在未定义显示拷贝构造函数的情况下，系统会调用默认的拷贝函数——即浅拷贝，它能够完成成员的一一复制。当数据成员中没有指针时，浅拷贝是可行的；**但当数据成员中有指针时**，如果采用简单的浅拷贝，则两类中的两个指针将指向同一个地址，当对象快结束时，会调用两次析构函数，而导致指针悬空现象，所以，此时，必须采用深拷贝。
+> - 深拷贝与浅拷贝的区别就在于深拷贝会在堆内存中另外申请空间来储存数据，从而也就解决了指针悬空的问题。简而言之，当数据成员中有指针时，必须要用深拷贝。
+
+**例子：**
+
+**浅拷贝**就是对象的数据成员之间的简单赋值，如你设计了一个没有类而没有提供它的复制构造函数，当用该类的一个对象去给令一个对象赋值时所执行的过程就是浅拷贝，如：
+
+```c++
+class A 
+{ 
+    public: 
+    A(int _data) : data(_data){} 
+    A(){}
+    private: 
+    int data;
+ };
+int main() 
+{ 
+    A a(5), b = a; // 仅仅是数据成员之间的赋值 
+}
+```
+
+但是如果对象中有其他资源(如：堆、文件、系统资源等)
+
+```c++
+class A 
+{ 
+    public: 
+    A(int _size) : size(_size)
+    {
+        data = new int[size];
+    } // 假如其中有一段动态分配的内存 
+    A(){};
+     ~A()
+    {
+        delete [] data;
+    } // 析构时释放资源
+    private: 
+    int* data;
+    int size; 
+}
+int main() 
+{ 
+    A a(5), b = a; // 注意这一句 
+}
+
+
+b.size = a.size;
+b.data = a.data; // Oops!
+这里b的指针data和a的指针指向了堆上的同一块内存，a和b析构时，b先把其data指向的动态分配的内存释放了一次，而后a析构时又将这块已经被释放过的内存再释放一次。对同一块动态内存执行2次以上释放的结果是未定义的，所以这将导致内存泄露或程序崩溃。
+```
+
+> 针对上面情况，需要用深拷贝来解决。深拷贝指的就是当拷贝对象中有对其他资源（如堆、文件、系统等）的引用时（引用可以是指针或引用）时，对象的另开辟一块新的资源，而不再对拷贝对象中有对其他资源的引用的指针或引用进行单纯的赋值。
+>
+> ```c++
+> class A 
+> { 
+>     public: 
+>     A(int _size) : size(_size)
+>     {
+>         data = new int[size];
+>     } // 假如其中有一段动态分配的内存 
+>     A(){};
+>     A(const A& _A) : size(_A.size)
+>     {
+>         data = new int[size];
+>     } // 深拷贝 
+>     ~A()
+>     {
+>         delete [] data;
+>     } // 析构时释放资源
+>     private: 
+>     int* data; 
+>      int size;
+>  }
+> int main() 
+> { 
+>     A a(5), b = a; // 这次就没问题了 
+> }
 > ```
 >
 > 
