@@ -100,6 +100,12 @@ int main() {
 
 
 
+### (3)初始化
+
+在`JAVA`中，如果不给初始类型赋值，则系统默认赋默认值；
+
+在`C++`中，不给赋值，就是系统值-64664
+
 ## 2.io
 
 ### (1)控制台io
@@ -342,7 +348,44 @@ void func(int a = 10,double a){
 }
 ```
 
-### (2)无名形参
+### (2)可变参数
+
+```c++
+#include <iostream>
+#include <stdarg.h> //引入头文件
+using namespace std;
+// 可变参数
+void sum(int count, ...)
+{
+    va_list arg;
+    va_start(arg, count); // 第二个参数必须是变量，不能是具体值。用作存储地址参考值。
+
+    // 取第一个可变参数的变量
+    int argc = va_arg(arg, int);
+    cout << "argc_0 = " << argc << endl;
+
+    //取第二个可变参数的变量
+    int argv = va_arg(arg, int);
+    cout << "argv_1 = " << argv << endl;
+    
+    
+    va_end(arg)
+}
+
+int main()
+{
+    sum(2, 10, 20);//这里的count可以是任意值，一般为可变参数长度，方便后面遍历
+    return 0;
+}
+
+输出
+argc_0 = 10
+argv_1 = 20
+```
+
+
+
+### (3)无名形参
 
  C++中，形参可以只指定类型，不指定名称。这种形参被称为“无名形参”或“占位符形参”。在函数定义中，可以使用类型名代替形参名来定义一个无名形参。 
 
@@ -710,7 +753,105 @@ b.data = a.data; // Oops!
 
 
 
+### (5)静态变量
 
+静态变量只能在类里面声明，在类外初始化
+
+```c++
+class Student
+{
+public:
+    int *nums;
+    static int age;
+};
+
+int Student::age = 10;//不需要static
+```
+
+### (6)友元
+
+#### ①友元函数
+
+友元函数是一个定义在类外部，但有权访问类的所有私有（private）成员和保护（protected）成员的函数。 
+
+```c++
+class Person {
+private:
+    int age;
+    std::string name;
+
+public:
+    void setAge(int age) {
+        this->age = age;
+    }
+    void setName(std::string name) {
+        this->name = name;
+    }
+
+    friend void printPersonInfo(Person *person); // 友元函数声明
+};
+
+void printPersonInfo(Person *person) {
+    std::cout << "age: " << person->age << std::endl;//能够访问私有变量
+    std::cout << "name: " << person->name << std::endl;
+}
+
+int main() {
+    Person person;
+    person.setAge(10);
+    person.setName("Bard");
+
+    printPersonInfo(&person); // 调用友元函数
+    return 0;
+}
+```
+
+
+
+#### ②友元类
+
+友元类是指一个类可以访问另一个类的所有私有（private）成员和保护（protected）成员。友元类的声明格式如下： 
+
+```c++
+class ClassName {
+public:
+    // ...
+private:
+    // ...
+    friend class FriendClass; // 友元类声明
+};
+
+class FriendClass{
+public:
+    ClassName classname;
+    
+    //可以访问ClassName的所有成员
+}
+```
+
+
+
+### (7)this指针
+
+每个对象创建都会有一个this指针，指向不同区域的成员变量，防止出错
+
+**this指针实质是一个`指针常量`**
+
+```c++
+class Worker{
+public:
+    int age = NULL;
+    ...
+        
+    //隐式的含有this
+    //Worker * const this:指针地址无法北修改，但是值可以被修改
+        
+    void change(){
+       //this = 0x6545;//指针地址无法被修改
+    	this->age = 20;//指针指向的成员变量的值可以被修改
+    }
+}
+```
 
 
 
@@ -776,3 +917,87 @@ namespace namespace_name {
 }
 ```
 
+
+
+## 8.宏
+
+> 参考——[宏定义](http://c.biancheng.net/view/446.html)
+
+## 9.条件编译
+
+> 参考：
+>
+> [条件编译-博客园](https://www.cnblogs.com/wanqieddy/p/4377937.html)
+
+ 
+
+### (1)主要形式
+
+条件编译是C语言中预处理部分的内容，它是编译器编译代码时最先处理的部分， 
+
+ 它的意思是如果宏条件符合，编译器就编译这段代码，否则，编译器就忽略这段代码而不编译。
+
+条件编译指令主要有以下几种：
+
+- `#ifdef` 和 `#endif`
+- `#ifndef` 和 `#endif`
+- `#if` 和 `#endif`
+- `#elif`
+- `#else`
+
+**Example：** 
+
+```c++
+#define  A 0  //把A定义为0
+
+#if (A > 1)
+
+printf("A > 1");  //编译器没有编译该语句,该语句不生成汇编代码
+
+#elif (A == 1)
+
+printf("A == 1"); //编译器没有编译该语句,该语句不生成汇编代码
+
+#else
+
+printf("A < 1");   //编译器编译了这段代码，且生成了汇编代码，执行该语句
+
+#endif
+
+```
+
+
+
+**常见的条件编译的三种形式：**
+
+> ```c++
+> #if defined(或者是ifdef)<标识符(条件)> 
+> 
+> <程序段1>
+> 
+> #endif  
+> ```
+
+> ```c++
+> #if !defined(或者是ifndef)<标识符(条件)> 
+> 
+> <程序段1> 
+> 
+> #ifdef … 
+> 
+> [#elif … ] 
+> 
+> [#elif …] 
+> 
+> #else …  
+> 
+> #endif
+> ```
+
+### (2)应用场景
+
+条件编译可以用于以下场景：
+
+- 在不同平台上编译不同的代码
+- 在不同版本的库或硬件上编译不同的代码
+- 在调试和发布版本中编译不同的代码

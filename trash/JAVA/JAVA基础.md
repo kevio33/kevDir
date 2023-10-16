@@ -88,6 +88,36 @@ bd.setScale(x, BigDecimal.ROUND_HALF_UP).doubleValue();
 
 > 参考——https://www.cnblogs.com/duiyuedangge/p/15770551.html
 
+
+
+### 3.变量初始化规则
+
+局部变量（在方法中声明的变量）必须在使用前初始化，否则会导致编译错误。但成员变量（在类中声明的变量）可以不初始化，它们会根据默认值自动初始化。 
+
+```java
+// 成员变量
+public class Test {
+    private int a; // 默认为 0
+    private String b; // 默认为 null
+
+    public static void main(String[] args) {
+       ....
+    }
+}
+
+// 局部变量
+public class Test {
+    public static void main(String[] args) {
+        int a; // 未初始化，编译报错
+        System.out.println(a); // 无法访问未初始化的变量
+    }
+}
+```
+
+
+
+
+
 ## 二、Java堆栈
 
 > https://blog.csdn.net/qq_34467922/article/details/80790443

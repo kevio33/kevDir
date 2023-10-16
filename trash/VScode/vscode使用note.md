@@ -287,3 +287,11 @@ set(EXECUTABLE_OUTPUT_PATH ..)
 
 `ctrl+,`
 
+
+
+## 3.切换标签页
+
+> 参考——[切换标签页快捷键](https://juejin.cn/s/vscode%20%E5%88%87%E6%8D%A2%E6%A0%87%E7%AD%BE%E9%A1%B5%E5%BF%AB%E6%8D%B7%E9%94%AE)
+
+`Ctrl + Tab` 或 `Ctrl + Page Down`
+
