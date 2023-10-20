@@ -79,7 +79,7 @@ int main ()
 
 ### (2)auto
 
- auto是一个关键字，可以用于声明变量。auto变量的类型由初始化表达式来推断。 
+ auto是一个关键字，可以用于声明变量。auto变量的类型由初始化表达式来推导。 
 
 ```c++
 #include <iostream>
@@ -432,7 +432,188 @@ argv_1 = 20
 >   }
 >   ```
 >
->   
+
+
+
+### (4)运算符重载
+
+> 参考：[运算符重载](https://www.runoob.com/cplusplus/cpp-overloading.html)
+
+可以重载内置的运算符以满足某些要求
+
+**重载的运算符是带有特殊名称的函数，函数名是由关键字 operator 和其后要重载的运算符符号构成的。**
+
+#### `+`运算符重载
+
+```c++
+class Box
+{
+   public:
+    double getVolume(void)
+      {
+         return length * breadth * height;
+      }
+      void setLength( double len )
+      {
+          length = len;
+      }
+ 
+      void setBreadth( double bre )
+      {
+          breadth = bre;
+      }
+ 
+      void setHeight( double hei )
+      {
+          height = hei;
+      }
+      // 重载 + 运算符，用于把两个 Box 对象相加
+      //运算符重载写在类中，方便调用类的成员变量
+      Box operator+(const Box& b)
+      {
+         Box box;
+         box.length = this->length + b.length;
+         box.breadth = this->breadth + b.breadth;
+         box.height = this->height + b.height;
+         return box;
+      }
+   private:
+      double length;      // 长度
+      double breadth;     // 宽度
+      double height;      // 高度
+};
+
+int main( )
+{
+   Box Box1;                // 声明 Box1，类型为 Box
+   Box Box2;                // 声明 Box2，类型为 Box
+   Box Box3;                // 声明 Box3，类型为 Box
+   double volume = 0.0;     // 把体积存储在该变量中
+ 
+   // Box1 详述
+   Box1.setLength(6.0); 
+   Box1.setBreadth(7.0); 
+   Box1.setHeight(5.0);
+ 
+   // Box2 详述
+   Box2.setLength(12.0); 
+   Box2.setBreadth(13.0); 
+   Box2.setHeight(10.0);
+ 
+   // 把两个对象相加，得到 Box3
+   Box3 = Box1 + Box2;
+ 
+   // Box3 的体积
+   volume = Box3.getVolume();
+   cout << "Volume of Box3 : " << volume <<endl;
+ 
+   return 0;
+}
+```
+
+
+
+#### `<<`运算符重载
+
+**重载函数必须是友元函数；**
+
+```c++
+#include <iostream>
+using namespace std;
+class Student
+{
+public:
+
+    Student(char *name, int age) : name(name), age(age)
+    {
+        cout << "name:" <<this->name<< endl;
+        cout << "age:" << this->age << endl;
+    }
+
+    void setName(char *name);
+    char *getName();
+    int getAge();
+ 
+    ~Student()
+    {
+        cout << "xi gou han shu" << endl;
+        delete[] nums;
+    }
+    //输出符号重载
+    //必须是友元函数
+    friend ostream &operator<<(ostream &os, const Student &stu){
+        os << "operator <<:" << stu.name << " " << stu.age << " "<<endl;
+    	return os;//放回重载操作对象，能够支持打印多个重载
+    }
+private:
+    char *name;
+    int age;
+};
+
+int main()
+{
+    Student s1("John", 10); // 栈区开辟空间
+    cout << s1;
+}
+
+
+//输出
+operator <<:John 10
+```
+
+
+
+#### `>>`运算符重载
+
+**重载函数必须是友元函数**
+
+```c++
+#include <iostream>
+using namespace std;
+class Student
+{
+public:
+
+    Student(char *name, int age) : name(name), age(age)
+    {
+        cout << "name:" <<this->name<< endl;
+        cout << "age:" << this->age << endl;
+    }
+
+    void setName(char *name);
+    char *getName();
+    int getAge();
+ 
+    ~Student()
+    {
+        cout << "xi gou han shu" << endl;
+        delete[] nums;
+    }
+    //输入符号重载
+    //必须是友元函数
+    friend istream &operator>>(istream &is, const Student &stu){
+        is >>  stu.name >> stu.age;
+    	return is;//放回重载操作对象，能够支持打印多个重载
+    }
+private:
+    char *name;
+    int age;
+};
+
+int main()
+{
+    Student s1("John", 10); // 栈区开辟空间
+    cin >> s1;
+}
+
+
+//输出
+operator <<:John 10
+```
+
+
+
+
 
 ## 6.面向对象
 
@@ -530,10 +711,10 @@ int main() {
 
 ### (3)构造函数
 
-特殊构造函数写法
+构造函数后面跟上`:`代表初始化，在编译阶段
 
 ```c++
-Student(char *name):name(name),age(age){
+Student(char *name):name(name),age(age){//初始化
     cout<<"赋值给name"<<endl;
 }
 
@@ -557,6 +738,32 @@ Student(char *name,int age){
     this->age = age;
 }
 ```
+
+
+
+**当一个类的成员包含对象时候，必须使用：形式初始化**
+
+```c++
+class Person{
+private:
+    char* name;
+public:
+    Person(name):name(name){};
+};
+
+
+class Student{
+private:
+    Person person;
+public:
+    Student(char* name):person(name)//必须在：后面初始化成员对象
+    {
+        
+    }
+}
+```
+
+
 
 
 
@@ -855,6 +1062,281 @@ public:
 
 
 
+### (8)继承
+
+> [c++继承到底继承了什么](https://www.cnblogs.com/zhaozhibo/p/14977043.html)
+
+```c++
+class Parent{
+    
+}
+
+//默认是私有继承，要指明范围
+class Son:public Parent{
+    
+}
+```
+
+
+
+#### 多继承
+
+不同于Java，c++支持多继承，并且通过`::`解决二义性问题
+
+```c++
+class Base1{
+    void show(){
+        
+    }
+}
+
+class Base2{
+    void show(){
+        
+    }
+}
+
+class Base3{
+    void show(){
+        
+    }
+}
+
+class MainAct:public Base1,public Base2,public Base3{
+    void show(){
+        
+    }
+}
+
+int main(){
+    MainAct mainact;
+    
+    mainact.Base1::show();//指明调用的基类的方法
+}
+```
+
+
+
+#### 虚继承
+
+> 参考——[虚基类](http://c.biancheng.net/view/2280.html)
+
+当多继承出现下面菱形继承的时候：
+
+ ![菱形继承](c++.assets/1-2006291I602320.png) 
+
+类 A 派生出类 B 和类 C，类 D 继承自类 B 和类 C，这个时候类 A 中的成员变量和成员函数继承到类 D 中变成了两份，一份来自 A-->B-->D 这条路径，另一份来自 A-->C-->D 这条路径。 
+
+ **假如类 A 有一个成员变量 a，那么在类 D 中直接访问 a 就会产生歧义，编译器不知道它究竟来自 A -->B-->D 这条路径，还是来自 A-->C-->D 这条路径。** 
+
+```c++
+//间接基类A
+class A{
+protected:
+    int m_a;
+};
+//直接基类B
+class B: public A{
+protected:
+    int m_b;
+};
+//直接基类C
+class C: public A{
+protected:
+    int m_c;
+};
+//派生类D
+class D: public B, public C{
+public:
+    void seta(int a){ m_a = a; }  //命名冲突
+    void setb(int b){ m_b = b; }  //正确
+    void setc(int c){ m_c = c; }  //正确
+    void setd(int d){ m_d = d; }  //正确
+private:
+    int m_d;
+};
+int main(){
+    D d;
+    return 0;
+}
+```
+
+
+
+**解决办法**
+
+> - **指明基类**
+>
+> ```c++
+> void seta(int a){ B::m_a = a; }
+> void seta(int a){ C::m_a = a; }
+> ```
+>
+> - **虚继承**
+>
+> ```c++
+> //间接基类A
+> class A{
+> protected:
+>    int m_a;
+> };
+> 
+> //直接基类B
+> class B: virtual public A{  //虚继承
+> protected:
+>    int m_b;
+> };
+> 
+> //直接基类C
+> class C: virtual public A{  //虚继承
+> protected:
+>    int m_c;
+> };
+> 
+> //派生类D
+> class D: public B, public C{
+> public:
+>    void seta(int a){ m_a = a; }  //正确
+>    void setb(int b){ m_b = b; }  //正确
+>    void setc(int c){ m_c = c; }  //正确
+>    void setd(int d){ m_d = d; }  //正确
+> private:
+>    int m_d;
+> };
+> 
+> int main(){
+>   A a;
+>   B b;
+>   C c;
+>   D d;
+>   a.m_a = 10;
+>   b.m_a = 100;
+>   c.m_a = 1000;
+>   d.m_a = 10000;
+>   cout<<"a.m_a"<<a.m_a<<endl;
+>   cout<<"b.m_a"<<a.m_a<<endl;
+>   cout<<"c.m_a"<<a.m_a<<endl;
+>   cout<<"d.m_a"<<a.m_a<<endl;
+> }
+> 
+> 
+> //输出
+> 10
+> 100
+> 1000
+> 10000
+> ```
+>
+> 这样在派生类 D 中就只保留了一份成员变量 m_a，直接访问就不会再有歧义了。 
+>
+> 上述虚继承的关系可以下图表示：
+>
+> ![1697524384025](c++.assets/1697524384025.png)
+>
+>   > **在上图中，当定义 D 类时才出现了对虚派生的需求，但是如果 B 类和 C 类不是从 A 类虚派生得到的，那么 D 类还是会保留 A 类的两份成员。**
+
+### (9)多态
+
+#### 动态多态——重写
+
+c++默认关闭多态，如果启用多态，使用虚函数。
+
+动态多态只有在运行时候才会找哪个成员方法运行
+
+```c++
+class Base1
+{
+public:
+    int m_a = 10;
+    virtual void onStart(){//虚函数启用多态（动态多态-重写）
+        cout<<"Base1"<<endl;
+    }
+};
+
+class Home : public Base1
+{
+public:
+    void onStart(){
+        cout<<"Home"<<endl;
+    }
+};
+
+class Login : public Base1
+{
+public:
+    void onStart(){
+        cout<<"Login"<<endl;
+    }
+};
+
+void onShow(Base1 *base){
+    base->onStart();
+}
+
+int main(){
+    Base1* home = new Home();
+    Base1* login = new Login();
+    
+    onShow(home);
+    onShow(login);
+}
+```
+
+
+
+### (10)抽象
+
+c++实现`抽象`是通过**`纯虚函数`**
+
+```c++
+class MyAbstract{
+public:
+    virtual string hello();//虚函数，可以不实现
+    virtual void initView()=0;//纯虚函数
+};
+
+class Son:public MyAbstract{
+public:
+  void initView(){
+      //实现方法。
+      //如果子类不实现，那么该类也是抽象类
+  }  
+};
+```
+
+
+
+> 利用抽象实现回调
+>
+> ```c++
+> #include<iostream>
+> using namespace std;
+> 
+> class ClickListener{
+> public:
+>     virtual void onClick() = 0;
+> };
+> 
+> //实现父类的方法
+> class MyClick:public ClickListener{
+> public:
+>     void onClick(){
+>         cout<<"click"<<endl;
+>     }
+> };
+> 
+> void clickEvent(ClickListener &clickEvent){
+>     clickEvent.onClick();
+> }
+> 
+> int main(){
+>     MyClick click;
+>     int loginType = 1;
+>     if(loginType == 1)
+>         clickEvent(click);
+> }
+> ```
+
 ## 7.命名空间
 
 为了防止不同库下面的函数重名情况
@@ -1001,3 +1483,536 @@ printf("A < 1");   //编译器编译了这段代码，且生成了汇编代码�
 - 在不同平台上编译不同的代码
 - 在不同版本的库或硬件上编译不同的代码
 - 在调试和发布版本中编译不同的代码
+
+
+
+## 10.模板
+
+c++使用`模板`来实现类似于java的`泛型`
+
+### (1)模板函数
+
+```c++
+template <typename T>
+void functon(T n1,T n2){
+    ...
+}
+```
+
+```c++
+template <typename T>
+void functon(T n1,T n2){
+    cout<<n1+n2<<endl;
+}
+
+int main(){
+    function(1,2);
+    function(1.1f,2.2f);
+}
+```
+
+### (2)模板类
+
+```c++
+template <typename T>
+class MyClass {
+    public:
+    MyClass() {}
+
+    void set(T value) {
+        this->value = value;
+    }
+
+    T get() {
+        return value;
+    }
+
+    private:
+    T value;
+};
+
+
+int main(){
+    MyClass<int> my_class;
+    my_class.set(10);
+}
+```
+
+
+
+### (3)优缺点
+
+模板具有以下优点：
+
+- 可以让程序员编写通用的代码，而无需考虑具体的类型。
+- 可以提高代码的可重用性和可维护性。
+- 可以减少代码量。
+
+模板也有一些缺点：
+
+- 模板编译可能比较慢。
+- 模板可能会导致代码膨胀。
+
+
+
+## 11.STL
+
+### (1)vector
+
+> 参考——[vector](https://www.runoob.com/w3cnote/cpp-vector-container-analysis.html)
+
+**构造函数**
+
+```c++
+vector<int> vec1(int size,int defaultValue);//可以指定尺寸和默认初值
+
+vector():创建一个空vector
+vector(int nSize):创建一个vector,元素个数为nSize
+vector(int nSize,const t& t):创建一个vector，元素个数为nSize,且值均为t
+vector(const vector&):复制构造函数
+vector(begin,end):复制[begin,end)区间内另一个数组的元素到vector中
+```
+
+> vector重载了`[]`运算符，可以直接访问
+>
+> ```c++
+> //直接访问元素
+> vector<int> v(10,10);
+> v[0] = 100;
+> ```
+
+**迭代器**
+
+```c++
+vec1.begin();//返回向量头指针，指向第一个元素
+vec1.end();//返回向量尾指针，指向最后一个元素的下一个位置
+
+vec1.rbegin();//反向迭代器，指向最后一个元素
+vec1.rend();//反向迭代器，指向第一个元素之前的位置
+
+vec1.at(int pos);//返回pos位置元素的引用
+
+vec1.front();//返回首元素的引用
+	vec1.front() = 99;//修改第一个元素
+
+vec1.back();//返回尾元素的引用
+```
+
+> **遍历**
+>
+> ①通过下标遍历
+>
+> ②通过迭代器遍历
+>
+> ```c++
+> //下标遍历
+> vector<int> v(10,10);
+> v[0] = 100;
+> 
+> for(int i = 0;i<v.size();i++){
+>     cout<<v[i]<<endl;
+> }
+> ```
+>
+> ```c++
+> //迭代器遍历
+> for(vector<int>::iterator it = v.begin();it!=v.end();it++){
+>     cout<<*it<<endl;//类似指针
+> }
+> 
+> //自推导类型
+> for(auto iterator it = v.begin();it!=v.end();it++){
+>     cout<<*it<<endl;//类似指针
+> }
+> ```
+
+**插入**
+
+```c++
+vec1.insert(vec1.begin(),10);//在向量头插入
+
+vec1.push_back(a);//向量尾部增加一个元素X
+```
+
+
+
+**删除**
+
+```c++
+vec1.erase(vec1.begin());//删除迭代器指向的元素
+
+vec1.erase(vec1.begin(),vec1.end());//删除向量范围的元素
+
+vec1.pop_back();//删除向量中最后一个元素
+
+vec1.clear()
+```
+
+
+
+### (2)stack
+
+> 参考-[stack用法](https://c.biancheng.net/view/478.html)
+
+**stack没有迭代器**
+
+- top()：返回一个栈顶元素的引用，类型为 T&。如果栈为空，返回值未定义。
+- push(const T& obj)：可以将对象副本压入栈顶。这是通过调用底层容器的 push_back() 函数完成的。
+- push(T&& obj)：以移动对象的方式将对象压入栈顶。这是通过调用底层容器的有右值引用参数的 push_back() 函数完成的。
+- pop()：弹出栈顶元素。
+- size()：返回栈中元素的个数。
+- empty()：在栈中没有元素的情况下返回 true。
+- emplace()：用传入的参数调用构造函数，在栈顶生成对象。
+- swap(stack<T> & other_stack)：将当前栈中的元素和参数中的元素交换。参数所包含元素的类型必须和当前栈的相同。对于 stack 对象有一个特例化的全局函数 swap() 可以使用。
+
+
+
+### (3)queue
+
+> [queue](https://c.biancheng.net/view/479.html)
+
+queue 和 stack 有一些成员函数相似，但在一些情况下，工作方式有些不同：
+
+- front()：返回 queue 中第一个元素的引用。如果 queue 是常量，就返回一个常引用；如果 queue 为空，返回值是未定义的。
+- back()：返回 queue 中最后一个元素的引用。如果 queue 是常量，就返回一个常引用；如果 queue 为空，返回值是未定义的。
+- push(const T& obj)：在 queue 的尾部添加一个元素的副本。这是通过调用底层容器的成员函数 push_back() 来完成的。
+- push(T&& obj)：以移动的方式在 queue 的尾部添加元素。这是通过调用底层容器的具有右值引用参数的成员函数 push_back() 来完成的。
+- pop()：删除 queue 中的第一个元素。
+- size()：返回 queue 中元素的个数。
+- empty()：如果 queue 中没有元素的话，返回 true。
+- emplace()：用传给 emplace() 的参数调用 T 的构造函数，在 queue 的尾部生成对象。
+- swap(queue<T> &other_q)：将当前 queue 中的元素和参数 queue 中的元素交换。它们需要包含相同类型的元素。也可以调用全局函数模板 swap() 来完成同样的操作。
+
+> 和 stack 一样，**queue 也没有迭代器**。访问元素的唯一方式是遍历容器内容，并移除访问过的每一个元素。例如： 
+>
+> ```c++
+> std::deque<double> values {1.5, 2.5, 3.5, 4.5}; 
+> std::queue<double> numbers(values);
+> 
+> while (!numbers, empty())
+> {
+>     std::cout << numbers.front() << " ";// Output the 1st element 
+>     numbers.pop();// Delete the 1st element
+> }
+> std::cout << std::endl;
+> ```
+
+#### 优先队列
+
+> 参考——[优先队列](https://blog.csdn.net/weixin_36888577/article/details/79937886)
+
+```c++
+priority_queue<Type, Container, Functional>
+
+1.Type 就是数据类型
+2.Container 就是容器类型（Container必须是用数组实现的容器，比如vector,deque等等，但不能用 list。STL里面默认用的是vector）
+3.Functional 就是比较的方式，当需要用自定义的数据类型时才需要传入这三个参数，使用基本数据类型时，只需要传入数据类型，默认是大顶堆
+```
+
+```c++
+//升序队列
+priority_queue <int,vector<int>,greater<int> > q;
+//降序队列，默认类型
+priority_queue <int,vector<int>,less<int> >q;
+```
+
+```c++
+//自定义类型
+#include <iostream>
+#include <queue>
+using namespace std;
+
+//方法1
+struct tmp1 //运算符重载<
+{
+    int x;
+    tmp1(int a) {x = a;}
+    bool operator<(const tmp1& a) const
+    {
+        return x < a.x; //大顶堆
+    }
+};
+
+//方法2
+struct tmp2 //重写仿函数
+{
+    bool operator() (tmp1 a, tmp1 b) 
+    {
+        return a.x < b.x; //大顶堆
+    }
+};
+
+int main() 
+{
+    tmp1 a(1);
+    tmp1 b(2);
+    tmp1 c(3);
+    priority_queue<tmp1> d;
+    d.push(b);
+    d.push(c);
+    d.push(a);
+    while (!d.empty()) 
+    {
+        cout << d.top().x << '\n';
+        d.pop();
+    }
+    cout << endl;
+
+    priority_queue<tmp1, vector<tmp1>, tmp2> f;
+    f.push(c);
+    f.push(b);
+    f.push(a);
+    while (!f.empty()) 
+    {
+        cout << f.top().x << '\n';
+        f.pop();
+    }
+}
+```
+
+
+
+#### deque
+
+> https://blog.csdn.net/sevenjoin/article/details/88530962
+
+
+
+### (4)list
+
+> https://c.biancheng.net/view/6892.html
+>
+> https://blog.csdn.net/qq_46659987/article/details/115552578
+
+`list`又称双向链表容器，即该容器的底层是以双向链表的形式实现的 。 它可以在序列已知的任何位置快速插入或删除元素（时间复杂度为`O(1)`）。并且在 list 容器中移动元素，也比其它容器的效率高 
+
+> **list没有重载`[]`**
+
+
+
+### (5)set
+
+> https://c.biancheng.net/view/7192.html
+
+**默认less升序排序**
+
+> **注意如果插入重复的数据：**
+>
+> ```c++
+> //重复插入，并不会报错std::pair<iteratorbool>
+> pair<set<int,Less<int>>::iterator,bool> res=setvar.insert(x:8);
+> 
+> //res.first获收第1个元素选代器
+> //res.second获取第2个元素bool
+> bool insert_success=res.second;
+> if(insert_success){
+> 	cout<<“基喜你，插入成功”<endl；
+> 	//插入成功后，我用第·个元素趣历
+> 	for(;res.first!=setvar.end();res.first++){
+> 		cout<<*res.first<<endl;
+>     }else{
+> 		cout<<"哎，插入失败.."<<end；
+>     }
+> ```
+
+
+
+> **如果传入的元素是类，那么应该自定义排序给规则， 也就是谓词**
+>
+> 谓词一般写在结构体里面
+>
+> ![1697711675749](c++.assets/1697711675749.png)
+
+
+
+### (6)map
+
+> 参考——
+
+**map会对key进行排序**
+
+```c++
+map<int,string> mapVar;
+```
+
+
+
+**添加**
+
+```c++
+//map有四种方式添加键值对
+//1.通过pair对的方式
+mapVar.insert(pair<int,string>(1,"kevin"));
+
+//2.使用make_pair不用指定类型
+mapVar.insert(make_pair(2,"john"));
+
+//3.插入一个map对
+mapVar.insert(map<int,string>::value_type(3,"jack"));
+
+//4.通过下标添加
+mapVar[5] = "elena";
+```
+
+> **注意：上面四种添加方式除了第四种以外，前面三种添加重复的键不会覆盖。**
+
+**遍历**
+
+> **迭代器遍历：**
+>
+> map有多种迭代器：
+>
+> - `iterator`：常规迭代器
+> - `const_iterator`：只读迭代器
+> - `reverse_iterator`：反转迭代器
+
+```c++
+map<int,string> m;
+m[1]="abc";
+m[2]="def";
+m[3]="ghi";
+
+for(auto i=m.begin();i!=m.end();i++){
+    cout<<i->first<<"."<<i->second<<"\t";
+}
+```
+
+
+
+**获取插入之后返回的结果至**
+
+```c++
+//param1：该内容的迭代器；param2：是否插入成功   
+pair<map<int,string>::iterator,bool> p = m.insert(map<int,string>::value_type(5,"lucy"));
+
+if(p.second == true){
+    cout<<"insert success"<<endl;
+    for(p.first;p.first!=m.end();p.first++){//从当前插入的位置开始遍历map
+        cout<<p.first->first<<"."<<p.first->second<<"\t";
+    }
+}else{
+    cout<<"insert fail"<<endl;
+}
+```
+
+
+
+**查找**
+
+```c++
+map<int,string>::iterator i = m.find(3);//通过键查找，返回查找位置的迭代器
+if(i != m.end()){
+    cout<<"find success"<<endl;
+}else{
+    cout<<"find fail"<<endl;
+}
+```
+
+
+
+#### multimap
+
+**multimap允许插入重复键，并且会自动对键进行排序。因为这个功能，所以可以多键值对进行分组**
+
+```c++
+multimap<int,string> multi;
+multi.insert(make_pair(1,"abc"));
+multi.insert(make_pair(1,"def"));
+multi.insert(make_pair(2,"ghi"));
+multi.insert(make_pair(3,"jkl"));
+multi.insert(make_pair(2,"lmn"));
+
+//查找，返回的是第一个符合条件的键值对的迭代器位置
+map<int,string>::iterator i = multi.find(2);
+
+while(i!=multi.end()){
+    //遍历我们查找的键为1的键值对
+    cout<<i->first<<"."<<i->second<<"\t";
+    i++;
+	//自定义判断条件，拿到我们想要的内容
+    if (i->first != 2 || i == multi.end())
+    {
+        break;
+    }
+}
+```
+
+> **注意：通过find方法返回的对象是第一个查找到的元素的迭代器，因此遍历时候需要自定义条件终止，否则会遍历到末尾**
+
+## 12.仿函数和谓词
+
+### (1)仿函数
+
+ 仿函数是指重载了 `operator()` 运算符的类。仿函数可以像函数一样被调用，但**它不是函数**，而是对象。 
+
+**优势：** 仿函数的优势在于，它可以提供比函数更灵活的功能。例如，仿函数可以具有状态，也可以有成员变量。 
+
+```c++
+#include <iostream>
+#include <map>
+#include<algorithm>
+using namespace std;
+//自定义仿函数，用于打印数据
+class MyActionShow{
+public:
+    void operator()(const std::pair<int, std::string>& p){
+        cout<<p.first<<":"<<p.second<<endl;
+    }
+};
+
+int main()
+{
+    multimap<int, string> multi;
+    multi.insert(make_pair(1, "abc"));
+    multi.insert(make_pair(1, "def"));
+    multi.insert(make_pair(2, "ghi"));
+    multi.insert(make_pair(3, "jkl"));
+    multi.insert(make_pair(2, "lmn"));
+
+    map<int, string>::iterator i = multi.find(2);
+    for_each(i, multi.end(), MyActionShow());//通过for_each和仿函数遍历访问字典数据
+}
+```
+
+
+
+> 为仿函数添加其他遍变量
+>
+> ![1697792644597](c++.assets/1697792644597.png)
+>
+> 遍历map的内部元素
+>
+> ![1697792693654](c++.assets/1697792693654.png)![1697792693716](c++.assets/1697792693716.png)
+
+
+
+### (2)谓词
+
+谓词是指返回 `bool` 类型值的*函数*或*仿函数*。谓词通常用于判断某个条件是否成立。
+
+谓词的优势在于，它可以用于各种需要判断条件的场合，例如**过滤、排序、搜索**等。
+
+```c++
+//谓词
+void showMethod(const pair<int,string> &p){
+    cout << p.first << ":" << p.second << endl;
+}
+
+int main()
+{
+    multimap<int, string> multi;
+    multi.insert(make_pair(1, "abc"));
+    multi.insert(make_pair(1, "def"));
+    multi.insert(make_pair(2, "ghi"));
+    multi.insert(make_pair(3, "jkl"));
+    multi.insert(make_pair(2, "lmn"));
+
+    map<int, string>::iterator i = multi.find(2);
+
+    for_each(i, multi.end(), showMethod);//for_each和谓词打印元素
+}
+```
+
+> 接受一个参数，叫做一元谓词
+>
+> 接受两个参数，叫做二元谓词
