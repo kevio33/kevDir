@@ -615,6 +615,29 @@ operator <<:John 10
 
 
 
+#### `()`运算符重载
+
+> [运算符()重载](https://www.runoob.com/cplusplus/function-call-operator-overloading.html)
+
+
+
+### (5)只读函数
+
+> 参考——[函数后加const](https://blog.csdn.net/SMF0504/article/details/52311207)
+
+函数后面加上const代表只读函数，不可修改类的成员变量
+
+```c++
+class Test{
+public:
+	bool isInit() const{//只读
+        return false;
+    }    	
+}
+```
+
+
+
 ## 6.面向对象
 
 **声明类：**
@@ -1405,6 +1428,8 @@ namespace namespace_name {
 
 > 参考——[宏定义](http://c.biancheng.net/view/446.html)
 
+
+
 ## 9.条件编译
 
 > 参考：
@@ -1799,6 +1824,8 @@ int main()
 > **注意如果插入重复的数据：**
 >
 > ```c++
+> set<string> setVar;
+> 
 > //重复插入，并不会报错std::pair<iteratorbool>
 > pair<set<int,Less<int>>::iterator,bool> res=setvar.insert(x:8);
 > 
@@ -1810,15 +1837,30 @@ int main()
 > 	//插入成功后，我用第·个元素趣历
 > 	for(;res.first!=setvar.end();res.first++){
 > 		cout<<*res.first<<endl;
->     }else{
+>  }else{
 > 		cout<<"哎，插入失败.."<<end；
+>  }
+> ```
+
+**自定义仿函数**
+
+> ```c++
+> class CompareObject{
+> public:
+>     bool operator()(const string & _x,const string & _y) const{
+>         return _x > _y;
 >     }
+> };
+> 
+> int main(){
+>     set<string,CompareObject> setVar;//自定义了仿函数，因此会升序排序
+> }
 > ```
 
 
 
-> **如果传入的元素是类，那么应该自定义排序给规则， 也就是谓词**
->
+**如果传入的元素是类，那么应该自定义排序给规则， 也就是谓词**
+
 > 谓词一般写在结构体里面
 >
 > ![1697711675749](c++.assets/1697711675749.png)
@@ -1939,6 +1981,14 @@ while(i!=multi.end()){
 
 > **注意：通过find方法返回的对象是第一个查找到的元素的迭代器，因此遍历时候需要自定义条件终止，否则会遍历到末尾**
 
+
+
+### (7)string
+
+[c_str](https://blog.csdn.net/xiexu911/article/details/79965330)
+
+
+
 ## 12.仿函数和谓词
 
 ### (1)仿函数
@@ -1988,7 +2038,7 @@ int main()
 
 ### (2)谓词
 
-谓词是指返回 `bool` 类型值的*函数*或*仿函数*。谓词通常用于判断某个条件是否成立。
+谓词是指`返回 bool类型值`的*函数*或*仿函数*。谓词通常用于判断某个条件是否成立。
 
 谓词的优势在于，它可以用于各种需要判断条件的场合，例如**过滤、排序、搜索**等。
 
@@ -2016,3 +2066,51 @@ int main()
 > 接受一个参数，叫做一元谓词
 >
 > 接受两个参数，叫做二元谓词
+
+
+
+## 13.typedef
+
+> [typedef_and_using](https://learn.microsoft.com/zh-cn/cpp/cpp/aliases-and-typedefs-cpp?view=msvc-170)
+>
+> [typedef_bokeyuan](https://www.cnblogs.com/charley_yang/archive/2010/12/15/1907384.html)
+
+`typedef`可以为变量定制别名，使得初始化更方便
+
+```c++
+typedef char* PCHAR; // 一般用大写
+PCHAR pa, pb; // 同时声明了两个指向字符变量的指针
+```
+
+> 其他用途见第二参考项
+
+
+
+**在`c++11`出现了一个新的关键字`using`，作用了`typedef`类似**		
+
+```c++
+// C++11
+using counter = long;
+
+// C++03 equivalent:
+// typedef long counter;
+```
+
+
+
+# 二、库函数
+
+
+
+## 1.预定义函数
+
+> [预定义函数](https://blog.51cto.com/u_15346415/3674270)
+
+```c++
+plus<int> add_func;
+int r = add_func(1,2);
+
+plus<string> add_func2;
+string str = add_func2("AAA","BBB");
+```
+
