@@ -293,5 +293,50 @@ set(EXECUTABLE_OUTPUT_PATH ..)
 
 > 参考——[切换标签页快捷键](https://juejin.cn/s/vscode%20%E5%88%87%E6%8D%A2%E6%A0%87%E7%AD%BE%E9%A1%B5%E5%BF%AB%E6%8D%B7%E9%94%AE)
 
-`Ctrl + Tab` 或 `Ctrl + Page Down`
+`Ctrl + Tab` 或 `Ctrl + Page Down`或`alt+ ->`
 
+
+
+## 4.调出侧面板
+
+`ctrl+b`
+
+
+
+## 5.查找文件
+
+`ctrl+p`
+
+![1697977081849](vscode使用note.assets/1697977081849.png)
+
+## 6.在代码页面快速移动
+
+`ctrl+>`能够逐个单词的移动
+
+`shift+>`能够逐个字符选中
+
+
+
+## 7.选中并修改某个选中的单词
+
+`F2`
+
+> **注意，这会替换文件中所有的相同单词**
+
+## 8.返回顶/底端
+
+`ctrl+home`
+
+`ctrl+end`
+
+## 9.将文件在右侧展开
+
+`ctrl+\ 	 `
+
+## 10.关闭文件
+
+`ctrl+w`
+
+## 11.变换窗口
+
+`win+上下左右键`
