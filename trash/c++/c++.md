@@ -1989,6 +1989,47 @@ while(i!=multi.end()){
 
 
 
+### (8)函数适配器
+
+> [函数适配器](https://www.cnblogs.com/ssyfj/p/10794574.html)
+
+STL中已经定义了大量的函数对象,但是有时候需要对函数返回值进行进一步的简单计算，或者填上多余的参数，才可以带入其他的算法中进行下一步数据处理，不能直接带入算法。
+
+
+
+#### 例子：
+
+比如查询set中是否存在某个值：
+
+```c++
+int main()
+{
+    set<string,less<string>> s;
+    s.insert("aaa");
+    s.insert("bbb");
+    s.insert("ccc");
+
+    //函数适配器bind2nd，将数值绑定到二元函数的第二个参数，适配成一元函数
+    set<string,less<string>>::iterator it = find_if(s.begin(),s.end(),bind2nd(equal_to<string>(),"ccc"));
+
+    if(it!=s.end()){
+        cout<<"find it"<<endl;
+    }else{
+        cout<<"not find it"<<endl;
+    }
+}
+```
+
+
+
+
+
+
+
+
+
+
+
 ## 12.仿函数和谓词
 
 ### (1)仿函数
@@ -2043,6 +2084,10 @@ int main()
 谓词的优势在于，它可以用于各种需要判断条件的场合，例如**过滤、排序、搜索**等。
 
 ```c++
+#include <iostream>
+#include <map>
+#include <algorithm>
+using namespace std;
 //谓词
 void showMethod(const pair<int,string> &p){
     cout << p.first << ":" << p.second << endl;
@@ -2112,5 +2157,341 @@ int r = add_func(1,2);
 
 plus<string> add_func2;
 string str = add_func2("AAA","BBB");
+```
+
+
+
+## 2.algorithm库
+
+### (1)for_each
+
+解析源码
+
+![1698114721238](c++.assets/1698114721238.png)
+
+```cpp
+#include <iostream>
+#include <set>
+#include <algorithm>
+using namespace std;
+
+// 自定义仿函数，用于打印数据
+class MyActionShow
+{
+public:
+    void operator()(string v)
+    {
+        cout << "元素：" << v << endl;
+    }
+};
+
+int main()
+{
+    set<string, less<string>> s;
+    s.insert("aaa");
+    s.insert("bbb");
+    s.insert("ccc");
+
+    // 遍历打印
+    for_each(s.begin(), s.end(), MyActionShow());
+}
+```
+
+
+
+### (2)transform
+
+transform可以对集合序列的元素进行变换，源码：
+
+![1698115399382](c++.assets/1698115399382.png)
+
+```c++
+#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+// 自定义仿函数，用于打印数据
+class MyActionShow
+{
+public:
+    void operator()(int v)
+    {
+        cout << "元素：" << v << endl;
+    }
+};
+
+class TransAction
+{
+public:
+    int operator()(int v)
+    {
+        return v * 2;
+    }
+};
+
+int main()
+{
+    vector<int> s;
+    s.push_back(1);
+    s.push_back(2);
+    s.push_back(3);
+
+    transform(s.begin(), s.end(), s.begin(), TransAction());
+    for_each(s.begin(), s.end(), MyActionShow());
+}
+//打印：
+元素：2
+元素：4
+元素：6
+```
+
+> 正确写法其实应该是创捷一个新的vector接收进行操作后的元素
+>
+> ```c++
+> vector<int> s;
+> s.push_back(1);
+> s.push_back(2);
+> s.push_back(3);
+> 
+> vector<int> x;
+> x.resize(s.size());
+> 
+> transform(s.begin(), s.end(), x.begin(), TransAction());
+> for_each(s.begin(), s.end(), MyActionShow());
+> ```
+
+
+
+### (3)查找
+
+#### find
+
+找到匹配的元素，**不需要传入仿函数**，源码如下：
+
+```c++
+template<typename _InputIterator, typename _Tp>
+inline _InputIterator
+find(_InputIterator __first, _InputIterator __last,
+     const _Tp& __val)
+{
+    // concept requirements
+    __glibcxx_function_requires(_InputIteratorConcept<_InputIterator>)
+        __glibcxx_function_requires(_EqualOpConcept<
+                                    typename iterator_traits<_InputIterator>::value_type, _Tp>)
+        __glibcxx_requires_valid_range(__first, __last);
+    return std::__find_if(__first, __last,
+                          __gnu_cxx::__ops::__iter_equals_val(__val));
+}
+```
+
+如果找到则返回该迭代器的值，否则返回一个指向值为0的指针
+
+#### find_if
+
+需要传入一个bool类型()的仿函数，对元素进行判断，源码如下：
+
+```c++
+template<typename _InputIterator, typename _Predicate>
+inline _InputIterator
+find_if(_InputIterator __first, _InputIterator __last,
+        _Predicate __pred)
+{
+    // concept requirements
+   ......
+
+    return std::__find_if(__first, __last,
+                          __gnu_cxx::__ops::__pred_iter(__pred));//调用__find_if进行判断
+}
+```
+
+> ```cpp
+> template<typename _InputIterator, typename _Predicate>
+> inline _InputIterator
+> __find_if(_InputIterator __first, _InputIterator __last,
+>           _Predicate __pred, input_iterator_tag)
+> {
+>     while (__first != __last && !__pred(__first))
+>         ++__first;
+>     return __first;
+> }
+> ```
+>
+> `__find_if`的源码
+
+**实例：**
+
+```cpp
+class find_if_action
+{
+public:
+    bool operator()(int v)
+    {
+        return v == 2;
+    }
+};
+
+int main()
+{
+    vector<int> s;
+    s.push_back(1);
+    s.push_back(2);
+    s.push_back(3);
+   
+    auto res = find_if(s.begin(), s.end(), find_if_action());
+    if (res != s.end())
+    {
+        cout << "find it" << endl;
+    }
+}
+```
+
+
+
+### (4)计数
+
+#### count
+
+查找符合条件的元素，并计数
+
+```cpp
+template<typename _InputIterator, typename _Tp>
+inline typename iterator_traits<_InputIterator>::difference_type
+count(_InputIterator __first, _InputIterator __last, const _Tp& __value)
+{
+    return std::__count_if(__first, __last,
+                           __gnu_cxx::__ops::__iter_equals_val(__value));
+}
+```
+
+
+
+#### count_if
+
+需要传入仿函数
+
+
+
+
+
+### (5)merge
+
+合并两个序列
+
+```c++
+int main()
+{
+    vector<int> s;
+    s.push_back(1);
+    s.push_back(2);
+    s.push_back(3);
+
+    vector<int> s2;
+    s2.push_back(4);
+    s2.push_back(5);
+
+    vector<int> s3(s.size() + s2.size());
+
+    merge(s.begin(), s.end(), s2.begin(), s2.end(), s3.begin());
+
+    for_each(s3.begin(), s3.end(), MyActionShow());
+}
+```
+
+
+
+### (6)sort
+
+排序
+
+```c++
+sort(s3.begin(), s3.end(),less<int>());//升序排序
+```
+
+### (7)random_shuffle
+
+随机打乱序列
+
+```cpp
+random_shuffle(s3.begin(), s3.end());
+```
+
+### (8)copy
+
+C++ 中的 `copy()` 函数用于将一个序列的元素复制到另一个序列中。它接受两个序列容器作为参数，并将第一个序列中的元素复制到第二个序列中。
+
+```cpp
+template <class InputIterator, class OutputIterator>
+OutputIterator copy(InputIterator first, InputIterator last, OutputIterator result);//第三个参数指向接收赋值元素的迭代器
+```
+
+**例子：**
+
+```cpp
+#include <iostream>
+#include <algorithm>
+#include <vector>
+
+int main() {
+  std::vector<int> v1 = {1, 2, 3, 4, 5};
+  std::vector<int> v2(v1.size());
+
+  // 将 v1 中的元素复制到 v2 中
+  std::copy(v1.begin(), v1.end(), v2.begin());
+
+  // 输出 v2 中的元素
+  for (int i : v2) {
+    std::cout << i << " ";
+  }
+  std::cout << std::endl;
+
+  return 0;
+}
+```
+
+追加到末尾
+
+```cpp
+std::vector<int> v1 = {1, 2, 3};
+std::vector<int> v2 = {4, 5};
+
+// 将 v1 中的元素追加到 v2 的末尾
+std::copy(v1.begin(), v1.end(), std::back_inserter(v2));
+```
+
+
+
+### (9)replace
+
+C++ 中的 `replace()` 函数用于将一个序列中的元素替换为另一个元素。它接受三个参数：一个序列容器、一个要替换的元素和一个新的元素。
+
+`replace()` 函数的语法如下：
+
+```c++
+template <class ForwardIterator, class T>
+void replace(ForwardIterator first, ForwardIterator last, const T& old_value, const T& new_value);
+```
+
+**例子：**
+
+```cpp
+#include <iostream>
+#include <algorithm>
+#include <vector>
+
+int main() {
+  std::vector<int> v = {1, 2, 3, 4, 5};
+
+  // 将序列中的所有 3 替换为 6
+  std::replace(v.begin(), v.end(), 3, 6);
+
+  // 输出序列中的元素
+  for (int i : v) {
+    std::cout << i << " ";
+  }
+  std::cout << std::endl;
+
+  return 0;
+}
 ```
 

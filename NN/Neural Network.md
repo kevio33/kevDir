@@ -171,6 +171,8 @@
 **Standardization**
 
 > [归一化(normalization)和标准化(standardization)](https://www.jianshu.com/p/967f2199cd8c) 
+>
+> [标准化](https://blog.csdn.net/neweastsun/article/details/124230769)
 
 > **归一化：**
 >

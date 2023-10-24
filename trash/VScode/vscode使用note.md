@@ -269,6 +269,26 @@ set(EXECUTABLE_OUTPUT_PATH ..)
 
 
 
+## 2.cmd终端乱码
+
+> [vscode终端乱码](https://www.cnblogs.com/stu-jyj3621/p/12815080.html)
+
+### (1)方法一
+
+VSCode终端其实调用的是cmd.exe，所以当这里出现中文乱码的时候要解决的是cmd的编码设置问题。
+
+1. 可以通过 chcp 命令查看 cmd 的编码设置，GBK2312 的代码页编号是 *936*，然后改成utf-8的编码即可，
+2. utf-8 对应的代码页编号是 65001 ，所以执行 **chcp 65001** 就可以把cmd的编码设置成uft-8了，
+3. 这样就解决了乱码问题，然后可以再次运行代码查看输出 
+
+当然每次使用都输入一遍 chcp 65001 太烦了 ，可以直接在setting.json 中加上 
+
+```json
+"code-runner.executorMap":{
+    "cpp":"chcp 65001 "
+},
+```
+
 # 三、shortcut
 
 ## 1.调出命令窗口
