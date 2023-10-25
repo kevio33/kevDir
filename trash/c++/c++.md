@@ -336,6 +336,52 @@ int main() {
 }
 ```
 
+
+
+### (2)引用的高阶运用
+
+引用只是变量的别名，就是同一个内存空间，多个不同的名称
+
+```c++
+class MyClass
+{
+    string name = "Kevin";
+
+public:
+    string getInfo()
+    {
+        return this->name;
+    }
+
+    string &getInfo2()
+    {
+        return this->name;
+    }
+};
+
+int main()
+{
+    MyClass obj;
+
+    string res;
+    obj.getInfo() = "Lucy";
+    res = obj.getInfo();
+    cout << "res1:" << res << endl;
+    
+    obj.getInfo2() = "Lucy";//该方法是引用类型，所以是作为了Lucy变量的别名
+    res = obj.getInfo2();
+    cout << "res2:" << res << endl;
+}
+
+//输出
+res1:Kevin
+res2:Lucy
+```
+
+
+
+
+
 ## 5.函数
 
 ### (1)默认形参
@@ -1327,8 +1373,6 @@ public:
 };
 ```
 
-
-
 > 利用抽象实现回调
 >
 > ```c++
@@ -1382,10 +1426,8 @@ namespace second_space{
 }
 int main ()
 {
- 
    // 调用第一个命名空间中的函数
    first_space::func();
-   
    // 调用第二个命名空间中的函数
    second_space::func(); 
  
@@ -2494,4 +2536,338 @@ int main() {
   return 0;
 }
 ```
+
+
+
+# 三、线程
+
+ 有两个线程工具包
+
+- `thread`：c++11提出
+- `pthread`（主流）: pthread是C++98接口且**只支持Linux（AndroidNDK自动集成，MinGW32没有环境）**，使用时需要包含头文件#include `<pthread.h>`，编译时需要链接pthread库 
+
+> 涉及到线程，使用`Cygwin`环境，否则需要手动添加依赖
+
+## 1.thread
+
+```c++
+#include<iostream>
+#include<thread>
+#include<unistd.h>
+using namespace std;
+
+void foo(int num){
+    for (int i = 0; i < num; i++)
+    {
+        cout<<"foo:"<<i<<endl;
+        sleep(1);//输出一次休眠1s
+    }
+    
+}
+int main(){
+
+    thread t(foo,10);
+    sleep(3);//最多等待线程3s，3s后直接结束运行
+}
+
+//输出
+oo:0
+foo:1
+foo:2
+terminate called without an active exception
+      0 [main] 10-25 419 cygwin_exception::open_stackdumpfile: Dumping stack trace to 10-25.exe.stackdump
+foo:3
+```
+
+
+
+和java类似，如果需要等待线程执行完毕就需要利用`join`
+
+```c++
+#include<iostream>
+#include<thread>
+#include<unistd.h>
+using namespace std;
+
+void foo(int num){
+    for (int i = 0; i < num; i++)
+    {
+        cout<<"foo:"<<i<<endl;
+        sleep(1);
+    }
+    
+}
+int main(){
+    thread t(foo,10);
+    t.join();//等待线程执行完毕
+}
+```
+
+
+
+## 2.pthread
+
+### (1)构造函数
+
+```c++
+pthread_t pthread_create(pthread_t *thread, const pthread_attr_t *attr, void *(*start_routine)(void *), void *arg);
+
+pthread_t pthread_create(pthread_t *thread, const pthread_attr_t *attr, void *(*start_routine)(void *), void *arg, size_t stack_size);
+```
+
+> - `thread`：指向新线程的句柄。
+> - `attr`：线程属性，可以为NULL。
+> - `start_routine`：线程函数的指针。
+> - `arg`：传递给线程函数的参数。
+> -  第二个构造函数增加了一个参数`stack_size`，用于指定线程的堆栈大小。 
+
+**例如：**
+
+```c++
+#include<iostream>
+#include<pthread.h>
+using namespace std;
+
+//函数指针
+void * thread_func(void *arg){
+    int number = *static_cast<int *>(arg);//类型转换
+    cout<<"thread_func:"<<number<<endl;
+    return 0;//必须有返回值，否则报错
+}
+int main(){
+
+   pthread_t ptreadId;
+   pthread_create(&ptreadId,NULL,thread_func,new int(10));
+   pthread_join(ptreadId,NULL);//等待线程执行完毕
+}
+```
+
+>  static_cast是C++中的一种强制类型转换函数，它用于将表达式的值转换为另一种类型。static_cast的转换是安全的，在编译时进行类型检查，因此不会发生数据损坏。 
+>
+> ```
+> static_cast<目标类型>(表达式);
+> ```
+>
+> static_cast可以用于以下类型转换：
+>
+> - 基本类型之间的转换，例如int到double的转换。
+> - 指针和引用之间的转换，例如int*到const int*的转换。
+> - 类之间的转换，例如基类到派生类的转换。
+>
+> static_cast的优点是转换安全，在编译时进行类型检查。static_cast的缺点是转换不灵活，不能用于进行一些特殊的转换。
+
+### (2)互斥锁
+
+```c++
+#include <iostream>
+#include <pthread.h>
+#include <unistd.h>
+#include <queue>
+using namespace std;
+
+pthread_mutex_t mut_lock; // 声明锁
+queue<int> queData;
+
+// 线程方法
+void *thread_que(void *arg)
+{
+    pthread_mutex_lock(&mut_lock);//拿到锁
+    cout << "异步线程——当前标记的线程是：" << *static_cast<int *>(arg) << endl;
+    if (!queData.empty())
+    {
+        cout << "异步线程——队列不为空，取出数据：" << queData.front() << endl;
+        queData.pop();
+    }
+    else
+    {
+        cout << "异步线程——队列空，退出" << endl;
+    }
+
+    pthread_mutex_unlock(&mut_lock);//释放锁
+    sleep(1);
+
+    return 0;
+}
+
+int main()
+{
+    // 初始化锁
+    pthread_mutex_init(&mut_lock, NULL);
+
+    for (int i = 1000; i <=1010; i++)
+    {
+        queData.push(i);
+    }
+
+    // 初始化5个线程
+    pthread_t tids[5];
+    for (int i = 0; i < 5; ++i)
+    {
+        pthread_create(&tids[i], NULL, thread_que, &i);
+    }
+
+    sleep(10); // main等待多线程
+    // 销毁锁
+    pthread_mutex_destroy(&mut_lock);
+}
+```
+
+
+
+#### wait() & notify()
+
+`pthread_cond_wait`和`pthread_cond_broadcast`实现类似java中`wait`和`notify`的功能
+
+要实现线程条件，需要声明一个条件对象，然后通过wait和broadcast函数调用条件声明
+
+```c++
+//secui.h文件
+#ifndef SECURI_H
+#define SECURI_H
+#endif
+
+#pragma once
+
+#include <iostream>
+#include <pthread.h>
+#include <queue>
+
+using namespace std;
+
+template <typename _T>
+class securi
+{
+    private:
+    queue<_T> q;
+    pthread_mutex_t mutex;//锁
+    pthread_cond_t cond; // 条件
+
+    public:
+    securi()
+    {
+        // 初始化锁
+        pthread_mutex_init(&mutex, NULL);
+        //初始化条件
+        pthread_cond_init(&cond, NULL);
+    }
+
+    ~securi()
+    {
+        pthread_mutex_destroy(&mutex);
+        pthread_cond_destroy(&cond);
+    }
+
+    void add(_T data)
+    {
+        pthread_mutex_lock(&mutex);
+        q.push(data);
+        // pthread_cond_signal(&cond);//通知单个线程
+        pthread_cond_broadcast(&cond); //像所有线程发送更新通知
+        printf("已经添加数据-notify\n");
+        pthread_mutex_unlock(&mutex);
+    }
+
+    // 获取数据
+    void get(_T &data)
+    {
+        pthread_mutex_lock(&mutex);
+        while (q.empty())
+        {
+            printf("等待数据-wait\n");
+            pthread_cond_wait(&cond, &mutex); // 等待有数据，并且一直持有锁
+        }
+        data = q.front();
+        printf("已经获取数据%d\n",data);
+        q.pop();
+        pthread_mutex_unlock(&mutex);
+    }
+};
+```
+
+```cpp
+#include <iostream>
+#include <pthread.h>
+#include <queue>
+#include "securi.h"
+
+#pragma once
+
+using namespace std;
+securi<int> sec;
+
+//线程方法——获取数据
+void * getMethod(void *arg){
+
+    while(true){
+        printf("获取数据方法\n");
+
+        int n;
+        sec.get(n);
+
+        if(-1 == n){
+            printf("已经获取全部数据\n");
+            break;
+        }
+    }
+    return 0;
+}
+
+void * insertMethod(void *arg){
+    while (true)
+    {
+        /* code */
+        int value;
+        printf("输入数据:");
+        cin>>value;
+
+        sec.add(value);
+        if(-1==value){
+            printf("输入结束\n");
+            break;
+        }
+    }
+
+    return 0;
+    
+}
+
+int main()
+{
+
+    pthread_t thread_getter;
+    pthread_create(&thread_getter, NULL, getMethod, NULL);
+    pthread_t thread_inserter;
+    pthread_create(&thread_inserter, NULL, insertMethod, NULL);
+
+    pthread_join(thread_getter,0);
+    pthread_join(thread_inserter,0);    
+}
+```
+
+
+
+# 四、前置符号处理
+
+## 1.#pragma once
+
+> [pragma once](https://blog.csdn.net/fengbingchun/article/details/78696814)
+
+`#pragma once`是一个非标准但是被广泛支持的前置处理符号，它会让所在的文件在一个单独的编译中只被包含一次。以此方式，`#pragma once`提供类似include防范的目的，但是拥有较少的代码且能避免名称的碰撞。 
+
+```c++
+#pragma once
+#include <stdio.h>
+
+int main() {
+  printf("Hello, world!\n");
+  return 0;
+}
+```
+
+
+**该代码将只被编译器包含一次，无论头文件被包含多少次。**
+
+> #pragma once是编译器相关的，有的编译器支持，有的编译器不支持。 
+>
+> #ifndef，#define，#endif是C/C++语言中的宏定义，通过宏定义避免文件多次编译。所以在所有支持C++语言的编译器上都是有效的，如果写的程序要跨平台，最好使用这种方式。 
 

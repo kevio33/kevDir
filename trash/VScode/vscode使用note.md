@@ -141,6 +141,12 @@
 
 **这样做只可以调试c(遇到sanf会出现问题)，c++不能成功**
 
+
+
+#### Cygwin
+
+> [vscode_cygwin配置c++环境](https://blog.csdn.net/chenhao0568/article/details/105300350)
+
 ------------
 
 ### 问题：
