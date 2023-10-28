@@ -106,6 +106,14 @@ int main() {
 
 在`C++`中，不给赋值，就是系统值-64664
 
+
+
+### (4)unsigned
+
+ C++ 中的 unsigned 关键字用于声明无符号整数类型。无符号整数类型的值范围是从 0 到其最大值，没有负数。 
+
+>  无符号整数类型不能表示负数。如果我们尝试将一个负数赋值给无符号整数变量，则变量的值将被截断到 0。 
+
 ## 2.io
 
 ### (1)控制台io
@@ -245,6 +253,30 @@ numberP = &num2;//错误，不允许重新指向指针常量存放的地址
 
 ```c++
 const int * const numerP = &num;
+```
+
+
+
+### (8)nullptr
+
+C++ 中的 nullptr 是指向空值的指针。**nullptr 不是 0，也不是 NULL**。nullptr 是 C++11 中引入的一个`新关键字`。
+
+- nullptr 的值是不可取代的，因此它不能用作其他目的。
+- nullptr 可以用来指示指针没有指向任何对象。例如，可以使用 nullptr 来初始化一个指针变量，表示该指针指向不存在的对象。
+
+```cpp
+#include <iostream>
+using namespace std;
+
+int main() {
+  int *p = nullptr;
+
+  if (p == nullptr) {
+    cout << "p 指向空值。" << endl;
+  }
+
+  return 0;
+}
 ```
 
 
@@ -867,7 +899,8 @@ Student(const Student &s){
 Student s1 = {"kevin"};
 Student s2 = s1;
 
-//调用默认拷贝构造函数
+//不会调用拷贝构造函数，调用无参构造函数，然后s3指向s1
+//如需使用拷贝构造函数，需要自定义'='运算符重载
 Student s3;
 s3 = s1;
 ```
@@ -2185,6 +2218,228 @@ using counter = long;
 
 
 
+## 14.智能指针
+
+> [智能指针全部用法](https://zhuanlan.zhihu.com/p/526147194)
+>
+> [智能指针_microsoft](https://learn.microsoft.com/zh-cn/cpp/cpp/smart-pointers-modern-cpp?view=msvc-170)
+
+前面讲过，在堆区开辟的对象需要`delete`释放内存，但是难免会出现忘记释放或者不明白是否释放的情况，因此`c++`提供了智能指针。
+
+C++ 标准库提供了三种智能指针：
+
+- **std::unique_ptr**：独占所有权，只能有一个智能指针指向该对象（ 两个指针不能指向同一个资源 ）。
+- **std::shared_ptr**：共享所有权，多个智能指针可以指向该对象。
+- **std::weak_ptr**：弱引用，不能用于访问或修改对象，但可以用于判断对象是否存在。
+
+### (1)unique_ptr
+
+unique_ptr特性：①基于排他所有权模式：两个指针不能指向同一个资源；②**无法进行左值**unique_ptr复制构造，也无法进行左值复制赋值操作，但**允许临时右值赋值构造和赋值**；③保存指向某个对象的指针，当它本身离开作用域时会自动释放它指向的对象。
+
+```c++
+unique_ptr<string> p1(new string("I'm Li Ming!"));
+unique_ptr<string> p2(new string("I'm age 22."));
+	
+cout << "p1：" << p1.get() << endl;
+cout << "p2：" << p2.get() << endl;
+
+p1 = p2;					// 禁止左值赋值
+unique_ptr<string> p3(p2);	// 禁止左值赋值构造
+
+unique_ptr<string> p3(std::move(p1));// 使用move把左值转成右值就可以赋值了，效果和auto_ptr赋值一样
+p1 = std::move(p2);	// 使用move把左值转成右值就可以赋值了，效果和auto_ptr赋值一样
+
+cout << "p1 = p2 赋值后：" << endl;
+cout << "p1：" << p1.get() << endl;
+cout << "p2：" << p2.get() << endl;
+```
+
+
+
+**还提供了释放指针所有权的重置函数，利用其可以在使用完指针时候释放内存**
+
+```c++
+void SmartPointerDemo2()
+{
+    // Create the object and pass it to a smart pointer
+    std::unique_ptr<LargeObject> pLarge(new LargeObject());
+
+    //Call a method on the object
+    pLarge->DoSomething();
+
+    // Free the memory before we exit function block.
+    pLarge.reset();
+
+    // Do some other work...
+}
+```
+
+**获取托管的指针地址**
+
+```cpp
+void SmartPointerDemo4()
+{
+    // Create the object and pass it to a smart pointer
+    std::unique_ptr<LargeObject> pLarge(new LargeObject());
+
+    //Call a method on the object
+    pLarge->DoSomething();
+
+    // Pass raw pointer to a legacy API
+    LegacyLargeObjectFunction(pLarge.get());    
+}
+```
+
+
+
+### (2)shared_ptr
+
+`shared_ptr`可以记录引用特定内存对象的智能指针数量，当复制或拷贝时，引用计数加1，当智能指针析构时，引用计数减1，如果计数为零，代表已经没有指针指向这块内存，那么就释放它。这就是 shared_ptr 采用的策略！ 
+
+```cpp
+shared_ptr<Person> sp1;
+
+shared_ptr<Person> sp2(new Person(2));
+
+// 获取智能指针管控的共享指针的数量	use_count()：引用计数
+cout << "sp1	use_count() = " << sp1.use_count() << endl;
+cout << "sp2	use_count() = " << sp2.use_count() << endl << endl;
+
+// 共同托管同一个指针，所以他们的引用计数为2
+sp1 = sp2;
+
+cout << "sp1	use_count() = " << sp1.use_count() << endl;
+cout << "sp2	use_count() = " << sp2.use_count() << endl << endl;
+
+shared_ptr<Person> sp3(sp1);// sp1和sp2和sp3共同托管同一个指针，所以他们的引用计数为3；
+cout << "sp1	use_count() = " << sp1.use_count() << endl;
+cout << "sp2	use_count() = " << sp2.use_count() << endl;
+cout << "sp3	use_count() = " << sp3.use_count() << endl << endl;
+
+//输出：
+sp1	use_count() = 0
+sp2	use_count() = 1
+    
+sp1	use_count() = 2
+sp2	use_count() = 2
+    
+sp1	use_count() = 3
+sp2	use_count() = 3
+sp3	use_count() = 3
+```
+
+
+
+### (3)weak_ptr
+
+weak_ptr 设计的目的是为配合 shared_ptr 而引入的一种智能指针来协助 shared_ptr 工作, 它只可以从一个 shared_ptr 或另一个 weak_ptr 对象构造, 它的构造和析构不会引起引用记数的增加或减少。 同时weak_ptr 没有重载*和->但可以使用 lock 获得一个可用的 shared_ptr 对象。 
+
+
+
+## 15.类型转换
+
+### (1)const_cast
+
+ 用于将指针或引用的 const 属性转换为非 const 属性 
+
+```c++
+Student s1(123, "John Doe");
+
+// s2是常量指针，不能修改其成员。
+const Student* s2 = &s1;
+s2->changeName("Jane Doe"); // 编译错误
+
+// 使用 const_cast 运算符将 const 对象转换为非 const 对象。
+Student* s3 = const_cast<Student*>(s2);
+s3->changeName("Jane Doe"); // 成功
+```
+
+
+
+### (2)static_const
+
+ 用于将表达式转换为指定类型。静态转换是编译器在编译时进行的，因此在运行时不会丢失任何信息。 
+
+静态转换可以用于以下情况：
+
+- 将一个类型转换为另一个类型，例如将 int 转换为 double。
+- 将一个指针或引用转换为另一个类型，例如将 int* 转换为 char*。
+- 将一个引用转换为指针，例如将 int& 转换为 int*。
+
+```c++
+#include <iostream>
+using namespace std;
+
+int main() {
+  int i = 10;
+  double d = static_cast<double>(i);
+  cout << d << endl; // 10.0
+
+  int* p = &i;
+  char* c = static_cast<char*>(p);
+  // cout << *c << endl; // 可能会导致运行时错误
+
+  int& r = i;
+  int* p2 = static_cast<int*>(r);
+  *p2 = 20;
+  cout << i << endl; // 20
+
+  return 0;
+}
+```
+
+
+
+
+
+### (3)dynamic_cast
+
+dynamic_cast 运算符用于将一个指针或引用转换为另一个类型，并在运行时进行类型检查。如果转换不成功，则返回一个空指针或引用。
+
+dynamic_cast 运算符主要用于以下情况：
+
+- 将一个父类指针或引用转换为子类指针或引用。
+- 将一个指针或引用转换为另一个类型，但不确定转换是否成功。
+
+```cpp
+#include <iostream>
+
+using namespace std;
+
+class Base {
+public:
+  virtual void foo() {}
+};
+
+class Derived : public Base {
+public:
+  void foo() override {}
+};
+
+int main() {
+  Base* b = new Derived();
+  Derived* d = dynamic_cast<Derived*>(b);
+
+  if (d) {
+    d->foo();
+  } else {
+    cout << "转换失败" << endl;
+  }
+
+  return 0;
+}
+```
+
+
+
+
+
+### (4)reinterpret_cast
+
+允许将任何指针转换为任何其他指针类型。 也允许将任何整数类型转换为任何指针类型以及反向转换。 
+
+>  reinterpret_cast运算符是用来处理无关类型之间的转换；它会产生一个新的值，这个值会有与原始参数（expressoin）有完全相同的比特位。 
+
 # 二、库函数
 
 
@@ -2538,6 +2793,38 @@ int main() {
 ```
 
 
+
+
+
+## 3.move
+
+ C++ 的 `std::move()` 函数是一个内置函数，用于将左值强制转换为右值引用。 
+
+```c++
+#include <iostream>
+
+int main() {
+  int a = 10;
+
+  // 将 `a` 转移给 `b`
+  int&& b = std::move(a);
+
+  // 此时 `a` 的值为 10
+  std::cout << a << std::endl;
+
+  // 此时 `b` 的值为 10
+  std::cout << b << std::endl;
+
+  return 0;
+}
+```
+
+> 在上述代码中，`a` 是左值，`b` 是右值引用。调用 `std::move()` 函数后，`a` 将被转移给 `b`，因此 `a` 的值变为 0。
+>
+> `std::move()` 函数通常用于以下场景：
+>
+> - 将左值转移给右值引用，以便使用右值引用的优点。
+> - 将左值转移给一个函数，以便该函数可以使用右值语义。
 
 # 三、线程
 

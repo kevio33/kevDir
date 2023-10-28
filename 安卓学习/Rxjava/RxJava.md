@@ -99,7 +99,7 @@ RxJava也是基于观察者模式来组建自己的程序逻辑的，就是构�
 - **正常模式：**
 
   > ```java
-  > Observable switcher=Observable.create(new Observable.OnSubscribe<String>(){
+  > Observable switcher=Observable.create(new ObservableOnSubscribe<String>(){
   >       @Override
   >          public void call(Subscriber<? super String> subscriber) {
   >              subscriber.onNext("On");
@@ -166,7 +166,7 @@ RxJava也是基于观察者模式来组建自己的程序逻辑的，就是构�
   >  };
   >  ```
   >
-  >  **（推荐）方式二： 采用Subscriber 抽象类 **
+  >  **（RxJava2.0已经被启用）方式二： 采用Subscriber 抽象类 **
   >
   >   RxJava 内置的一个实现了 Observer 的抽象类，对 Observer 接口进行了扩展 
   >
@@ -206,14 +206,26 @@ RxJava也是基于观察者模式来组建自己的程序逻辑的，就是构�
 
   > ```java
   > Action1 light=new Action1<String>() {
-  >      @Override
-  >      public void call(String s) {
-  >            Log.d("DDDDD","handle this---"+s)
-  >      }
+  >   @Override
+  >   public void call(String s) {
+  >         Log.d("DDDDD","handle this---"+s)
+  >   }
   > }
   > ```
   >
   > > 之所以说它是非正式写法，是因为Action1是一个单纯的人畜无害的接口，和Observer没有啥关系，只不过它可以当做观察者来使，专门处理onNext 事件，这是一种为了简便偷懒的写法。当然还有Action0，Action2,Action3...,0,1,2,3分别表示call()这个方法能接受几个参数。
+  >
+  > **注：RxJava2已经对Action接口进行修正**
+  >
+  > | RxJava 1          | RxJava 2                            |
+  > | ----------------- | ----------------------------------- |
+  > | Action0           | Action                              |
+  > | Action1           | Consumer（接收1个参数）             |
+  > | Action2           | BiConsumer （接收2个参数）          |
+  > | ActionN           | Consumer<Object[]> （接收多个参数） |
+  > | Action3 - Action9 | 不再使用                            |
+  
+  
 
 
 
