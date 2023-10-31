@@ -98,9 +98,9 @@ Java_com_example_ndkapp_MainActivity_stringFromJNI(
 
 > 注意:
 >
-> - 如果本地代码是C++，要使用extern “C” {}把本地方法括进去（为了禁止函数重载）
+> - 如果本地代码是C++，要使用`extern “C” {}`把本地方法括进去（为了禁止函数重载，而`c`禁止重载）
 >
-> - JNIEXPORT JSTRING JNICALL 中的JNIEXPORT 和 JNICALL不能省略,
+> - JNIEXPORT JSTRING JNICALL 中的JNIEXPORT 和 JNICALL不能省略
 >
 >   > `JNIEXPORT`标记该方法可以被外部调用
 >   >
@@ -117,8 +117,6 @@ Java_com_example_ndkapp_MainActivity_stringFromJNI(
 >
 > - `i,s`代表参数
 
-
-
 ![1616658148715](NDK1.assets/1616658148715.png)
 
 > 参考：
@@ -126,8 +124,6 @@ Java_com_example_ndkapp_MainActivity_stringFromJNI(
 > https://www.jianshu.com/p/87ce6f565d37
 >
 > https://www.jianshu.com/p/c959ead68ae8
-
-
 
 ## 五、JNI
 
@@ -150,10 +146,10 @@ JNI开发流程的步骤：
 
 > 命令`option`如下：
 >
-> **-d 和-o**：这两个参数用于设置生成的C\C++头文件的指定，该两参数选项不能同时使用，-d是为中的每个有JNI方法的java类都生成一个头文件，并存放在-d指定的目录中，-o则是生成的所有JNI方法的头文件都放在-o指定的文件中。
-> **-jni**：表示用于生成JNI风格的C\C++头文件，默认该参数就是开启的。
-> **-classpath**：使用-classpath后JDK将不再使用CLASSPATH中的类搜索路径，如果-classpath和CLASSPATH都没有设置，则JDK使用当前路径(.)作为类搜索路径。*（推荐使用-classpath来定义JDK要搜索的类路径，而不要使用环境变量CLASSPATH的搜索路径，以减少多个项目同时使用CLASSPATH时存在的潜在冲突。例如应用1要使用a1.0.jar中的类G，应用2要使用 a2.0.jar中的类G,a2.0.jar是a1.0.jar的升级包，当a1.0.jar，a2.0.jar都在CLASSPATH中，JDK搜索到第一个包中的类G时就停止搜索，如果应用1应用2的虚拟机都从CLASSPATH中搜索，就会有一个应用得不到正确版本的类G。）*
-> **-verbose**：该参数，将显示javah命令搜索和装置类文件的详细过程。
+> **`-d 和-o`**：这两个参数用于设置生成的C\C++头文件的指定，该两参数选项不能同时使用，-d是为中的每个有JNI方法的java类都生成一个头文件，并存放在-d指定的目录中，-o则是生成的所有JNI方法的头文件都放在-o指定的文件中。
+> **`-jni`**：表示用于生成JNI风格的C\C++头文件，默认该参数就是开启的。
+> **`-classpath`**：使用-classpath后JDK将不再使用CLASSPATH中的类搜索路径，如果-classpath和CLASSPATH都没有设置，则JDK使用当前路径(.)作为类搜索路径。*（推荐使用-classpath来定义JDK要搜索的类路径，而不要使用环境变量CLASSPATH的搜索路径，以减少多个项目同时使用CLASSPATH时存在的潜在冲突。例如应用1要使用a1.0.jar中的类G，应用2要使用 a2.0.jar中的类G,a2.0.jar是a1.0.jar的升级包，当a1.0.jar，a2.0.jar都在CLASSPATH中，JDK搜索到第一个包中的类G时就停止搜索，如果应用1应用2的虚拟机都从CLASSPATH中搜索，就会有一个应用得不到正确版本的类G。）*
+> **`-verbose`**：该参数，将显示javah命令搜索和装置类文件的详细过程。
 
 例如有如下代码：
 
@@ -180,13 +176,13 @@ public class HelloWorld{
 切换到**HelloWorld.java所在目录**，执行`javah HelloWorld` 会在当前目录生成一个HelloWorld.h头文件，也就自动生成了头文件，方便我们在`*.cpp`中引用并实现方法
 
 
-> **找不到javah命令**——https://blog.csdn.net/nishigesb123/article/details/90024821
+> [**找不到javah命令**](https://blog.csdn.net/nishigesb123/article/details/90024821)
 >
 > [jdk11_生成头文件](https://blog.csdn.net/chenhao0568/article/details/120924017)
 
 ##### jdk-10以上
 
-jdk10开始已经遗弃了`javah`，因此使用`javac -h`生成java的头文件，**并且java文件中不能引用其他的类，因此想到的一个解决办法是将native类都抽象到一个类里面**
+jdk10开始遗弃了`javah`，因此使用`javac -h`生成java的头文件，**并且java文件中不能引用其他的类，因此想到的一个解决办法是将native类都抽象到一个类里面，这是当前能够想到的最优方法**
 
 ```java
 public class Test {
@@ -227,7 +223,6 @@ public class Test {
 > #endif
 > ```
 >
-> 
 
 然后`*.cpp`文件引入
 
@@ -256,13 +251,14 @@ Java_com_example_ndktest_Test_hellofrom(JNIEnv *env, jobject thiz) {
 >
 > ![1698578098118](NDK1.assets/1698578098118.png)
 >
-> 
 
 ### 2.JNI结构
 
 ![img](NDK1.assets/5713484-8b84c6a37e1c8967.png)
 
-> 这张JNI函数表的组成就像C++的虚函数表。虚拟机可以运行多张函数表，举例来说，一张调试函数表，另一张是调用函数表。JNI接口指针仅在当前线程中起作用。这意味着指针不能从一个线程进入另一个线程。（简单来说就是JNI给每一个接口函数都定义了一个指针指向它，然后通过JNI的线程指针再指向对应的函数指针，实现Native函数的调用）
+> 这张JNI函数表的组成就像C++的`虚函数`表。虚拟机可以运行多张函数表。
+>
+> 举例来说：一张调试函数表，另一张是调用函数表。**JNI接口指针仅在当前线程中起作用。这意味着指针不能从一个线程进入另一个线程**。（简单来说就是JNI给每一个接口函数都定义了一个指针指向它，然后通过JNI的线程指针再指向对应的函数指针，实现Native函数的调用）
 
 ```c++
 jdouble Java_pkg_Cls_f__ILjava_lang_String_2 (JNIEnv *env, jobject obj, jint i, jstring s)
@@ -281,6 +277,8 @@ jdouble Java_pkg_Cls_f__ILjava_lang_String_2 (JNIEnv *env, jobject obj, jint i, 
 >
 > - `i和s`：用于传递的参数
 
+#### JNI数据类型和Java类型
+
 obj、i和s的类型可以参考下面的JNI数据类型，JNI有自己的原始数据类型和数据引用类型如下：
 
 (因为Java层和C/C++的数据类型或者对象不能直接相互的引用或者使用，JNI层定义了自己的数据类型，用于衔接Java层和JNI层)
@@ -293,11 +291,11 @@ obj、i和s的类型可以参考下面的JNI数据类型，JNI有自己的原始
 
 首先说一个概念**JavaVM**:
 
-> 每个JVM虚拟机都在本地环境中有一个JavaVM结构体，该结构体在创建Java虚拟机时被返回。JavaVM是Java虚拟机在JNI层的代表，JNI全局仅仅有一个JavaVM结构中封装了一些函数指针（或叫函数表结构），JavaVM中封装的这些函数指针主要是对JVM操作接口。
+> 每个JVM虚拟机都在本地环境中有一个`JavaVM结构体`，该结构体在创建Java虚拟机时被返回。**JavaVM是Java虚拟机在JNI层的代表，JNI全局仅仅有一个JavaVM**，JavaVM结构中封装了一些函数指针（或叫函数表结构），JavaVM中封装的这些函数指针主要是对JVM操作接口。
 
 **JNI Env**
 
-> **JNIEnv是当前Java线程的执行环境**，一个JVM对应一个JavaVM结构，而一个JVM中可能创建多个Java线程，每个线程对应一个JNIEnv结构，它们保存在线程本地存储TLS中。因此，**不同的线程的JNIEnv是不同**，也不能相互共享使用。JNIEnv结构也是一个函数表，在本地代码中**通过JNIEnv的函数表来操作Java数据或者调用Java方法**。也就是说，只要在本地代码中拿到了JNIEnv结构，就可以在本地代码中调用Java代码。
+> **JNIEnv是当前Java线程的执行环境**，*一个JVM对应一个JavaVM结构，而一个JVM中可能创建多个Java线程，每个线程对应一个JNIEnv结构，它们保存在线程本地存储TLS中*。因此，**不同的线程的JNIEnv是不同**，也不能相互共享使用。JNIEnv结构也是一个函数表，在本地代码中**通过JNIEnv的函数表来操作Java数据或者调用Java方法**。也就是说，只要在本地代码中拿到了JNIEnv结构，就可以在本地代码中调用Java代码。
 >
 > ![img](NDK1.assets/5713484-4383ea9f680216b9.png)
 
@@ -312,11 +310,15 @@ obj、i和s的类型可以参考下面的JNI数据类型，JNI有自己的原始
 >
 > - 创建
 >
-> >  C++中 ——**_JavaVM**：_JavaVM是C++中JavaVM结构体，调用jint AttachCurrentThread(JNIEnv** p_env, void* thr_args) 方法，能够获取JNIEnv结构体；
+> >  C++中 ——**_JavaVM**：_JavaVM是C++中JavaVM结构体，调用`jint AttachCurrentThread(JNIEnv** p_env, void* thr_args) `方法，能够获取JNIEnv结构体；
 >
 > - 释放
 >
->   > C++ 中释放：调用JavaVM结构体_JavaVM中的jint DetachCurrentThread(){ return functions->DetachCurrentThread(this); } 方法，就可以释放 本线程的JNIEnv
+>   > C++ 中释放：调用JavaVM结构体`_JavaVM`中的
+>   >
+>   > `jint DetachCurrentThread(){ return functions->DetachCurrentThread(this); } `
+>   >
+>   > 方法，就可以释放 本线程的JNIEnv
 
 ![img](NDK1.assets/5713484-48acac24bc7f78a1.png)
 
@@ -326,7 +328,7 @@ obj、i和s的类型可以参考下面的JNI数据类型，JNI有自己的原始
 
 
 
-### 3.JNI样例
+### 3.例子
 
 > 参考——https://www.jianshu.com/p/b4431ac22ec2
 
@@ -431,8 +433,6 @@ target_link_libraries( # Specifies the target library.
 
 ### 4.Java 与Native互相调用
 
-
-
 #### (1)调用Native
 
 在Java中调用Native代码，要通过**注册Native函数**来实现，分为两种注册方式
@@ -443,13 +443,16 @@ target_link_libraries( # Specifies the target library.
 >
 > ```java
 > public class JniDemo1{
->     static {
->         System.loadLibrary("samplelib_jni");
->     }
+>  static {
+>      //System.load("D:/xxx/xxx");//绝对路径加载动态链接库文件
+>      System.loadLibrary("samplelib_jni");
+>  }
 > 
->     private native void nativeMethod();
+>  private native void nativeMethod();
 > }
 > ```
+>
+> ![1698635471022](NDK1.assets/1698635471022.png)
 >
 > 通过`javah`来产生jni代码，假设你的包名为`com.gebilaolitou.jnidemo`
 >
@@ -471,11 +474,17 @@ target_link_libraries( # Specifies the target library.
 >
 > ```java
 > public class JniDemo1{
->     static {
->           System.loadLibrary("samplelib_jni");
->      }
+>  static {
+>      
+>      
+>      System.loadLibrary("native-lib");//在apk文件里面的lib/libnative-lib.so加载
+>  }
+> 
+>  private native void nativeMethod();
 > }
 > ```
+>
+> 
 >
 > 在JNI中实现
 >
@@ -494,53 +503,53 @@ target_link_libraries( # Specifies the target library.
 > static const char *className = "com/gebilaolitou/jnidemo/JNIDemo2";//注册的Java类名，根据自己名字更改
 > 
 > static void sayHello(JNIEnv *env, jobject, jlong handle) {
->  LOGI("JNI", "native: say hello ###");
+> LOGI("JNI", "native: say hello ###");
 > }
 > 
 > //方法数组：代表了一个native方法的数组，如果你在一个Java类中有一个native方法，这里它的size就是1，如果是两个native方法，它的size就是2
 > static JNINativeMethod gJni_Methods_table[] = {
->  {"sayHello", "(J)V", (void*)sayHello},
+> {"sayHello", "(J)V", (void*)sayHello},
 > };
 > 
 > //首先通过clazz = (env)->FindClass( className);找到声明native方法的类
 > //然后通过调用RegisterNatives函数将注册函数的Java类，以及注册函数的数组，以及个数注册在一起，这样就实现了绑定。
 > static int jniRegisterNativeMethods(JNIEnv* env, const char* className,
->  const JNINativeMethod* gMethods, int numMethods)
+> const JNINativeMethod* gMethods, int numMethods)
 > {
->  jclass clazz;
+> jclass clazz;
 > 
->  LOGI("JNI","Registering %s natives\n", className);
->  clazz = (env)->FindClass( className);
->  if (clazz == NULL) {
->      LOGE("JNI","Native registration unable to find class '%s'\n", className);
->      return -1;
->  }
+> LOGI("JNI","Registering %s natives\n", className);
+> clazz = (env)->FindClass( className);
+> if (clazz == NULL) {
+>   LOGE("JNI","Native registration unable to find class '%s'\n", className);
+>   return -1;
+> }
 > 
->  int result = 0;
->  if ((env)->RegisterNatives(clazz, gJni_Methods_table, numMethods) < 0) {
->      LOGE("JNI","RegisterNatives failed for '%s'\n", className);
->      result = -1;
->  }
+> int result = 0;
+> if ((env)->RegisterNatives(clazz, gJni_Methods_table, numMethods) < 0) {
+>   LOGE("JNI","RegisterNatives failed for '%s'\n", className);
+>   result = -1;
+> }
 > 
->  (env)->DeleteLocalRef(clazz);
->  return result;
+> (env)->DeleteLocalRef(clazz);
+> return result;
 > }
 > 
 > jint JNI_OnLoad(JavaVM* vm, void* reserved){
->  LOGI("JNI", "enter jni_onload");
+> LOGI("JNI", "enter jni_onload");
 > 
->  JNIEnv* env = NULL;
->  jint result = -1;
+> JNIEnv* env = NULL;
+> jint result = -1;
 > 
->  //这里调用了GetEnv函数时为了获取JNIEnv结构体指针，其实JNIEnv结构体指向了一个函数表，该函数表指向了对应的JNI函数，我们通过这些JNI函数实现JNI编程。
->  if (vm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) {
->      return result;
->  }
+> //这里调用了GetEnv函数时为了获取JNIEnv结构体指针，其实JNIEnv结构体指向了一个函数表，该函数表指向了对应的JNI函数，我们通过这些JNI函数实现JNI编程。
+> if (vm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) {
+>   return result;
+> }
 > 
 > 	//调用了jniRegisterNativeMethods函数来实现注册
->  jniRegisterNativeMethods(env, className, gJni_Methods_table, sizeof(gJni_Methods_table) / sizeof(JNINativeMethod));
+> jniRegisterNativeMethods(env, className, gJni_Methods_table, sizeof(gJni_Methods_table) / sizeof(JNINativeMethod));
 > 
->  return JNI_VERSION_1_4;
+> return JNI_VERSION_1_4;
 > }
 > 
 > #ifdef __cplusplus
@@ -562,71 +571,75 @@ target_link_libraries( # Specifies the target library.
 > > } JNINativeMethod; 
 > > ```
 > >
-> > **着重说一下这个签名：**
-> >
-> > 因为Java是支持**函数重载**的（可以定义相同方法名，但是不同参数的方法），然后Java根据其不同的参数，找到其对应的实现的方法。所以JNI如果仅仅是根据函数名，没有办法找到重载的函数的，所以为了解决这个问题，JNI就衍生了一个概念——"签名"，即**将参数类型和返回值类型的组合**。如果拥有一个该函数的签名信息和这个函数的函数名，我们就可以顺序的找到对应的Java层中的函数了。
-> >
-> > 例如可以通过javap命令查看java函数对应的签名
-> >
+> 
+
+
+
+**签名(signature)：**
+
+> 因为Java是支持**函数重载**的（可以定义相同方法名，但是不同参数的方法），然后Java根据其不同的参数，找到其对应的实现的方法。所以JNI如果仅仅是根据函数名，没有办法找到重载的函数的，所以为了解决这个问题，JNI就衍生了一个概念——"签名"，即**将参数类型和返回值类型的组合**。如果拥有一个该函数的签名信息和这个函数的函数名，我们就可以顺序的找到对应的Java层中的函数了。
+>
+> 例如可以通过javap命令查看java函数对应的签名:
+>
 > > ```java
-> > javap -s -p MainActivity.class
+>>javap -s -p MainActivity.class
 > > 
-> > Compiled from "MainActivity.java"
-> > public class com.example.hellojni.MainActivity extends android.app.Activity {
-> > static {};
-> >  Signature: ()V
-> > 
-> > public com.example.hellojni.MainActivity();
-> >  Signature: ()V //返回类型为空
-> > 
-> > protected void onCreate(android.os.Bundle);
-> >  Signature: (Landroid/os/Bundle;)V
-> > 
+> >Compiled from "MainActivity.java"
+>  > public class com.example.hellojni.MainActivity extends android.app.Activity {
+>    > static {};
+>    >  Signature: ()V
+>    >  
+>  >  public com.example.hellojni.MainActivity();
+> > Signature: ()V //返回类型为空
+>  > 
+> >protected void onCreate(android.os.Bundle);
+> > Signature: (Landroid/os/Bundle;)V
+>>
 > > public boolean onCreateOptionsMenu(android.view.Menu);
-> >  Signature: (Landroid/view/Menu;)Z //参数类型是引用类型，而返回类型是基本类型
+>>Signature: (Landroid/view/Menu;)Z //参数类型是引用类型，而返回类型是基本类型
 > > 
-> > public native java.lang.String stringFromJNI(); //native 方法
-> >  Signature: ()Ljava/lang/String;  //返回类型是引用类型，所以要把类型的包名也加上(必须要有分号)
+>>public native java.lang.String stringFromJNI(); //native 方法
+> > Signature: ()Ljava/lang/String;  //返回类型是引用类型，所以要把类型的包名也加上(必须要有分号)
 > > 
 > > public native int max(int, int); //native 方法
-> >  Signature: (II)I    //签名
+> > Signature: (II)I    //签名
 > > }
 > > ```
-> >
+> >  
 > > **可以看到上面的数据类型是大写字母 `V、Z`等等，这是因为JNI制定了签名规则**
-> >
-> > ```
+> > 
+> >  ```
 > > 具体格式如下：
 > > 
-> > (参数1类型标示；参数2类型标示；参数3类型标示...)返回值类型标示
+> >  (参数1类型标示；参数2类型标示；参数3类型标示...)返回值类型标示
 > > ```
-> >
-> > **引用类型`L`：**
-> >
+> > 
+> >  **引用类型`L`：**
+> > 
 > > > 当参数为引用类型的时候，参数类型的标示的根式为`"L包名"`，其中包名的.(点)要换成"/"，比如String就是`Ljava/lang/String`，Menu为`Landroid/view/Menu`。
-> >
+> >  
 > > **基本类型**
-> >
-> > | 类型标示 | Java类型 |
+> > 
+> >  | 类型标示 | Java类型 |
 > > | -------- | :------: |
 > > | Z        | boolean  |
-> > | B        |   byte   |
+> >| B        |   byte   |
 > > | C        |   char   |
-> > | S        |  short   |
+> >| S        |  short   |
 > > | I        |   int    |
 > > | J        |   long   |
 > > | F        |  float   |
 > > | D        |  double  |
 > > | V        |   void   |
-> >
-> > **数组**
-> >
-> > | 类型标示           | Java类型 |
+> >| L        | 引用类型 |
+>   > 
+>   >**数组**
+> > 
+> >| 类型标示           | Java类型 |
 > > | ------------------ | :------: |
-> > | [签名              |   数组   |
-> > | [i                 |  int[]   |
-> > | [Ljava/lang/Object | String[] |
->
+> >| [签名              |   数组   |
+>   > | [i                 |  int[]   |
+>   > | [Ljava/lang/Object | String[] |
 > 
 
 
@@ -791,6 +804,66 @@ jobject NewObjectV(JNIEnv *env, jclass clazz, jmethodID methodID, va_list args);
 ![img](NDK1.assets/5713484-489382d33286e74e.png)
 
 
+
+#### `extern`关键字
+
+ extern 关键字用于声明一个函数或变量，但不进行定义。 
+
+- **对函数的调用形成约定：**由于 C++ 和 Java 使用不同的函数调用约定，因此需要使用 extern 关键字来告知编译器，该函数或变量使用 C 语言的函数调用约定。 
+
+  > ```cpp
+  > extern "C" JNIEXPORT void JNICALL Java_com_example_myapp_MyNativeClass_nativeMethod(JNIEnv *env, jobject obj) {
+  >   // ...
+  > } 
+  > ```
+
+- **定义全局变量：**
+
+  > ````cpp
+  > extern int age;
+  > extern void showAge();
+  > ````
+  >
+  > 上述示例中，`age `变量在所有模块中作为一种全局变量只能被定义一次，否则会出现连接错误。 
+  >
+  > 
+  >
+  > 创建一个新的cpp文件实现方法
+  >
+  > ```cpp
+  > //
+  > // Test.cpp
+  > //
+  > #include <iostream>
+  > #include <android/log.h>
+  > #define TAG "10-30JNI"
+  > #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG,TAG,__VA_ARGS__)
+  > 
+  > int age = 100;
+  > 
+  > void showAge(){
+  >     LOGD("showAge:%d",age);
+  > }
+  > ```
+  >
+  > ```cpp
+  > //native-lib.cpp
+  > extern int age;
+  > extern void showAge();
+  > extern "C"
+  > JNIEXPORT void JNICALL
+  > Java_com_example_ndktest_MainActivity_testExtern(JNIEnv *env, jobject thiz) {
+  >     // TODO: implement testExtern()
+  > 
+  >     showAge();
+  > }
+  > ```
+  >
+  > **在cmake中添加Test.cpp，这样才能进行编译**
+  >
+  > 之后调用`native-lib.cpp`的方法，得到：
+  >
+  > ![1698741975783](NDK1.assets/1698741975783.png)
 
 #### (1)JNINativeInterface
 
@@ -1127,7 +1200,7 @@ jint GetVersion(JNIEnv *env);
 > name：一个完全限定的类名，即包含“包名”+“/”+类名。举个例子：如java.lang.String，该参数为java/lang/String；如果类名以[开头，将返回一个数组类。比如数组类的签名为java.lang.Object[]，该参数应该为"[Ljava/lang/Object"
 > ```
 >
-> 
+> 如果觉得繁琐甚至是不知道包名，可以使用[GetObjectClass](#get-object-class)
 
 
 
@@ -1166,13 +1239,36 @@ jint GetVersion(JNIEnv *env);
 
 
 
-#### (4)对象操作
+#### (4)类对象操作
 
-##### AllocObject
+##### 创建Java对象
 
-> 不借助任何构造函数的情况下分配一个新的Java对象
+**AllocObject**
 
-##### 构造函数创建
+> **实例化一个Java对象，而不调用构造函数**
+
+> **例如：**
+>
+> ```cpp
+> extern "C"
+> JNIEXPORT void JNICALL
+> Java_com_example_ndktest_MainActivity_insertObject(JNIEnv *env, jobject thiz) {
+>     // TODO: implement insertObject()
+> 
+>     //通过类名+包名拿到class
+>     jclass studenClass = env->FindClass("com/example/ndktest/entity/Student");
+>     //通过class拿到类对象
+>     jobject studentstr = env->AllocObject(studenClass);
+>     
+>     env->Delete
+> }
+> ```
+>
+> 可以凭此拿到类对象，而无需参数传递。拿到类的对象之后，可以调用类的方法。
+
+**NewObject**
+
+**会实例化并调用构造函数**
 
 > ```cpp
 > jobject NewObject(JNIEnv *env,jclass clazz,jmethodID methodID,...);
@@ -1192,13 +1288,69 @@ jint GetVersion(JNIEnv *env);
 
 
 
-##### GetObjectClass
+##### <a name="get-object-class">GetObjectClass</a>
 
 > 获取某个对象的类
 >
 > ```cpp
 > jclass GetObjectClass(JNIEnv *env,object obj);
 > ```
+>
+> **例子：**
+>
+> 定义一个`Student`类
+>
+> ```java
+> public class Student {
+>  //这句代码定义了一个私有的静态字符串变量 TAG，并将其初始化为 Student 类的简单名称。
+>  private final static String TAG = Student.class.getSimpleName();
+>  public String name;
+>  public int age;
+> 
+>  public String getName() {
+>      return name;
+>  }
+> 
+>  public void setName(String name) {
+>      this.name = name;
+>  }
+> 
+>  public int getAge() {
+>      return age;
+>  }
+> 
+>  public void setAge(int age) {
+>      this.age = age;
+>  }
+> 
+>  @Override
+>  public String toString() {
+>      return "Student{" +
+>              "name='" + name + '\'' +
+>              ", age=" + age +
+>              '}';
+>  }
+> }
+> ```
+>
+> 在native层获取student并且调用方法
+>
+> ```cpp
+> extern "C"
+> JNIEXPORT void JNICALL
+> Java_com_example_ndktest_MainActivity_showObjectInfo(JNIEnv *env, jobject thiz, jobject student) {
+>     
+>     jclass claz = env->GetObjectClass(student);//获取对象
+> 
+>     jmethodID getName = env->GetMethodID(claz,"getName","()Ljava/lang/String;");//获取方法ID
+> 
+>     //调用getName
+>     jstring name = static_cast<jstring>(env->CallObjectMethod(student, getName));
+>     const char * name_value = env->GetStringUTFChars(name,NULL);
+>     LOGD("得到的student名字:%s",name_value);
+> }
+> ```
+>
 
 ##### GetObjectRefType
 
@@ -1309,6 +1461,12 @@ jint GetVersion(JNIEnv *env);
 
 
 
+##### 释放对象/类
+
+使用`DeleteLocalRef`释放`局部`对象或类
+
+
+
 #### (5)字符串
 
 ##### NewString
@@ -1358,6 +1516,12 @@ jint GetVersion(JNIEnv *env);
 > jstring NewStringUTF(JNIEnv *env,const char *bytes);
 > ```
 >
+> > 例如：
+> >
+> > ```cpp
+> > jstring value = env->NewStringUTF("KEVIN");
+> > ```
+>
 > 与之对应的包括获取UTF-8字符串长度、指针、释放
 >
 > ```cpp
@@ -1390,16 +1554,18 @@ jint GetVersion(JNIEnv *env);
 
 #### (6)数组操作
 
+**GetArrayLength**
+
+> 获取数组长度
+>
+> ```cpp
+> jsize GetArrayLength(JNIEnv *env,jarray array)
+> ```
+>
+> 返回数组的长度，`jsize`是`jint`别名
+
 ##### 对象数组
 
-> ##### GetArrayLength
->
-> > 获取数组长度
-> >
-> > ```cpp
-> > jsize GetArrayLength(JNIEnv *env,jarray array)
-> > ```
->
 > ##### NewObjectArray
 >
 > > 对象数组
@@ -1412,6 +1578,9 @@ jint GetVersion(JNIEnv *env);
 > > initialElement：数组元素的初始值
 > > ```
 >
+
+
+
 > ##### GetObjectArrayElement
 >
 > > 获取数组中某个元素
@@ -1420,6 +1589,55 @@ jint GetVersion(JNIEnv *env);
 > > jobject GetObjectArrayElement(JNIEnv *env,jobjectArray array,jsize index);
 > > ```
 >
+> **例子：**
+>
+> ```java
+> public class MainActivity extends AppCompatActivity {
+>     // Used to load the 'ndktest' library on application startup.
+>     static {
+>         System.loadLibrary("ndktest");
+>     }
+> 
+>     @Override
+>     protected void onCreate(Bundle savedInstanceState) {
+>         super.onCreate(savedInstanceState);
+> 
+>        ....
+> 
+>         String[] strs = {"hello","its","me"};
+>         showSomeMessageOnJNI(strs);//传递给jni
+>     }
+> 
+>     /**
+>      * A native method that is implemented by the 'ndktest' native library,
+>      * which is packaged with this application.
+>      */
+>     public native void showSomeMessageOnJNI(String[] strs);
+> }
+> ```
+>
+> c++层实现
+>
+> ```cpp
+> extern "C"
+> JNIEXPORT void JNICALL
+> Java_com_example_ndktest_MainActivity_showSomeMessageOnJNI(JNIEnv *env, jobject thiz,
+>                                                            jobjectArray strs) {
+>     jint size_strs = env->GetArrayLength(strs);
+>     for(int i = 0;i<size_strs;i++){
+>         jstring jstr = static_cast<jstring>(env->GetObjectArrayElement(strs, i));//获取第i个元素，并且要强制转换类型
+>         const char * str = env->GetStringUTFChars(jstr,NULL);
+>         LOGD("string数组：%s",str);
+> 
+>         env->ReleaseStringUTFChars(jstr,str);//释放jstring
+>     }
+> }
+> ```
+>
+> ![1698649125087](NDK1.assets/1698649125087.png)
+
+
+
 > ##### SetObjectArrayElement
 >
 > > 设置数组中的元素
@@ -1446,6 +1664,9 @@ jint GetVersion(JNIEnv *env);
 > > NewDoubleArray()                           jdoubleArray
 > > ```
 >
+
+
+
 > ##### 获取基本类型数组*指针*
 >
 > > ```cpp
@@ -1461,25 +1682,90 @@ jint GetVersion(JNIEnv *env);
 > > GetFloatArrayElements()                      jfloatArray        jfloat
 > > GetDoubleArrayElements()                     jdoubleArray       jdouble
 > > ```
-> >
+>>
 > > **在调用相应的`Release<PrimitiveType>ArrayElements()`函数前将一直有效。**
 >
+> **例子：**
+> 
+> 在java代码里分别声明int数组、string数组
+> 
+> ```java
+> public class MainActivity extends AppCompatActivity {
+>     // Used to load the 'ndktest' library on application startup.
+>     static {
+>         System.loadLibrary("ndktest");
+>     }
+> 
+>     @Override
+>     protected void onCreate(Bundle savedInstanceState) {
+>         super.onCreate(savedInstanceState);
+> 
+>       ....
+> 
+>        int[] a = {1,2,3,4};
+>         showSomeMessageOnJNI(a);//传递给jni
+>     }
+> 
+>     /**
+>      * A native method that is implemented by the 'ndktest' native library,
+>      * which is packaged with this application.
+>      */
+>     public native void showSomeMessageOnJNI(int[] intA);
+> }
+> ```
+> 
+>在c++代码的实现
+> 
+>```cpp
+> extern "C"
+>JNIEXPORT void JNICALL
+> Java_com_example_ndktest_MainActivity_showSomeMessageOnJNI(JNIEnv *env, jobject thiz,
+>                                                            jintArray int_a) {
+>     //jint* GetIntArrayElements(jintArray array, jboolean* isCopy)
+>     int* inta = env->GetIntArrayElements(int_a,NULL);//获取到int数组
+> 
+>     //jsize GetArrayLength(jarray array)
+>     jint size = env->GetArrayLength(int_a);//获取数组长度
+> 
+>     //遍历数组
+>     for(int i = 0;i<size;i++){
+>         *(inta+i)+=100;//将数组元素加100
+>         LOGD("int数组：%d\t",*inta+i);//打印数组
+>     }
+>     
+>     env->ReleaseIntArrayElements(int_a,inta,0);//释放掉数组指针，并且更新java层数据
+> ```
+> 
+> 可以看到数据改变
+>
+> ![1698647490107](NDK1.assets/1698647490107.png)
+
+
+
 > ##### 释放基本类型数组指针
 >
 > > ```cpp
 > > void Release<PrimitiveType>ArrayElements(JNIEnv *env,ArrayType array,NativeType *elems,jint mode);
 > > 
-> > //elems参数是使用相应的Get <PrimitiveType> ArrayElements()函数数组范返回的指针。
+> > //elems参数是使用Get <PrimitiveType> ArrayElements()函数数组返回的指针。
 > > //如果有需要的话，该函数复制所有的elems上的变换到原始数组元素上去。mode参数提供了数组buffer应该怎么被释放。如果elems不是被array的一个副本，mode并没有什么影响。
 > > 
 > > //mode的取值 有如下3种情况：
-> > 0：复制内容并释放elems缓冲区
-> > JNI_COMMIT：复制内容但不释放elems缓冲区
-> > JNI_ABORT：释放缓冲区而不复制可能的更改
+> > 0：复制内容，刷新java层，并释放elems缓冲区
+> > JNI_COMMIT：复制内容，刷新java层，但不释放elems缓冲区
+> > JNI_ABORT：只释放缓冲区 
 > > ```
->
 > 
+> **当env调用该函数会释放内存空间，同时如果数组有更新，那么jni会通知jvm进行更新，最终会影响java层的更新**
 >
+> ```cpp
+>
+> ```
+> 
+> 
+
+
+
 > ##### 复制一个指定大小基本类型数组
 >
 > > ```cpp
@@ -1495,36 +1781,36 @@ jint GetVersion(JNIEnv *env);
 > > GetShortArrayRegion()                           jshortArray             jhort
 > > GetIntArrayRegion()                             jintArray               jint
 > > GetLongArrayRegion()                            jlongArray              jlong
-> > GetFloatArrayRegion()                           jfloatArray             jloat
+>> GetFloatArrayRegion()                           jfloatArray             jloat
 > > GetDoubleArrayRegion()                          jdoubleArray            jdouble
-> >     
+>>     
 > >   
 > > ```
->
+> 
 > ##### 将复制的数组复制回源数组
->
+> 
 > > ```cpp
 > > //buf：源buffer
 > > void Set<PrimitiveType> ArrayRegion(JNIEnv *env,ArrayType array,jsize start,jsize len,const NativeType *buf);
 > > ```
->
+> 
 > ##### 获取数组指针、释放
->
+> 
 > > ```cpp
 > > void *GetPrimitiveArrayCritical(JNIEnv *env,jarray array,jboolean *isCopy);
 > > void ReleasePrimitiveArrayCritical(JNIEnv *env,jarray array,void *carray,jint mode);
-> > ```
+>> ```
 > >
-> > 在两者之间不能够调用其他的JNI函数和阻塞JAVA线程的方法
+>> 在两者之间不能够调用其他的JNI函数和阻塞JAVA线程的方法
 
 
 
-#### (7)输出
+#### (7)打印日志
 
 使用NDK工具链里面的log库
 
 ```cpp
-#include<android/log.h>
+#include<android/log.h>//头文件
 
 #define TAG "Tag"
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG,TAG,__VA_ARGS__)
@@ -1540,6 +1826,56 @@ int main(){
 
 
 #### 全局引用和局部引用
+
+**局部引用：**
+
+下面代码是定义一个变量，虽然他定义在方法外部，但是它会随着函数弹栈同时而销毁，因此会变成悬空指针，容易引起ANR
+
+```cpp
+jclass dogclass//局部引用
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_ndktest_MainActivity_showObjectInfo(JNIEnv *env, jobject thiz, jobject student) {
+    if(dogclass == NULL){
+        ....
+    }
+    
+    ...
+}
+```
+
+
+
+**全局引用**
+
+解决因上面问题而引发的ANR，可以将变量变为全局变量，并且必须手动释放
+
+```cpp
+jclass dogclass//局部引用
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_ndktest_MainActivity_showObjectInfo(JNIEnv *env, jobject thiz) {
+    if(dogclass == NULL){
+        jclass globalObj = env->FindClass("com/kevin/Dog");
+        dogclass = static_cast<jclass>(env->NewGlobalRef(globalObj));//提升全局引用
+    }
+    
+    ...
+}
+
+//手动释放全局引用
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_ndktest_MainActivity_releaseGlob(JNIEnv *env, jobject thiz) {
+    if(dogclass != NULL){
+        env->ReleaseGlobalRef(dogclass);
+    }
+}
+```
+
+
+
+
 
 #### 异常
 
