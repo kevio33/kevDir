@@ -372,7 +372,7 @@ obj、i和s的类型可以参考下面的JNI数据类型，JNI有自己的原始
 
 `CMakeLists.txt`这个文件主要定义了哪些文件需要编译，以及和其他库的关系等
 
-```
+```txt
 //指定CMake的最小版本
 cmake_minimum_required(VERSION 3.10.2)
 
@@ -381,7 +381,7 @@ project("ndkpro2")
 
 
 //创建一个静态或者动态库，并提供其关联的源文件路径，开发者可以定义多个库，CMake会自动去构建它们。Gradle可以自动将它们打包进APK中。
-第一个参数——native-lib：是库的名称
+第一个参数——native-lib：是库的名称，最后生成native-lib.so
 第二个参数——SHARED：是库的类别，是动态的还是静态的
 第三个参数——src/main/cpp/native-lib.cpp：是库的源文件的路径
 
@@ -1978,7 +1978,7 @@ CMake=》vs项目=》cl编译
 
 
 
-### .so文件
+### (1).so文件
 
 .so是基于Linux下的动态链接,其功能和作用类似与windows下.dll文件。
 
@@ -1989,3 +1989,87 @@ CMake=》vs项目=》cl编译
 > https://blog.csdn.net/m0_37844072/article/details/112857797
 >
 > https://www.cnblogs.com/liuzhenbo/p/11031052.html
+
+
+
+> [cmake指定项目编译生成so文件路径](https://blog.csdn.net/b2259909/article/details/58591898)
+
+
+
+#### jniLibs
+
+> [android studio 打包 so](https://juejin.cn/s/android%20studio%20%E6%89%93%E5%8C%85%20so)
+
+jniLibs 是 Android Studio 中用来存放 .so 文件的目录。 
+
+在 Android Studio 中，默认情况下，`jniLibs` 目录位于项目目录下的 `app/src/main/jniLibs`。这个目录下会根据不同的 Android 平台创建子目录，例如 `arm64-v8a`、`armeabi-v7a` 和 `x86_64`。每个子目录下存放的是该平台对应的 .so 文件。 
+
+**可以在`gradle`文件中声明支持的cpu架构，分两个模块:**
+
+- **`cmake`**
+
+  > 如果实在`cmake`模块声明，那么就意味着cmakelists会有条件的引入编译指定的cpu架构的so库
+  >
+  > ```groovy
+  > android {
+  >     ...
+  >     defaultConfig {
+  >         ...
+  >         externalNativeBuild {
+  >             cmake {
+  >                 ...
+  >                 // cmake只会导入和编译下面cpu架构的库
+  >                 abiFilters "arm64-v8a", "armeabi-v7a", "x86_64"//指定cpu架构
+  >                 arguments "-DANDROID_ABIS=$abiFilters"//将对应cpu架构的so文件放到对应目录下
+  >             }
+  >         }
+  >     }
+  >     ...
+  > }
+  > ```
+  >
+  > 常见的五种安卓cpu机构
+  >
+  > - arm64-v8a
+  > - armeabi-v7a
+  > - armeabi
+  > - x86
+  > - x86_64
+
+- **`ndk`**
+
+  > 如果是在`ndk`模块声明，那么意味着在最终打包apk时候，只打包指定cpu架构的so库
+  >
+  > ```groovy
+  > android {
+  > 
+  >     defaultConfig {
+  >         ndk{
+  >             abiFilters "arm64-v8a","x86_64","x86"
+  >         }
+  >     }
+  > }
+  > ```
+  >
+  > 
+
+
+
+
+
+**修改jniLibs名称**
+
+[Android Settings，SourceSet，自定义Plugin](https://blog.csdn.net/baidu_40389775/article/details/103661713)
+
+```groovy
+android {
+    sourceSets {
+            main {
+                //修改 so 文件存放的位置
+                jniLibs.srcDirs = ['libs']
+            }
+        }
+}
+```
+
+>  使用上面的配置后，gradle 在加载 so 文件时就会从 libs 下进行加载。 
