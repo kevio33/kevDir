@@ -636,6 +636,8 @@ class Test1 {
 
 ![在这里插入图片描述](https://gitee.com/kevinyong/kevin-gallery/raw/master/20190221230958372.png)
 
+>  求幂运算符是 `**`。例如，`2 ** 3 = 8`。 
+
 **移位运算符**
 
 ![在这里插入图片描述](https://gitee.com/kevinyong/kevin-gallery/raw/master/20190221231133421.png)

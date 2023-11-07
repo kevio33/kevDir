@@ -125,6 +125,18 @@ Java_com_example_ndkapp_MainActivity_stringFromJNI(
 >
 > https://www.jianshu.com/p/c959ead68ae8
 
+
+
+### 3.配置ndk版本
+
+在sdk的ndk目录下：`F:\androidStudio\sdk\ndk`有不同版本的ndk文件夹，可以将指定ndk进行配置
+
+![1699324466604](NDK1.assets/1699324466604.png)
+
+
+
+
+
 ## 五、JNI
 
 ![img](NDK1.assets/25287336-236640206aa5c127.png)
@@ -2035,6 +2047,141 @@ Java_com_example_ndktest_JNI2_testJNIthread(JNIEnv *env, jobject thiz) {
 ```
 
 
+
+
+
+### 静态缓存
+
+在native层频繁的获取`静态变量`的`id`等操作非常耗性能。因此最好在`构造函数`或开始初始化静态缓存，然后最后销毁静态缓存
+
+```java
+//java代码中创建两个静态变量
+//和声明静态缓存和释放静态缓存的native函数
+public static String name1 = "T1";
+public static String name2 = "T2";
+
+public static native void initStaticCache(String name);
+public static native void releaseStaticCache();
+
+
+@Override
+protected void onDestroy() {
+    super.onDestroy();
+    releaseStaticCache();
+}
+```
+
+在native层
+
+```cpp
+static jfieldID f_name1_id = nullptr;
+static jfieldID f_name2_id = nullptr;
+extern "C"
+    JNIEXPORT void JNICALL
+    Java_com_example_ndktest_JNI2_initStaticCache(JNIEnv *env, jclass clazz, jstring name) {
+    //  初始化静态内存
+    f_name1_id = env->GetStaticFieldID(clazz,"name1","Ljava/lang/String;");
+    f_name2_id = env->GetStaticFieldID(clazz,"name2","Ljava/lang/String;");
+}
+extern "C"
+    JNIEXPORT void JNICALL
+    Java_com_example_ndktest_JNI2_releaseStaticCache(JNIEnv *env, jclass clazz) {
+    //  释放静态内存
+    f_name1_id = nullptr;
+    f_name2_id = nullptr;
+}
+```
+
+
+
+### JNI异常
+
+#### (1)没有任何捕获操作
+
+```cpp
+jfieldID f_id = env->GetStaticFieldID(clazz,"name1000","Ljava/lang/String");//并不存在该名称的静态变量，所以会抛出异常
+
+jthrowable thr = env->ExceptionOccurred();//监测是否有异常
+
+if(thr){//非0，有异常
+    env->ExceptionClear();
+    
+    //补救
+    jfieldID f_id = env->GetStaticFieldID(clazz,"name1","Ljava/lang/String");
+}
+```
+
+
+
+#### (2)native抛出异常，java捕获
+
+**jni抛出异常**
+
+```cpp
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_ndktest_JNI2_exception(JNIEnv *env, jclass clazz) {
+    
+    jfieldID jfieldId = env->GetStaticFieldID(clazz,"name1000","Ljava/lang/String;");//找不到name1000这个变量
+
+    jthrowable thr = env->ExceptionOccurred();
+    if(thr){
+        env->ExceptionClear();//先清除异常
+
+        jclass jclass1 = env->FindClass("java/lang/NoSuchFieldException");//找到异常类
+        env->ThrowNew(jclass1,"查找filed出错");//抛出异常
+    }
+}
+```
+
+
+
+```java
+public static native void exception() throws NoSuchFieldException;//测试异常
+
+public void testException(){
+        try {
+            exception();
+        } catch (NoSuchFieldException e) {
+            Log.d("NoSuchFieldExc",e.getMessage());
+        }
+    }
+```
+
+
+
+#### (3)java抛出异常，native捕获
+
+有一个java方法
+
+```java
+public static void javaException() throws Exception {
+
+    Log.i("java异常","java抛出异常");
+
+    throw new Exception();
+}
+```
+
+native调用该java方法，而该java方法抛出异常
+
+```cpp
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_ndktest_JNI2_exception(JNIEnv *env, jclass clazz) {
+    // TODO: implement exception()
+    jmethodID jmethodId = env->GetStaticMethodID(clazz,"javaException","()V");
+
+    env->CallStaticVoidMethod(clazz,jmethodId);
+    //检查是否捕获异常
+    if(env->ExceptionCheck()){
+        env->ExceptionDescribe();//打印异常信息
+        env->ExceptionClear();
+    }
+}
+```
+
+![1699336536359](NDK1.assets/1699336536359.png)
 
 
 
