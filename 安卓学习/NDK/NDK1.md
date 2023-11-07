@@ -372,7 +372,7 @@ obj、i和s的类型可以参考下面的JNI数据类型，JNI有自己的原始
 
 `CMakeLists.txt`这个文件主要定义了哪些文件需要编译，以及和其他库的关系等
 
-```txt
+```cmake
 //指定CMake的最小版本
 cmake_minimum_required(VERSION 3.10.2)
 
@@ -445,7 +445,7 @@ target_link_libraries( # Specifies the target library.
 > public class JniDemo1{
 >  static {
 >      //System.load("D:/xxx/xxx");//绝对路径加载动态链接库文件
->      System.loadLibrary("samplelib_jni");
+>      System.loadLibrary("native-lib");
 >  }
 > 
 >  private native void nativeMethod();
@@ -474,13 +474,11 @@ target_link_libraries( # Specifies the target library.
 >
 > ```java
 > public class JniDemo1{
->  static {
->      
->      
->      System.loadLibrary("native-lib");//在apk文件里面的lib/libnative-lib.so加载
->  }
+> static {
+>   System.loadLibrary("native-lib");//在apk文件里面的lib/libnative-lib.so加载;动态注册模式下，该静态函数块会调用JNI_OnLoad函数
+> }
 > 
->  private native void nativeMethod();
+> private native void nativeMethod();
 > }
 > ```
 >
@@ -498,66 +496,71 @@ target_link_libraries( # Specifies the target library.
 > 
 > #ifdef __cplusplus
 > extern "C" {
-> #endif
+>     #endif
 > 
-> static const char *className = "com/gebilaolitou/jnidemo/JNIDemo2";//注册的Java类名，根据自己名字更改
+>     static const char *className = "com/gebilaolitou/jnidemo/JNIDemo2";//注册的Java类名，根据自己名字更改
 > 
-> static void sayHello(JNIEnv *env, jobject, jlong handle) {
-> LOGI("JNI", "native: say hello ###");
-> }
+>     //函数实现
+>     static void sayHello(JNIEnv *env, jobject, jlong handle) {
+>         LOGI("JNI", "native: say hello ###");
+>     }
 > 
-> //方法数组：代表了一个native方法的数组，如果你在一个Java类中有一个native方法，这里它的size就是1，如果是两个native方法，它的size就是2
-> static JNINativeMethod gJni_Methods_table[] = {
-> {"sayHello", "(J)V", (void*)sayHello},
-> };
+>     //方法数组：代表了一个native方法的数组，
+>     //如果你在一个Java类中有一个native方法，这里它的size就是1;如果是两个native方法，它的size就是2
+>     static JNINativeMethod gJni_Methods_table[] = {
+>         {"sayHello", "(J)V", (void*)sayHello},//param1:函数名;param2:签名;param3:函数指针
+>     };
 > 
-> //首先通过clazz = (env)->FindClass( className);找到声明native方法的类
-> //然后通过调用RegisterNatives函数将注册函数的Java类，以及注册函数的数组，以及个数注册在一起，这样就实现了绑定。
-> static int jniRegisterNativeMethods(JNIEnv* env, const char* className,
-> const JNINativeMethod* gMethods, int numMethods)
-> {
-> jclass clazz;
+>     //首先通过clazz = (env)->FindClass( className);找到声明native方法的类
+>     //然后通过调用RegisterNatives函数将注册函数的Java类，以及注册函数的数组，以及个数注册在一起，这样就实现了绑定。
+>     static int jniRegisterNativeMethods(JNIEnv* env, const char* className,
+>                                         const JNINativeMethod* gMethods, int numMethods)
+>     {
+>         jclass clazz;
 > 
-> LOGI("JNI","Registering %s natives\n", className);
-> clazz = (env)->FindClass( className);
-> if (clazz == NULL) {
->   LOGE("JNI","Native registration unable to find class '%s'\n", className);
->   return -1;
-> }
+>         LOGI("JNI","Registering %s natives\n", className);
+>         clazz = (env)->FindClass(className);
+>         if (clazz == NULL) {
+>             LOGE("JNI","JNI注册没有找到类: '%s'\n", className);
+>             return -1;
+>         }
 > 
-> int result = 0;
-> if ((env)->RegisterNatives(clazz, gJni_Methods_table, numMethods) < 0) {
->   LOGE("JNI","RegisterNatives failed for '%s'\n", className);
->   result = -1;
-> }
+>         int result = 0;
+>         if ((env)->RegisterNatives(clazz, gJni_Methods_table, numMethods) < 0) {
+>             LOGE("JNI","注册失败: '%s'\n", className);
+>             result = -1;
+>         }
 > 
-> (env)->DeleteLocalRef(clazz);
-> return result;
-> }
+>         (env)->DeleteLocalRef(clazz);
+>         return result;
+>     }
 > 
-> jint JNI_OnLoad(JavaVM* vm, void* reserved){
-> LOGI("JNI", "enter jni_onload");
+>     //JNI的构造函数，java层调用loadLibrary函数时候会调用该函数
+>     //主要进行初始化
+>     jint JNI_OnLoad(JavaVM* vm, void* reserved){
+>         LOGI("JNI", "enter jni_onload");
 > 
-> JNIEnv* env = NULL;
-> jint result = -1;
+>         JNIEnv* env = nullptr;
+>         jint result = -1;
 > 
-> //这里调用了GetEnv函数时为了获取JNIEnv结构体指针，其实JNIEnv结构体指向了一个函数表，该函数表指向了对应的JNI函数，我们通过这些JNI函数实现JNI编程。
-> if (vm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) {
->   return result;
-> }
+>         //这里调用了GetEnv函数时为了获取JNIEnv结构体指针.
+>         //如果调用获取成功会返回1(JNI_OK)
+>         //如果返回值不为1，那么就应该手动返回-1，程序会崩溃停止运行
+>         if (vm->GetEnv((void**) &env, JNI_VERSION_1_6) != JNI_OK) {
+>             return result;
+>         }
 > 
-> 	//调用了jniRegisterNativeMethods函数来实现注册
-> jniRegisterNativeMethods(env, className, gJni_Methods_table, sizeof(gJni_Methods_table) / sizeof(JNINativeMethod));
+>         //如果获取JNIEnv成功
+>         //就调用了jniRegisterNativeMethods函数来实现注册
+>         jniRegisterNativeMethods(env, className, gJni_Methods_table, sizeof(gJni_Methods_table) / sizeof(JNINativeMethod));
 > 
-> return JNI_VERSION_1_4;
-> }
+>         return JNI_VERSION_1_4;
+>     }
 > 
-> #ifdef __cplusplus
+>     #ifdef __cplusplus
 > }
 > #endif
 > ```
->
-> 
 >
 > > **JNINativeMethod**
 > >
@@ -571,11 +574,11 @@ target_link_libraries( # Specifies the target library.
 > > } JNINativeMethod; 
 > > ```
 > >
-> 
+>
 
 
 
-**签名(signature)：**
+#### **签名(signature)：**
 
 > 因为Java是支持**函数重载**的（可以定义相同方法名，但是不同参数的方法），然后Java根据其不同的参数，找到其对应的实现的方法。所以JNI如果仅仅是根据函数名，没有办法找到重载的函数的，所以为了解决这个问题，JNI就衍生了一个概念——"签名"，即**将参数类型和返回值类型的组合**。如果拥有一个该函数的签名信息和这个函数的函数名，我们就可以顺序的找到对应的Java层中的函数了。
 >
@@ -1823,8 +1826,6 @@ int main(){
 
 
 
-
-
 #### 全局引用和局部引用
 
 **局部引用：**
@@ -1880,6 +1881,158 @@ Java_com_example_ndktest_MainActivity_releaseGlob(JNIEnv *env, jobject thiz) {
 #### 异常
 
 
+
+
+
+### JNI线程
+
+在某些需求，例如c++通过线程下载资源，然后通过子线程调用java方法并更新UI
+
+```java
+public class JNI2 extends AppCompatActivity {
+
+    static {
+        System.loadLibrary("ndktest");
+    }
+
+    public native void testJNIthread();
+	    
+    private ActivityDynregBinding activityDynregBinding;
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        activityDynregBinding = ActivityDynregBinding.inflate(getLayoutInflater());
+        setContentView(activityDynregBinding.getRoot());
+
+        activityDynregBinding.testJnithread.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                testJNIthread();
+            }
+        });
+    }
+
+    /**
+     * JNI调用java方法，并且判断是否是UI线程，然后更新UI
+     */
+    public void updateActivity(){
+        if(Looper.getMainLooper() == Looper.myLooper()){//c++用主线程调用此函数
+            new AlertDialog.Builder(JNI2.this)
+                    .setTitle("UI线程")
+                    .setMessage("updateActivityUI on mainThread")
+                    .setPositiveButton("滚",null)
+                    .show();
+        }else {
+            //子线程调用，只能通过runOnUi更新UI
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    new AlertDialog.Builder(JNI2.this)
+                            .setTitle("updateActivityUI on Subthread")
+                            .setPositiveButton("滚",null)
+                            .show();
+                }
+            });
+        }
+    }
+}
+```
+
+```cpp
+//
+// Created by kevin on 2023/10/31.
+//
+#include <jni.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <android/log.h>
+#include <pthread.h>
+#define TAG "10-30JNI"
+#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG,TAG,__VA_ARGS__)
+
+using namespace std;
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+static const char *className = "com/example/ndktest/JNI2";//要注册的Java类名
+
+JavaVM * javaVm = nullptr;
+
+
+//JNI的构造函数，java层调用loadLibrary函数时候会调用该函数
+//主要进行初始化
+jint JNI_OnLoad(JavaVM* vm, void* reserved){
+    LOGD("JNI", "enter jni_onload");
+
+    JNIEnv* env = nullptr;
+    jint result = -1;
+    javaVm = vm;
+    //这里调用了GetEnv函数时为了获取JNIEnv结构体指针.
+    //如果调用获取成功会返回1(JNI_OK)
+    //如果返回值不为1，那么就应该手动返回-1，程序会崩溃停止运行
+    if (vm->GetEnv((void**) &env, JNI_VERSION_1_6) != JNI_OK) {
+        return result;
+    }
+
+    return JNI_VERSION_1_6;
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+/**
+ * 自定义类保存jonject对象
+ * 因为要线程用到该变量
+ */
+class MyContext{
+public:
+    jobject  myinstance = nullptr;
+};
+
+//线程执行方法
+void * threadFunc(void * args){
+
+    MyContext *myContext = static_cast<MyContext *>(args);
+
+    //因为jnienv不允许跨线程，所以首先通过javaVM拿到一个attach jnienv
+    JNIEnv *jniEnv = nullptr;
+
+    jint attachRes=  javaVm->AttachCurrentThread(&jniEnv, nullptr);
+    if(attachRes != JNI_OK){
+        return 0;
+    }
+
+    //拿到jclass
+    jclass JNI2class = jniEnv->GetObjectClass(myContext->myinstance);
+
+    jmethodID updaUI = jniEnv->GetMethodID(JNI2class,"updateActivity","()V");
+
+    jniEnv->CallVoidMethod(myContext->myinstance,updaUI);
+
+    javaVm->DetachCurrentThread();//一定要detach，否则崩溃
+
+    return nullptr;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_ndktest_JNI2_testJNIthread(JNIEnv *env, jobject thiz) {
+    // TODO: implement testJNIthread()
+
+    MyContext * myContext = new MyContext;
+    myContext->myinstance = env->NewGlobalRef(thiz);//jobjiect不能跨线程，因此只能转换为全局变量
+
+    pthread_t mypthread;
+    pthread_create(&mypthread, nullptr,threadFunc,myContext);
+    pthread_join(mypthread, nullptr);
+}
+```
 
 
 
@@ -1960,7 +2113,6 @@ jniLibs 是 Android Studio 中用来存放 .so 文件的目录。
   > }
   > ```
   >
-  > 
 
 
 

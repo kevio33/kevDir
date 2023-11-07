@@ -2875,6 +2875,37 @@ int main() {
 > - 将左值转移给右值引用，以便使用右值引用的优点。
 > - 将左值转移给一个函数，以便该函数可以使用右值语义。
 
+## 4.sizeof
+
+返回一个对象或者类型所占的内存字节数 ，因此可以基于此求数组长度。
+
+语法：
+
+  (1）sizeof( object ); // sizeof( 对象 );
+（2）sizeof( type_name ); // sizeof( 类型 );
+（3）sizeof object; // sizeof 对象; 
+
+```cpp
+int array[] = {5,2,4,6,1,3};
+
+length = sizeof(array)/sizeof(*array);            //表达式1
+length = sizeof(array)/sizeof(array[0]);        //表达式2
+length = sizeof(array)/sizeof(int);             //表达式3
+
+//以上三种表达式结果都正确
+```
+
+如果是求字符数组长度，因为字符数组占1B，所以可以直接求的长度
+
+```cpp
+char str[] = {"This is a string!"};
+length = sizeof(str)-1;//包含空格
+
+之所结果要减1，是因为字符串结束符'\0‘在数组中占用了一个字节。
+```
+
+
+
 # 三、线程
 
  有两个线程工具包
