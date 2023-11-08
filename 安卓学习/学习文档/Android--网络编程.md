@@ -1,4 +1,4 @@
-# 网络编程框架
+# 异步编程
 
 ## 一、AsyncTask
 
@@ -46,7 +46,7 @@ AsyncTask的底层其实是对Thread、Handler、Message的封装，智能的应
 我们一般可以新建一个类`Task`继承于AsyncTask类，通过覆写其方法实现主线程和子线程的数据交互：
 新建一个任务继承AsyncTask需要传入三个参数，即：<Params, Progress, Result>
 
-- 启动异步方法：new ××Task().excute(?); 处用来向  ××Task（）方法传值,即上面的Params（一般用map<>,或String）；注意：每new一个对象只能进行一次调用excute()操作
+- 启动异步方法：`new ××Task().excute(?); `处用来向  `××Task（）`方法传值,即上面的Params（一般用map<>,或String）；注意：每new一个对象只能进行一次调用`excute()`操作
 
   
 
@@ -126,7 +126,7 @@ public class MyAsyncTask extends AsyncTask<String, Integer, Bitmap>{
 }
 ```
 
-上面doInBackground()中获取进度值时，我们只是为了做一个进度值更新调用的演示，实际项目文件下载中，我们可能会对拿到的输入流进行处理，比如读取输入流将文件保存到本地，在读取输入流的时候，我们就可以获取到已经读取的输入流大小作为进度值了，如下：             
+上面`doInBackground()`中获取进度值时，我们只是为了做一个进度值更新调用的演示，实际项目文件下载中，我们可能会对拿到的输入流进行处理，比如读取输入流将文件保存到本地，在读取输入流的时候，我们就可以获取到已经读取的输入流大小作为进度值了，如下：             
 
 ```java
 //实际项目中如何获取文件大小作为进度值及更新进度值
@@ -242,11 +242,9 @@ protected void onProgressUpdate(Integer... values) {
 
 
 
+# Android常用网络请求框架
 
-
-## 二、Android常用网络请求框架
-
-### 1.概述：
+## 一.概述：
 
 安卓中网络请求方式：
 
@@ -265,9 +263,7 @@ protected void onProgressUpdate(Integer... values) {
 
 
 
-### 2.详细使用方式:
-
-#### 	(1)原生网络请求:
+## 	原生网络请求:
 
 ​	get请求
 
@@ -395,7 +391,7 @@ public class HttpURLConnectionHelper {
 
 
 
-#### 	(2)xutils
+## 	xutils
 
 ```groovy
 //需要导入依赖：
@@ -404,7 +400,7 @@ implementation ‘org.xutils:xutils:3.5.1’
 
 
 
-#### 	(3)OkHttp
+## OkHttp
 
 ```groovy
 //需要导入依赖：
@@ -462,7 +458,7 @@ okhttp访问拦截器：
 
 
 
-#### 	(4)volley
+## 	volley
 
 ```groovy
 //需要导入依赖：
@@ -471,7 +467,7 @@ implementation ‘eu.the4thfloor.volley:com.android.volley:2015.05.28’
 
 
 
-#### 	(5)Retrofit
+## 	Retrofit
 
 **概述：**retrofit也是一种网络框架,他**底层封装的是OkHttp**,也可以理解是OkHttp的加强版，其实底层的网络请求是OkHttp完成的，那么，为什么还要封装Retrofit呢，Retrofit仅负责网络请求接口的封装。它的一个特点是**包含了特别多注解**，方便简化你的代码量。并且还支持很多的开源库(著名例子：Retrofit +RxJava)。
 
@@ -535,7 +531,7 @@ Observable<News> news = mApi.getNews("1","10").subscribeOn(...).observeOn(...);
 
 **需要注意的是`baseUrl`添加的是地址的主域名。不是完全地址**
 
-##### 	GET
+### 	GET
 
 **申明接口，用于存放请求方法**
 
@@ -592,7 +588,7 @@ public class RestClient {
 
 
 
-###### 	①动态修改url:@Path
+**①动态修改url:@Path**
 
 ```java
 public interface GitHubService {
@@ -602,9 +598,7 @@ public interface GitHubService {
 
 这里在Get注解中包含{user}，它所对应的是@Path注解中的“user”，它所标示的正是String user，而我们再使用Retrofit对象动态代理的获取到GitHubService，当调用listRepos时，我们就必须传入一个String类型的User
 
-
-
-###### 	②动态指定条件获取信息：@Query
+**②动态指定条件获取信息：@Query**
 
 ```java
 @GET("group/{id}/users")
@@ -613,7 +607,7 @@ Call<List<User>> groupList(@Path("id") int groupId, @Query("sort") String sort);
 
 我们只需要使用@Query注解即可完成我们的需求，在@Query(“sort”)中，sort就好比是URL请求地址中的键，而它所对应的String sort中的sort则是它的值。
 
-###### 	③**动态指定条件组获取信息：@QueryMap**
+**③动态指定条件组获取信息：@QueryMap**
 
 ```java
 @GET("group/{id}/users")
@@ -622,18 +616,18 @@ Call<List<User>> groupList(@Path("id") int groupId, @QueryMap Map<String, String
 
 使用@QueryMap注解可以分别地从Map集合中获取到元素，然后进行逐个的拼接在一起。
 
-##### 	
 
-##### POST
 
-###### 	①**携带数据类型为对象时：@Body**
+### POST
+
+**①携带数据类型为对象时：@Body**
 
 ```java
 @POST("users/new")
 Call<User> createUser(@Body User user);
 ```
 
-###### 	②**携带数据类型为表单键值对时：@Field**
+**②携带数据类型为表单键值对时：@Field**
 
 ```java
 @FormUrlEncoded
@@ -643,7 +637,7 @@ Call<User> updateUser(@Field("first_name") String first,@Field("last_name") Stri
 
 当我们要携带的请求数据为表单时，通常会以键值对的方式呈现，那么Retrofit也为我们考虑了这种情况，它首先用到@FormUrlEncoded注解来标明这是一个表单请求，然后在我们的请求方法中使用@Field注解来标示所对应的String类型数据的键，从而组成一组键值对进行传递。
 
-###### 	③**单文件上传时：@Part**
+**③单文件上传时：@Part**
 
 ```java
 @Multipart
@@ -661,7 +655,7 @@ RequestBody descriptionRequestBody = RequestBody.create(null, "this is photo.");
 Call<User> call = service.updateUser(photoRequestBody, descriptionRequestBody);
 ```
 
-###### 	④多文件上传：**@PartMap**
+**④多文件上传：@PartMap**
 
 ```java
 @Multipart
@@ -669,9 +663,7 @@ Call<User> call = service.updateUser(photoRequestBody, descriptionRequestBody);
 Call<User> updateUser(@PartMap Map<String, RequestBody> photos, @Part("description") RequestBody description);
 ```
 
-
-
-###### 	⑤下载文件:
+**⑤下载文件:**
 
 ```java
 //PDF文件Retrofit下载
@@ -760,7 +752,7 @@ public static boolean  writeResponseBodyToDisk(File file, ResponseBody body) {
 
 
 
-##### Header:
+### Header
 
 Http请求中，为了防止攻击或是过滤掉不安全的访问或是为添加特殊加密的访问等等以减轻服务器的压力和保证请求的安全，通常都会在消息头中携带一些特殊的消息头处理。Retrofit也为我们提供了该请求方式：
 
@@ -788,10 +780,10 @@ Call<User> getUser(@Header("Authorization") String authorization)
 
 
 
-##### 重要方法:
+**重要方法:**
 
-1 call.cancel();它可以终止正在进行的请求，程序只要一旦调用到它，不管请求是否在终止都会被停止掉。
+`call.cancel()`:它可以终止正在进行的请求，程序只要一旦调用到它，不管请求是否在终止都会被停止掉。
 
-2 call.clone();当你想要多次请求一个接口的时候，直接用 clone 的方法来生产一个新的，否则将会报错，因为当你得到一个call实例，我们调用它的 execute 方法，但是这个方法只能调用一次。多次调用则发生异常。
+`call.clone()`:当想要多次请求一个接口的时候，直接用 clone 的方法来生产一个新的，否则将会报错，因为当得到一个call实例，我们调用它的 execute 方法，但是这个方法只能调用一次。多次调用则发生异常。
 
 
