@@ -141,6 +141,12 @@
 
 **这样做只可以调试c(遇到sanf会出现问题)，c++不能成功**
 
+
+
+#### Cygwin
+
+> [vscode_cygwin配置c++环境](https://blog.csdn.net/chenhao0568/article/details/105300350)
+
 ------------
 
 ### 问题：
@@ -219,6 +225,12 @@ set(EXECUTABLE_OUTPUT_PATH ..)
 
 
 
+**手动添加源文件很麻烦**
+
+[cmake：同一目录下多个源文件](https://blog.csdn.net/zhizhengguan/article/details/111713182)
+
+[cmake：不同目录下多个源文件](https://blog.csdn.net/hbsyaaa/article/details/123284434#:~:text=Linux%E4%B8%ADCMake%E7%9A%84%E4%BD%BF%E7%94%A83-%E4%B8%8D%E5%90%8C%E7%9B%AE%E5%BD%95%E5%A4%9A%E4%B8%AA%E6%BA%90%E6%96%87%E4%BB%B6%201%201%20%E6%9C%891%E4%B8%AA%E7%8B%AC%E7%AB%8B%E6%96%87%E4%BB%B6%E5%A4%B9%201.1%20%E6%96%87%E4%BB%B6%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84%20%E5%85%88%E6%9D%A5%E7%9C%8B%E4%B8%8B%E9%9D%A2%E8%BF%99%E7%A7%8D%E6%83%85%E5%86%B5%EF%BC%8C%E6%96%87%E4%BB%B6%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84%E5%A6%82%E4%B8%8B%EF%BC%8Csum.c%E3%80%81sum.h%E5%92%8Cmain.c%E7%9A%84%E4%BB%A3%E7%A0%81%E5%86%85%E5%AE%B9%E8%A7%81%E5%89%8D%E9%9D%A2%E7%9A%84%E6%96%87%E7%AB%A0%E3%80%82%20...,%E6%80%BB%E7%BB%93%20%E6%9C%AC%E7%AF%87%E4%BB%8B%E7%BB%8D%E4%BA%86%E4%B8%8D%E5%90%8C%E7%9B%AE%E5%BD%95%E4%B8%8B%E6%9C%89%E5%A4%9A%E4%B8%AA%E6%BA%90%E6%96%87%E4%BB%B6%E6%97%B6%E5%A6%82%E4%BD%95%E7%BC%96%E5%86%99CMakeLists.txt%E3%80%82%20%E5%AF%B9%E4%BA%8E%20%E4%B8%8D%E5%90%8C%E6%96%87%E4%BB%B6%E5%A4%B9%E4%B8%8B%E7%9A%84%E5%A4%9A%E4%B8%AA%E6%BA%90%E6%96%87%E4%BB%B6%20%EF%BC%8C%E4%B8%BB%E8%A6%81%E6%98%AF%E4%BD%BF%E7%94%A8%20include_directories%20%E6%9D%A5%E6%B7%BB%E5%8A%A0%E5%A4%B4%E6%96%87%E4%BB%B6%E7%9A%84%E6%90%9C%E7%B4%A2%E7%9B%AE%E5%BD%95%20)
+
 ## 2.配置python
 
 **配置调试环境**
@@ -251,8 +263,106 @@ set(EXECUTABLE_OUTPUT_PATH ..)
 
 
 
+## 3.配置JAVA
+
+> [vscode配置Java](https://blog.csdn.net/weixin_51456573/article/details/114727769)
+
 # 二、usage
 
 ## 1.自动格式化代码
 
 ![1695190746467](vscode使用note.assets/1695190746467.png)
+
+
+
+## 2.cmd终端乱码
+
+> [vscode终端乱码](https://www.cnblogs.com/stu-jyj3621/p/12815080.html)
+
+### (1)方法一
+
+VSCode终端其实调用的是cmd.exe，所以当这里出现中文乱码的时候要解决的是cmd的编码设置问题。
+
+1. 可以通过 chcp 命令查看 cmd 的编码设置，GBK2312 的代码页编号是 *936*，然后改成utf-8的编码即可，
+2. utf-8 对应的代码页编号是 65001 ，所以执行 **chcp 65001** 就可以把cmd的编码设置成uft-8了，
+3. 这样就解决了乱码问题，然后可以再次运行代码查看输出 
+
+当然每次使用都输入一遍 chcp 65001 太烦了 ，可以直接在setting.json 中加上 
+
+```json
+"code-runner.executorMap":{
+    "cpp":"chcp 65001 "
+},
+```
+
+# 三、shortcut
+
+## 1.调出命令窗口
+
+`ctrl+shift+p`
+
+![1696738494336](vscode使用note.assets/1696738494336.png)
+
+也可以通过菜单栏调出
+
+![1696738526931](vscode使用note.assets/1696738526931.png)
+
+
+
+## 2.调出设置面板
+
+`ctrl+,`
+
+
+
+## 3.切换标签页
+
+> 参考——[切换标签页快捷键](https://juejin.cn/s/vscode%20%E5%88%87%E6%8D%A2%E6%A0%87%E7%AD%BE%E9%A1%B5%E5%BF%AB%E6%8D%B7%E9%94%AE)
+
+`Ctrl + Tab` 或 `Ctrl + Page Down`或`alt+ ->`
+
+
+
+## 4.调出侧面板
+
+`ctrl+b`
+
+
+
+## 5.查找文件
+
+`ctrl+p`
+
+![1697977081849](vscode使用note.assets/1697977081849.png)
+
+## 6.在代码页面快速移动
+
+`ctrl+>`能够逐个单词的移动
+
+`shift+>`能够逐个字符选中
+
+
+
+## 7.选中并修改某个选中的单词
+
+`F2`
+
+> **注意，这会替换文件中所有的相同单词**
+
+## 8.返回顶/底端
+
+`ctrl+home`
+
+`ctrl+end`
+
+## 9.将文件在右侧展开
+
+`ctrl+\ 	 `
+
+## 10.关闭文件
+
+`ctrl+w`
+
+## 11.变换窗口
+
+`win+上下左右键`

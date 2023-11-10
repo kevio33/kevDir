@@ -118,7 +118,7 @@ public class SharedPreferencesActivity extends AppCompatActivity {
 >
 > **两者比较**
 >
-> ![1685523162615](Android--存储.assets/1685523162615.png)
+> 
 
 DataStore 提供两种不同的实现：`Preferences DataStore` 和 `Proto DataStore`。 
 

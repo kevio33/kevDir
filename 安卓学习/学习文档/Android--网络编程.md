@@ -1,4 +1,4 @@
-# 网络编程框架
+# 异步编程
 
 ## 一、AsyncTask
 
@@ -46,7 +46,7 @@ AsyncTask的底层其实是对Thread、Handler、Message的封装，智能的应
 我们一般可以新建一个类`Task`继承于AsyncTask类，通过覆写其方法实现主线程和子线程的数据交互：
 新建一个任务继承AsyncTask需要传入三个参数，即：<Params, Progress, Result>
 
-- 启动异步方法：new ××Task().excute(?); 处用来向  ××Task（）方法传值,即上面的Params（一般用map<>,或String）；注意：每new一个对象只能进行一次调用excute()操作
+- 启动异步方法：`new ××Task().excute(?); `处用来向  `××Task（）`方法传值,即上面的Params（一般用map<>,或String）；注意：每new一个对象只能进行一次调用`excute()`操作
 
   
 
@@ -126,7 +126,7 @@ public class MyAsyncTask extends AsyncTask<String, Integer, Bitmap>{
 }
 ```
 
-上面doInBackground()中获取进度值时，我们只是为了做一个进度值更新调用的演示，实际项目文件下载中，我们可能会对拿到的输入流进行处理，比如读取输入流将文件保存到本地，在读取输入流的时候，我们就可以获取到已经读取的输入流大小作为进度值了，如下：             
+上面`doInBackground()`中获取进度值时，我们只是为了做一个进度值更新调用的演示，实际项目文件下载中，我们可能会对拿到的输入流进行处理，比如读取输入流将文件保存到本地，在读取输入流的时候，我们就可以获取到已经读取的输入流大小作为进度值了，如下：             
 
 ```java
 //实际项目中如何获取文件大小作为进度值及更新进度值
@@ -242,11 +242,9 @@ protected void onProgressUpdate(Integer... values) {
 
 
 
+# Android常用网络请求框架
 
-
-## 二、Android常用网络请求框架
-
-### 1.概述：
+## 一.概述：
 
 安卓中网络请求方式：
 
@@ -265,9 +263,7 @@ protected void onProgressUpdate(Integer... values) {
 
 
 
-### 2.详细使用方式:
-
-#### 	(1)原生网络请求:
+## 	原生网络请求:
 
 ​	get请求
 
@@ -395,9 +391,7 @@ public class HttpURLConnectionHelper {
 
 
 
-
-
-#### 	(2)xutils
+## 	xutils
 
 ```groovy
 //需要导入依赖：
@@ -406,7 +400,7 @@ implementation ‘org.xutils:xutils:3.5.1’
 
 
 
-#### 	(3)OkHttp
+## OkHttp
 
 ```groovy
 //需要导入依赖：
@@ -464,7 +458,7 @@ okhttp访问拦截器：
 
 
 
-#### 	(4)volley
+## 	volley
 
 ```groovy
 //需要导入依赖：
@@ -473,7 +467,7 @@ implementation ‘eu.the4thfloor.volley:com.android.volley:2015.05.28’
 
 
 
-#### 	(5)Retrofit
+## 	Retrofit
 
 **概述：**retrofit也是一种网络框架,他**底层封装的是OkHttp**,也可以理解是OkHttp的加强版，其实底层的网络请求是OkHttp完成的，那么，为什么还要封装Retrofit呢，Retrofit仅负责网络请求接口的封装。它的一个特点是**包含了特别多注解**，方便简化你的代码量。并且还支持很多的开源库(著名例子：Retrofit +RxJava)。
 
@@ -537,7 +531,7 @@ Observable<News> news = mApi.getNews("1","10").subscribeOn(...).observeOn(...);
 
 **需要注意的是`baseUrl`添加的是地址的主域名。不是完全地址**
 
-##### 	GET
+### 	GET
 
 **申明接口，用于存放请求方法**
 
@@ -594,7 +588,7 @@ public class RestClient {
 
 
 
-###### 	①动态修改url:@Path
+**①动态修改url:@Path**
 
 ```java
 public interface GitHubService {
@@ -604,9 +598,7 @@ public interface GitHubService {
 
 这里在Get注解中包含{user}，它所对应的是@Path注解中的“user”，它所标示的正是String user，而我们再使用Retrofit对象动态代理的获取到GitHubService，当调用listRepos时，我们就必须传入一个String类型的User
 
-
-
-###### 	②动态指定条件获取信息：@Query
+**②动态指定条件获取信息：@Query**
 
 ```java
 @GET("group/{id}/users")
@@ -615,7 +607,7 @@ Call<List<User>> groupList(@Path("id") int groupId, @Query("sort") String sort);
 
 我们只需要使用@Query注解即可完成我们的需求，在@Query(“sort”)中，sort就好比是URL请求地址中的键，而它所对应的String sort中的sort则是它的值。
 
-###### 	③**动态指定条件组获取信息：@QueryMap**
+**③动态指定条件组获取信息：@QueryMap**
 
 ```java
 @GET("group/{id}/users")
@@ -624,18 +616,18 @@ Call<List<User>> groupList(@Path("id") int groupId, @QueryMap Map<String, String
 
 使用@QueryMap注解可以分别地从Map集合中获取到元素，然后进行逐个的拼接在一起。
 
-##### 	
 
-##### POST
 
-###### 	①**携带数据类型为对象时：@Body**
+### POST
+
+**①携带数据类型为对象时：@Body**
 
 ```java
 @POST("users/new")
 Call<User> createUser(@Body User user);
 ```
 
-###### 	②**携带数据类型为表单键值对时：@Field**
+**②携带数据类型为表单键值对时：@Field**
 
 ```java
 @FormUrlEncoded
@@ -645,7 +637,7 @@ Call<User> updateUser(@Field("first_name") String first,@Field("last_name") Stri
 
 当我们要携带的请求数据为表单时，通常会以键值对的方式呈现，那么Retrofit也为我们考虑了这种情况，它首先用到@FormUrlEncoded注解来标明这是一个表单请求，然后在我们的请求方法中使用@Field注解来标示所对应的String类型数据的键，从而组成一组键值对进行传递。
 
-###### 	③**单文件上传时：@Part**
+**③单文件上传时：@Part**
 
 ```java
 @Multipart
@@ -663,7 +655,7 @@ RequestBody descriptionRequestBody = RequestBody.create(null, "this is photo.");
 Call<User> call = service.updateUser(photoRequestBody, descriptionRequestBody);
 ```
 
-###### 	④多文件上传：**@PartMap**
+**④多文件上传：@PartMap**
 
 ```java
 @Multipart
@@ -671,9 +663,7 @@ Call<User> call = service.updateUser(photoRequestBody, descriptionRequestBody);
 Call<User> updateUser(@PartMap Map<String, RequestBody> photos, @Part("description") RequestBody description);
 ```
 
-
-
-###### 	⑤下载文件:
+**⑤下载文件:**
 
 ```java
 //PDF文件Retrofit下载
@@ -762,7 +752,7 @@ public static boolean  writeResponseBodyToDisk(File file, ResponseBody body) {
 
 
 
-##### Header:
+### Header
 
 Http请求中，为了防止攻击或是过滤掉不安全的访问或是为添加特殊加密的访问等等以减轻服务器的压力和保证请求的安全，通常都会在消息头中携带一些特殊的消息头处理。Retrofit也为我们提供了该请求方式：
 
@@ -790,369 +780,10 @@ Call<User> getUser(@Header("Authorization") String authorization)
 
 
 
-##### 重要方法:
+**重要方法:**
 
-1 call.cancel();它可以终止正在进行的请求，程序只要一旦调用到它，不管请求是否在终止都会被停止掉。
+`call.cancel()`:它可以终止正在进行的请求，程序只要一旦调用到它，不管请求是否在终止都会被停止掉。
 
-2 call.clone();当你想要多次请求一个接口的时候，直接用 clone 的方法来生产一个新的，否则将会报错，因为当你得到一个call实例，我们调用它的 execute 方法，但是这个方法只能调用一次。多次调用则发生异常。
+`call.clone()`:当想要多次请求一个接口的时候，直接用 clone 的方法来生产一个新的，否则将会报错，因为当得到一个call实例，我们调用它的 execute 方法，但是这个方法只能调用一次。多次调用则发生异常。
 
-
-
-## 三、RXJava
-
-> 参考：
->
-> - https://juejin.cn/post/6844903447280484360
-> - https://juejin.cn/post/6844903455929139207
-> - https://blog.csdn.net/lzyzsd/article/details/41833541
-> - 官方文档--https://mcxiaoke.gitbooks.io/rxdocs/content/
-
-
-
-### 1.什么是RxJava
-
-Rx(Reactive Extensions)是一个函数库，让开发者可以利用可观察序列和LINQ风格查询操作符来编写异步和基于事件的程序.ReactiveX**结合了观察者模式、迭代器模式和函数式编程**的精华。
-
-
-
-**特点：**
-
-![img](Android--网络编程.assets/20210321105512270-1685966581100.png) 
-
-
-
-### 2.RXJava的两点
-
-#### 异步
-
-（参考下面）
-
-#### 观察者模式
-
-什么是观察者模式：
-
-一个例子：
-
-> 在这个事件中，**台灯作为观察者，开关作为被观察者，台灯透过电线来观察开关的状态来并做出相应的处理**
->
-> ![1685966679231](Android--网络编程.assets/1685966679231.png)
->
-> - 开关（被观察者）作为事件的**产生方**（生产“开”和“关”这两个事件），是**主动**的，是整个开灯事理流程的**起点**。
-> - 台灯（观察者）作为事件的**处理方**（处理“灯亮”和“灯灭”这两个事件），是**被动**的，是整个开灯事件流程的**终点**。
-> - 在起点和终点之间，即事件传递的过程中是可以被**加工，过滤，转换，合并等等方式**处理的（上图没有体现，后面对会讲到）。
-
-
-
-
-
-### 3.RxJava使用
-
-```groovy
-//RxJava的依赖包
-compile 'io.reactivex.rxjava2:rxjava:2.0.1'
-//RxAndroid的依赖包
-compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
-```
-
-
-
-RxJava也是基于观察者模式来组建自己的程序逻辑的，就是构建：
-
-- **被观察者（Observable）**
-- **观察者（Observer/Subscriber）**，
-- 建立二者的订阅关系（就像那根电线，连接起台灯和开关）实现**观察**，在事件传递过程中还可以**对事件做各种处理**。
-
-> Tips: Observer是观察者的接口， Subscriber是实现这个接口的抽象类,因此两个类都可以被当做观察者，由于Subscriber在Observe的基础上做了一些拓展，加入了新的方法，一般会更加倾向于使用Subscriber。
-
-
-
-#### 创建被观察者
-
-- **正常模式：**
-
-  > ```java
-  > Observable switcher=Observable.create(new Observable.OnSubscribe<String>(){
-  >          @Override
-  >             public void call(Subscriber<? super String> subscriber) {
-  >                 subscriber.onNext("On");
-  >                 subscriber.onNext("Off");
-  >                 subscriber.onNext("On");
-  >                 subscriber.onNext("On");
-  >                 subscriber.onCompleted();
-  >             }
-  >         });
-  >    ```
-  > 
-  >这是最正宗的写法，创建了一个开关类，产生了五个事件，分别是：开，关，开，开，结束。
-  
-- **偷懒模式**:
-
-  > 1.
-  >
-  > ```java
-  > Observable switcher=Observable.just("On","Off","On","On");
-  > ```
-  >
-  > 
-  >
-  > 2.
-  >
-  > ```java
-  > String [] kk={"On","Off","On","On"};
-  > Observable switcher=Observable.from(kk);
-  > ```
-  >
-  > 偷懒模式是一种简便的写法，实际上也都是**被观察者**把那些信息"On","Off","On","On"，包装成onNext（"On"）这样的事件依次发给**观察者**，当然，它自己补上了onComplete()事件。
-
-
-
-#### 创建观察者
-
-- **正常模式**
-
-  >  ```java
-  > Subscriber light=new Subscriber<String>() {
-  >     @Override
-  >     public void onCompleted() {
-  >         //被观察者的onCompleted()事件会走到这里;
-  >         Log.d("DDDDDD","结束观察...\n");
-  >     }
-  > 
-  >     @Override
-  >     public void onError(Throwable e) {
-  >         //出现错误会调用这个方法
-  >     }
-  >     @Override
-  >     public void onNext(String s) {
-  >         //处理传过来的onNext事件
-  >         Log.d("DDDDD","handle this---"+s)
-  >     }
-  >  ```
-
-- **偷懒模式**
-
-  > ```java
-  > Action1 light=new Action1<String>() {
-  >     @Override
-  >     public void call(String s) {
-  >         Log.d("DDDDD","handle this---"+s)
-  >     }
-  > }
-  > ```
-  >
-  > > 之所以说它是非正式写法，是因为Action1是一个单纯的人畜无害的接口，和Observer没有啥关系，只不过它可以当做观察者来使，专门处理onNext 事件，这是一种为了简便偷懒的写法。当然还有Action0，Action2,Action3...,0,1,2,3分别表示call()这个方法能接受几个参数。
-
-
-
-#### 订阅
-
-将**观察者**和**被观察者**联系起来
-
-```java
-switcher.subscribe(light);
-```
-
-> 为什么是被观察者订阅观察者？
->
-> > 之所以“开关订阅台灯”，是为了保证**流式API调用风格**
-> >
-> > ```java
-> > //这就是RxJava的流式API调用
-> > Observable.just("On","Off","On","On")
-> >     //在传递过程中对事件进行过滤操作
-> >     .filter(new Func1<String, Boolean>() {
-> >         @Override
-> >         public Boolean call(String s) {
-> >             return s！=null;
-> >         }
-> >     })
-> >     .subscribe(mSubscriber);
-> > ```
-> >
-> > 由于被观察者产生事件，是事件的起点，那么开头就是用Observable这个主体调用来创建被观察者，产生事件，为了保证流式API调用规则，就直接让Observable作为唯一的调用主体，一路调用下去。
-> >
-> > > 一句话，**背后的真实的逻辑依然是台灯订阅了开关，但是在表面上，我们让开关“假装”订阅了台灯，以便于保持流式API调用风格不变。**
-
-![1685966717521](Android--网络编程.assets/1685966717521.png)
-
-结合流程图完整代码
-
-```java
-//创建被观察者，是事件传递的起点
-Observable.just("On","Off","On","On")
-    //这就是在传递过程中对事件进行过滤操作
-    .filter(new Func1<String, Boolean>() {
-        @Override
-        public Boolean call(String s) {
-            return s！=null;
-        }
-    })
-    //实现订阅
-    .subscribe(
-    //创建观察者，作为事件传递的终点处理事件    
-    new Subscriber<String>() {
-        @Override
-        public void onCompleted() {
-            Log.d("DDDDDD","结束观察...\n");
-        }
-
-        @Override
-        public void onError(Throwable e) {
-            //出现错误会调用这个方法
-        }
-        @Override
-        public void onNext(String s) {
-            //处理事件
-            Log.d("DDDDD","handle this---"+s)
-        }
-        );
-```
-
-> Tips: 当调用订阅操作（即调用Observable.subscribe()方法）的时候，被观察者才真正开始发出事件。
-
-
-
-### 4.RxJava的操作符
-
-#### Map操作符
-
-> 比如被观察者产生的事件中只有图片文件路径；,但是在观察者这里只想要bitmap,那么就需要**类型变换**。
->
-> ```java
-> Observable.just(getFilePath())
->     //使用map操作来完成类型转换,
->     //使用map操作时，new Func1() 就对应了类型的转变的方向，String是原类型，Bitmap是转换后的类型。在call()方法中，输入的是原类型，返回转换后的类型
->     .map(new Func1<String, Bitmap>() {
->         @Override
->         public Bitmap call(String s) {
->             //显然自定义的createBitmapFromPath(s)方法，是一个极其耗时的操作
->             return createBitmapFromPath(s);
->         }
->     })
->     .subscribe(
->     //创建观察者，作为事件传递的终点处理事件    
->     new Subscriber<Bitmap>() {
->         @Override
->         public void onCompleted() {
->             Log.d("DDDDDD","结束观察...\n");
->         }
-> 
->         @Override
->         public void onError(Throwable e) {
->             //出现错误会调用这个方法
->         }
->         @Override
->         public void onNext(Bitmap s) {
->             //处理事件
->             showBitmap(s)
->         }
->         );
-> ```
-
-
-
-##### 切换线程
-
-上面代码中可以看到，创建bitmap是一个非常耗时的操作，那么就应该在子线程中执行，主线程(UI线程)做的仅仅是展示，在RXJava中，切换线程是非常方便的
-
-> ```java
-> Observable.just(getFilePath())
->     //指定了被观察者执行的线程环境
->     .subscribeOn(Schedulers.newThread())
->     //将接下来执行的线程环境指定为io线程
->     .observeOn(Schedulers.io())
->     //使用map操作来完成类型转换
->     .map(new Func1<String, Bitmap>() {
->         @Override
->         public Bitmap call(String s) {
->             //显然自定义的createBitmapFromPath(s)方法，是一个极其耗时的操作
->             return createBitmapFromPath(s);
->         }
->     })
->     //将后面执行的线程环境切换为主线程
->     .observeOn(AndroidSchedulers.mainThread())
->     .subscribe(
->     //创建观察者，作为事件传递的终点处理事件    
->     new Subscriber<Bitmap>() {
->         @Override
->         public void onCompleted() {
->             Log.d("DDDDDD","结束观察...\n");
->         }
-> 
->         @Override
->         public void onError(Throwable e) {
->             //出现错误会调用这个方法
->         }
->         @Override
->         public void onNext(Bitmap s) {
->             //处理事件
->             showBitmap(s)
->         }
->         );
-> ```
->
-> > 由上面的代码可以看到，使用操作符将事件处理逐步分解，通过线程调度为每一步设置不同的线程环境，完全解决了你线程切换的烦恼。可以说线程调度+操作符，才真正展现了RxJava无与伦比的魅力。
-
-
-
-#### flatmap操作符
-
-flatmap的作用是：将每个Observable产生的事件里的信息再包装成新的Observable传递出来，
-
-> 先提出一个需求，查找一个学校每个班级的每个学生，并打印出来:
->
-> ```java
-> //创建被观察者，获取所有班级
-> Observable.from(getSchoolClasses())
->     .flatMap(new Func1<SingleClass, Observable<Student>>() {
->         @Override
->         public Observable<Student> call(SingleClass singleClass) {
->             //将每个班级的所有学生作为一列表包装成一列Observable<Student>，将学生一个一个传递出去
->             return Observable.from(singleClass.getStudents());
->         }
->     })
->     .subscribe(
->     //创建观察者，作为事件传递的终点处理事件    
->     new Subscriber<Student>() {
->         @Override
->         public void onCompleted() {
->             Log.d("DDDDDD","结束观察...\n");
->         }
-> 
->         @Override
->         public void onError(Throwable e) {
->             //出现错误会调用这个方法
->         }
->         @Override
->         public void onNext(Student student) {
->             //接受到每个学生类
->             Log.d("DDDDDD",student.getName())
->         }
->         );
-> ```
->
-> > 就是因为FlatMap可以再次包装新的Observable,而每个Observable都可以使用from(T[])方法来创建自己，这个方法接受一个列表，然后将列表中的数据包装成一系列事件。
-
-
-
-### 5.RxJava的异步
-
-如Map操作中切换线程所述，RxJava的线程环境有：
-
-| 调度器类型                     | 效果                                                         |
-| ------------------------------ | ------------------------------------------------------------ |
-| Schedulers.computation()       | 用于计算任务，如事件循环或回调处理，不要用于IO操作；默认线程数等于处理器数量 |
-| Schedulers.from(executor)      | 使用指定的Excutor作为调度器                                  |
-| Schedulers.immediate()         | 在当前线程立即开始执行任务                                   |
-| Schedulers.io()                | 用于IO密集型任务，如异步阻塞IO操作，这个调度器的线程池会根据需要增长，对于普通的计算任务，请使用Schedulers.computation();Schedulers.io()默认是一个CachedThreadScheduler，很像一个有线程缓存的新线程调度器 |
-| Schedulers.newThread()         | 为每个任务创建一个新线程                                     |
-| Schedulers.trampoline()        | 当其他排队的任务完成后，在当前线程排队开始执行               |
-| AndroidSchedulers.mainThread() | 切换到主线程                                                 |
-
-
-
-##### 关于subscribeOn()和observeOn()
-
-> - subscribeOn（）它指示Observable在一个指定的调度器上**创建**（只作用于被观察者创建阶段）。只能指定一次，如果指定多次则以第一次为准
-> - observeOn（）指定在事件传递（加工变换）和最终被处理（观察者）的发生在哪一个调度器。可指定多次，每次指定完都在下一步生效。
 
