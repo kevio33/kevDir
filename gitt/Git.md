@@ -111,7 +111,40 @@ git push
 
 
 
-## 三、文件
+## 三.回退版本
+
+### 1.回退某个文件版本
+
+> [git回退文件版本](https://blog.csdn.net/panweiwei1994/article/details/78501371)
+
+**场景1：**修改了文件/path/to/file，没有提交，但是觉得改的不好，想还原。
+
+```
+git checkout -- /path/to/file
+```
+
+
+
+**场景二：** 修改了文件/path/to/file，已经提交，但是觉得改的不好，想还原到上一版本。 
+
+```shell
+#1.首先查看文件的历史版本。
+git log /path/to/file
+
+#2. 找到你想要还原的版本。如:
+commit 052c0233bcaef35bbf6e6ebd43bfd6a648e3d93b
+Author: panww <panww@gmail.com>
+Date: Wed Nov 8 11:48:31 2017 +0800
+commit modify/path/to/file
+
+#3. 将文件还原到你想要还原的版本。$ git checkout ${commit} /path/to/file。即
+git checkout 052c0233bcaef35bbf6e6ebd43bfd6a648e3d93b /path/to/file
+
+```
+
+
+
+## 文件
 
 ### 1.`“.gitignore”`
 
