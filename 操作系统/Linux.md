@@ -417,6 +417,8 @@ t --nochanges --notempty
 
 
 
+#### head
+
 #### 5.grep
 
 (global search regular expression and print out the line)
