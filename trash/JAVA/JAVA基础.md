@@ -122,13 +122,15 @@ public class Test {
 
 > https://blog.csdn.net/qq_34467922/article/details/80790443
 
-## 三、super关键字
+## 三、关键字
+
+### super关键字
 
 > **参考：**
 >
 >  [【Java】子类的构造函数什么时候需要加 super()](https://blog.csdn.net/weixin_40473794/article/details/104624515) 
 
-### 	1.概述
+#### 	1.概述
 
 super关键字是一个引用变量，用于引用直接父类对象。
 
@@ -136,7 +138,7 @@ super关键字是一个引用变量，用于引用直接父类对象。
 >
 > 当父类中只存在有参数构造函数，必须在子类的构造函数中添加 **super(参数列表);**，且 **super()** 的参数列表必须与父类构造函数的参数列表相同。 
 
-### 	2.用法
+#### 	2.用法
 
 - `super`可以用来引用直接父类的实例变量。
 
@@ -260,6 +262,240 @@ super关键字是一个引用变量，用于引用直接父类对象。
   > ```
   >
   > 
+
+### this关键字
+
+#### 1.概念：
+
+ 在java中，这是一个引用当前对象的引用变量。
+
+#### 2.用法
+
+this关键字的用法如下：
+
+this关键字可用来引用当前类的实例变量。
+this关键字可用于调用当前类方法(隐式)。
+this()可以用来调用当前类的构造函数。
+this关键字可作为调用方法中的参数传递。
+this关键字可作为参数在构造函数调用中传递。
+this关键字可用于从方法返回当前类的实例。
+
+①引用当前类实例变量
+
+```java
+//this关键字可以用来引用当前类的实例变量。如果实例变量和参数之间存在歧义，则 this 关键字可用于明确地指定类变量以解决歧义问题。
+class Student {
+    int rollno;
+    String name;
+    float fee;
+
+    Student(int rollno, String name, float fee) {
+        this.rollno = rollno;
+        this.name = name;
+        this.fee = fee;
+    }
+}
+```
+
+②调用当前类方法
+
+如果不使用this关键字，编译器会在调用方法时自动添加此 this 关键字
+
+![img](https://gitee.com/kevinyong/kevin-gallery/raw/master/532c4ed68cb0482fadd1f728079fe537.png)
+
+③调用当前类的构造函数
+
+`this()`构造函数调用可以用来调用当前类的构造函数。 它用于重用构造函数。 换句话说，它用于构造函数链接。
+
+```java
+class A {
+    A() {
+        System.out.println("hello a");
+    }
+
+    A(int x) {
+        this();
+        System.out.println(x);
+    }
+}
+
+class TestThis5 {
+    public static void main(String args[]) {
+        A a = new A(10);
+    }
+}
+
+结果：
+hello a
+10
+    
+//默认构造函数调用参数化构造函数
+class A {
+    A() {
+        this(5);
+        System.out.println("hello a");
+    }
+
+    A(int x) {
+        System.out.println(x);
+    }
+}
+
+class TestThis6 {
+    public static void main(String args[]) {
+        A a = new A();
+    }
+}
+
+结果：
+5
+hello a
+```
+
+以上this必须放在第一行，否则编译不通过
+
+
+
+④this作为参数传递
+
+```java
+class S2 {
+    void m(S2 obj) {
+        System.out.println("method is invoked");
+    }
+
+    void p() {
+        m(this);
+    }
+
+    public static void main(String args[]) {
+        S2 s1 = new S2();
+        s1.p();
+    }
+}
+```
+
+⑤返回类的实例
+
+```java
+class A {
+    A getA() {
+        return this;
+    }
+
+    void msg() {
+        System.out.println("Hello java");
+    }
+}
+
+class Test1 {
+    public static void main(String args[]) {
+        new A().getA().msg();
+    }
+}
+
+结果：
+ Hello java
+```
+
+### transient关键字
+
+> 参考——[java transient](https://javabetter.cn/io/transient.html#_01%E3%80%81transient-%E7%9A%84%E4%BD%9C%E7%94%A8%E5%8F%8A%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95)
+
+一个对象只要实现了`Serilizable接口`，它就可以被序列化。
+
+在实际开发过程中，我们常常会遇到这样的问题，一个类的有些字段需要序列化，有些字段不需要，比如说用户的一些敏感信息（如密码、银行卡号等），为了安全起见，不希望在网络操作中传输或者持久化到磁盘文件中，那这些字段就可以加上 `transient` 关键字。
+
+> 需要注意的是，被 transient 关键字修饰的成员变量在反序列化时会被自动初始化为默认值，例如基本数据类型为 0，引用类型为 null。 
+
+```java
+public class TransientTest {
+    public static void main(String[] args) {
+
+        User user = new User();
+        user.setUsername("沉默王二");
+        user.setPasswd("123456");
+
+        System.out.println("read before Serializable: ");
+        System.out.println("username: " + user.getUsername());
+        System.err.println("password: " + user.getPasswd());
+
+        try {
+            ObjectOutputStream os = new ObjectOutputStream(
+                new FileOutputStream("user.txt"));
+            os.writeObject(user); // 将User对象写进文件
+            os.flush();
+            os.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            ObjectInputStream is = new ObjectInputStream(new FileInputStream(
+                "user.txt"));
+            user = (User) is.readObject(); // 从流中读取User的数据
+            is.close();
+
+            System.out.println("\nread after Serializable: ");
+            System.out.println("username: " + user.getUsername());
+            System.err.println("password: " + user.getPasswd());
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+class User implements Serializable {
+    private static final long serialVersionUID = 8294180014912103005L;  
+
+    private String username;
+    private transient String passwd;
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPasswd() {
+        return passwd;
+    }
+
+    public void setPasswd(String passwd) {
+        this.passwd = passwd;
+    }
+
+}
+
+
+//输出：
+read before Serializable:
+username: 沉默王二
+password: 123456 
+read after Serializable:
+username: 沉默王二
+password: null//密码字段为null，说明反序列化时根本没从文件中获取到信息
+```
+
+
+
+**小结：**
+
+一旦字段被 transient 修饰，成员变量将不再是对象持久化的一部分，该变量的值在序列化后无法访问。
+
+2）transient 关键字只能修饰字段，而不能修饰方法和类。
+
+3）被 transient 关键字修饰的字段不能被序列化，一个静态变量（static关键字修饰）不管是否被 transient 修饰，均不能被序列化
+
+
 
 ## 四、多态
 
@@ -459,144 +695,7 @@ public static void main(String[] args) {
 
 
 
-## 六、this关键字
-
-### 1.概念：
-
- 在java中，这是一个引用当前对象的引用变量。
-
-### 2.用法
-
-this关键字的用法如下：
-
-this关键字可用来引用当前类的实例变量。
-this关键字可用于调用当前类方法(隐式)。
-this()可以用来调用当前类的构造函数。
-this关键字可作为调用方法中的参数传递。
-this关键字可作为参数在构造函数调用中传递。
-this关键字可用于从方法返回当前类的实例。
-
-#### ①引用当前类实例变量
-
-```java
-//this关键字可以用来引用当前类的实例变量。如果实例变量和参数之间存在歧义，则 this 关键字可用于明确地指定类变量以解决歧义问题。
-class Student {
-    int rollno;
-    String name;
-    float fee;
-
-    Student(int rollno, String name, float fee) {
-        this.rollno = rollno;
-        this.name = name;
-        this.fee = fee;
-    }
-}
-```
-
-#### ②调用当前类方法
-
-如果不使用this关键字，编译器会在调用方法时自动添加此 this 关键字
-
-![img](https://gitee.com/kevinyong/kevin-gallery/raw/master/532c4ed68cb0482fadd1f728079fe537.png)
-
-#### ③调用当前类的构造函数
-
-`this()`构造函数调用可以用来调用当前类的构造函数。 它用于重用构造函数。 换句话说，它用于构造函数链接。
-
-```java
-class A {
-    A() {
-        System.out.println("hello a");
-    }
-
-    A(int x) {
-        this();
-        System.out.println(x);
-    }
-}
-
-class TestThis5 {
-    public static void main(String args[]) {
-        A a = new A(10);
-    }
-}
-
-结果：
-hello a
-10
-    
-//默认构造函数调用参数化构造函数
-class A {
-    A() {
-        this(5);
-        System.out.println("hello a");
-    }
-
-    A(int x) {
-        System.out.println(x);
-    }
-}
-
-class TestThis6 {
-    public static void main(String args[]) {
-        A a = new A();
-    }
-}
-
-结果：
-5
-hello a
-```
-
-以上this必须放在第一行，否则编译不通过
-
-
-
-#### ④this作为参数传递
-
-```java
-class S2 {
-    void m(S2 obj) {
-        System.out.println("method is invoked");
-    }
-
-    void p() {
-        m(this);
-    }
-
-    public static void main(String args[]) {
-        S2 s1 = new S2();
-        s1.p();
-    }
-}
-```
-
-#### ⑤返回类的实例
-
-```java
-class A {
-    A getA() {
-        return this;
-    }
-
-    void msg() {
-        System.out.println("Hello java");
-    }
-}
-
-class Test1 {
-    public static void main(String args[]) {
-        new A().getA().msg();
-    }
-}
-
-结果：
- Hello java
-```
-
-
-
-## 七、抽象
+## 六、抽象
 
 ### 1.概念：
 
@@ -622,7 +721,7 @@ class Test1 {
 
 
 
-## 八、运算符以及进制表示
+## 七、运算符以及进制表示
 
 ### 1.运算符：
 
@@ -708,13 +807,13 @@ BigInteger bi = new BigInteger(hex, 16);
 
 
 
-## 九、范型
+## 八、范型
 
 > https://blog.csdn.net/evilcry2012/article/details/83617632
 
 
 
-## 十、函数参数
+## 九、函数参数
 
 java函数参数经常有三个点
 
@@ -745,4 +844,6 @@ test_dots(1,2,2,3,4);
 test_dots();
 
 ```
+
+
 
