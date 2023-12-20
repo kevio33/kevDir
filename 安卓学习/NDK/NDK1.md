@@ -486,11 +486,11 @@ target_link_libraries( # Specifies the target library.
 >
 > ```java
 > public class JniDemo1{
-> static {
->   System.loadLibrary("native-lib");//在apk文件里面的lib/libnative-lib.so加载;动态注册模式下，该静态函数块会调用JNI_OnLoad函数
-> }
+>     static {
+>           System.loadLibrary("native-lib");//在apk文件里面的lib/libnative-lib.so加载;动态注册模式下，该静态函数块会调用JNI_OnLoad函数
+>     }
 > 
-> private native void nativeMethod();
+>     private native void nativeMethod();
 > }
 > ```
 >
