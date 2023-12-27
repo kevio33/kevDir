@@ -389,7 +389,171 @@ service解析完之后，最终将service对象加入到vector类型的serviceLi
 
 ![1703571903080](framework.assets/1703571903080.png)
 
-# 二、其他
+# 二、Dex和增量更新
+
+
+
+## 1.增量更新
+
+对软件进行更新时候，只更新需要该表的地方，而不需要更新或已经更新过的地方则不会重复更新，通常通过[bsdiff](#bsdiff)
+
+### windows端
+
+下载[bsdiff](https://github.com/mendsley/bsdiff)的源码包，运行
+
+```shell
+bsdiff old.apk new.apk patch #最终会生成patch文件，里面记录了两个apk之间的差异
+```
+
+```shell
+bspatch old.apk new2.apk patch #通过该命令将更新的patch与原apk结合就得到新的apk
+```
+
+
+
+### Android端实战
+
+> [热修复](https://cloud.tencent.com/developer/article/1036764?from=15425)
+>
+> [Android 增量更新](https://blog.csdn.net/kunyus/article/details/88594420)
+
+这里使用的是github上对bsdiff和bspatch封装了的[增量更新库](https://github.com/cundong/SmartAppUpdates)
+
+然后配置cmake，引入`bspatch.c`和相关头文件
+
+![1703662845744](framework.assets/1703662845744.png)
+
+> 这里的`bspatch.c`里面使用最开始的源码，并且头文件引入了bzip的依赖，需要下载[bzip](https://github.com/libarchive/bzip2)源码
+>
+> ```cpp
+> #include <bzlib.h>
+> #include <stdlib.h>
+> #include <stdint.h>
+> #include <stdio.h>
+> #include <string.h>
+> #include <err.h>
+> #include <sys/types.h>
+> #include <sys/stat.h>
+> #include <unistd.h>
+> #include <fcntl.h>
+> 
+> static int bz2_read(const struct bspatch_stream* stream, void* buffer, int length)
+> {
+>     int n;
+>     int bz2err;
+>     BZFILE* bz2;
+> 
+>     bz2 = (BZFILE*)stream->opaque;
+>     n = BZ2_bzRead(&bz2err, bz2, buffer, length);
+>     if (n != length)
+>         return -1;
+> 
+>     return 0;
+> }
+> 
+> int main(int argc,char * argv[])
+> {
+>     FILE * f;
+>     int fd;
+>     int bz2err;
+>     uint8_t header[24];
+>     uint8_t *old, *new;
+>     int64_t oldsize, newsize;
+>     BZFILE* bz2;
+>     struct bspatch_stream stream;
+>     struct stat sb;
+> 
+>     if(argc!=4) errx(1,"usage: %s oldfile newfile patchfile\n",argv[0]);
+> 
+>     /* Open patch file */
+>     if ((f = fopen(argv[3], "r")) == NULL)
+>         err(1, "fopen(%s)", argv[3]);
+> 
+>     /* Read header */
+>     if (fread(header, 1, 24, f) != 24) {
+>         if (feof(f))
+>             errx(1, "Corrupt patch\n");
+>         err(1, "fread(%s)", argv[3]);
+>     }
+> 
+>     /* Check for appropriate magic */
+>     if (memcmp(header, "ENDSLEY/BSDIFF43", 16) != 0)
+>         errx(1, "Corrupt patch\n");
+> 
+>     /* Read lengths from header */
+>     newsize=offtin(header+16);
+>     if(newsize<0)
+>         errx(1,"Corrupt patch\n");
+> 
+>     /* Close patch file and re-open it via libbzip2 at the right places */
+>     if(((fd=open(argv[1],O_RDONLY,0))<0) ||
+>        ((oldsize=lseek(fd,0,SEEK_END))==-1) ||
+>        ((old=malloc(oldsize+1))==NULL) ||
+>        (lseek(fd,0,SEEK_SET)!=0) ||
+>        (read(fd,old,oldsize)!=oldsize) ||
+>        (fstat(fd, &sb)) ||
+>        (close(fd)==-1)) err(1,"%s",argv[1]);
+>     if((new=malloc(newsize+1))==NULL) err(1,NULL);
+> 
+>     if (NULL == (bz2 = BZ2_bzReadOpen(&bz2err, f, 0, 0, NULL, 0)))
+>         errx(1, "BZ2_bzReadOpen, bz2err=%d", bz2err);
+> 
+>     stream.read = bz2_read;
+>     stream.opaque = bz2;
+>     if (bspatch(old, oldsize, new, newsize, &stream))
+>         errx(1, "bspatch");
+> 
+>     /* Clean up the bzip2 reads */
+>     BZ2_bzReadClose(&bz2err, bz2);
+>     fclose(f);
+> 
+>     /* Write the new file */
+>     if(((fd=open(argv[2],O_CREAT|O_TRUNC|O_WRONLY,sb.st_mode))<0) ||
+>        (write(fd,new,newsize)!=newsize) || (close(fd)==-1))
+>         err(1,"%s",argv[2]);
+> 
+>     free(new);
+>     free(old);
+> 
+>     return 0;
+> }
+> ```
+>
+> ![1703663072535](framework.assets/1703663072535.png)
+>
+> 并且将`main`方法改名，方便调用
+
+
+
+## 2.Dex
+
+> [Dex文件解析](https://juejin.cn/post/6844903847647772686)
+
+dex文件是Android系统的可执行文件，包含应用程序内的全部指令以及运行时数据。将原来每个`class`文件都有的共有信息合成一体，这样减少了`class`的冗余。
+
+> 生成dex文件命令
+>
+> 首先生成class文件
+>
+> ```shell
+> java Test.java
+> ```
+>
+> 然后生成dex文件
+>
+> ```shell
+> dx --dex --output=a.dex Test.class
+> ```
+
+**Dex文件构成**
+
+![1703664831535](framework.assets/1703664831535.png)
+
+> **header**：
+>
+> 一般存放[魔数](#magicnumber)等信息
+
+# 其他
 
 ## 1.<a name="僵尸进程">僵尸进程</a>
 
@@ -424,3 +588,32 @@ pid_t fork(void)
 **zygote进程的使用可以有效地提高Android系统的启动速度和性能** 
 
 当用户启动一个应用程序时，Android系统会调用zygote进程的fork方法，创建一个新的应用进程。新的应用进程会继承zygote进程的Dalvik虚拟机实例、系统类库和资源文件。这样，新的应用进程就可以直接运行Java应用程序，而不需要重新加载Dalvik虚拟机和系统类库。 
+
+
+
+## 4.<a name=magicnumber>魔数</a>
+
+在计算机科学中，"魔数"（Magic Number）通常是指一种特殊的标识，用于识别文件格式、数据结构或协议。这个数值通常是一个固定的整数或字符串，出现在文件的特定位置，用来表示文件的类型或属性。
+
+**魔数在计算机领域中有多种应用，其中一些主要用途包括：**
+
+1. **文件类型识别：** 魔数常常用于文件格式的识别。许多文件格式规范要求在文件的开头或特定位置包含特定的字节序列，以表明文件的类型。通过检查这个魔数，程序可以迅速确定文件的类型，从而采取适当的处理方式。
+2. **数据结构验证：** 在数据结构中，魔数可以用来验证数据的完整性和正确性。在通信协议中，魔数可以帮助接收方确认传输的数据是否符合预期的格式。
+3. **程序文件：** 在可执行文件中，魔数常常用于标识文件的类型和位数（例如，32位或64位可执行文件）。
+4. **安全性：** 有时，魔数也用于提高安全性，例如在加密算法中，魔数可以用作特定算法的标识，以便正确解密数据。
+5. **网络协议：** 在网络通信中，协议的数据包通常以特定的魔数开始，以帮助识别和解析不同的协议。
+
+魔数通常是固定的、预定义的数值，因此在设计中应当谨慎选择以避免冲突。魔数的选择通常由相关标准或协议规定，以确保不同的软件或系统能够正确地解释和处理数据。
+
+
+
+## 5.<a name=bsdiff>bsdiff</a>
+
+`bsdiff` 是一种用于生成和应用`二进制补丁（binary patches）`的工具。这个工具主要用于实现**增量更新**，即通过应用小的补丁文件来将一个版本的文件转换成另一个版本，而不需要重新下载整个文件。这对于大型软件或文件的分发和更新可以节省带宽和下载时间。
+
+具体来说，`bsdiff` 工具通常与 `bspatch` 工具一起使用。这两者的功能如下：
+
+1. **bsdiff：** 该工具用于生成两个不同版本文件之间的差异，也称为补丁文件。这个补丁文件包含了从旧版本到新版本的修改的二进制数据。
+2. **bspatch：** 该工具用于将旧版本文件和生成的补丁文件结合，生成新版本的文件。通过这个过程，用户可以升级他们的文件，而不需要下载整个新版本的文件，只需下载相对较小的补丁文件。
+
+`bsdiff` 和 `bspatch` 的主要优点是能够高效地处理大文件，因为它们只关注文件的实际修改，而不是整个文件的替换。这对于分发大型软件、游戏或其他大型文件的更新非常有用。

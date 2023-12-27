@@ -2217,7 +2217,7 @@ jniLibs 是 Android Studio 中用来存放 .so 文件的目录。
 
 - **`cmake`**
 
-  > 如果实在`cmake`模块声明，那么就意味着cmakelists会有条件的引入编译指定的cpu架构的so库
+  > **如果实在`cmake`模块声明，那么就意味着cmakelists会有条件的引入编译指定的cpu架构的so库**
   >
   > ```groovy
   > android {
@@ -2247,7 +2247,7 @@ jniLibs 是 Android Studio 中用来存放 .so 文件的目录。
 
 - **`ndk`**
 
-  > 如果是在`ndk`模块声明，那么意味着在最终打包apk时候，只打包指定cpu架构的so库
+  > **如果是在`ndk`模块声明，那么意味着在最终打包apk时候，只打包指定cpu架构的so库**
   >
   > ```groovy
   > android {
