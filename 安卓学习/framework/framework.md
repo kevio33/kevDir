@@ -553,6 +553,12 @@ dex文件是Android系统的可执行文件，包含应用程序内的全部指�
 >
 > 一般存放[魔数](#magicnumber)等信息
 
+
+
+# 三、AMS
+
+AMS （ActivityManagerService ），是 Android 系统中的一个核心服务，负责管理应用程序的生命周期、任务栈和应用程序之间的交互。 AMS 在 Android 中起到以下几个重要作用： 
+
 # 其他
 
 ## 1.<a name="僵尸进程">僵尸进程</a>

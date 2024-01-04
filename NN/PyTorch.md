@@ -7,6 +7,10 @@
 >  [ 解决VScode中无法激活conda虚拟环境的问题](https://blog.csdn.net/jujudeyueyue/article/details/123255940) 
 >
 >  [解决Win10 PowerShell无法激活Anaconda环境的问题 ](https://www.cnblogs.com/dereen/p/ps_conda_env.html) 
+>
+>  [添加清华镜像源](https://www.cnblogs.com/canneddream/p/17012219.html)
+>
+>  [添加阿里镜像源](https://developer.aliyun.com/mirror/anaconda/)
 
 ## VSCode环境
 
