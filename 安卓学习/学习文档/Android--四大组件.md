@@ -2026,11 +2026,13 @@ public class ForegroundActivity extends Activity {
 
 ![这里写图片描述](https://gitee.com/kevinyong/kevin-pic-gall2/raw/master/20161004164521384)
 
-#### AIDL
+#### [AIDL](#AIDL)
 
 > https://blog.csdn.net/luoyanglizi/article/details/51980630
 >
 > https://www.jianshu.com/p/29999c1a93cd
+
+
 
 
 
@@ -2878,14 +2880,17 @@ Android系统本身提供了很多Content Provider，例如，音频、视频、
  广播是一种被动跨进程通讯的方式。当某个程序向系统发送广播时，其他的应用程序只能被动地接收广播数据。这就象电台进行广播一样，听众只能被动地收听，而不能主动与电台进行沟通。
 在应用程序中发送广播比较简单。只需要调用sendBroadcast方法即可。该方法需要一个Intent对象。通过Intent对象可以发送需要广播的数据。
 
-##### Service(AIDL)
+
+
+##### <a name=AIDL>Service(AIDL)</a>
+
+> [Android binder机制](https://juejin.cn/post/6892212234496425991)
+>
+> [解决高版本AS无法创建AIDL文件](https://juejin.cn/post/7240998915942760507)
+
+`AIDL (Android Interface Definition Language，Android 接口定义语言)` 是一种文件格式，用来简化 Binder 的使用。当使用 Binder 的时候，只需要创建一个后缀名为 `.aidl` 的文件，然后像定义接口一样定义方法。定义完毕之后，使用工具 `aidl.exe` 即可生成 Binder 所需要的各种文件。当然，我们的 AS 已经为我们集成了 `aidl.exe`，所以，只需要在定义了 AIDL 文件之后，**编译**即可生成使用 `Binder` 时所需的文件。当然，不使用 AIDL，直接编写 Binder 所需的 java 文件也是可以的。
 
 
 
+**Android 中提供了 AIDL 供我们使用Binder进行进程间通信**
 
-
-
-
-
-
-## 
