@@ -2885,7 +2885,6 @@ Android系统本身提供了很多Content Provider，例如，音频、视频、
 ##### <a name=AIDL>Service(AIDL)</a>
 
 > [Android binder机制](https://juejin.cn/post/6892212234496425991)
->
 
 `AIDL (Android Interface Definition Language，Android 接口定义语言)` 是一种文件格式，用来简化 Binder 的使用。当使用 Binder 的时候，只需要创建一个后缀名为 `.aidl` 的文件，然后像定义接口一样定义方法。定义完毕之后，使用工具 `aidl.exe` 即可生成 Binder 所需要的各种文件。当然，我们的 AS 已经为我们集成了 `aidl.exe`，所以，只需要在定义了 AIDL 文件之后，**编译**即可生成使用 `Binder` 时所需的文件。当然，不使用 AIDL，直接编写 Binder 所需的 java 文件也是可以的。
 
