@@ -22,8 +22,6 @@
 >
 > **ViewGroup**--则是不可见的容器，用于定义View和其他ViewGroup对象的布局结构，ViewGroup对象通常称为“布局”，例如LinearLayout，ConstraintLayout
 
-![img](Android--控件、布局.assets/viewgroup_2x.png)
-
 
 
 > **可以通过两种方式声明界面元素:**
