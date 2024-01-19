@@ -152,13 +152,15 @@ git checkout 052c0233bcaef35bbf6e6ebd43bfd6a648e3d93b /path/to/file
 
 ## 五.问题
 
-### 1.同时绑定gitee和github
+### 1.ssh同时绑定gitee和github
 
 > [同时使用Gitee和Github并设置代理](https://duter2016.github.io/2021/01/22/Git%E5%90%8C%E6%97%B6%E4%BD%BF%E7%94%A8Gitee%E5%92%8CGithub%E5%B9%B6%E8%AE%BE%E7%BD%AE%E4%BB%A3%E7%90%86/)
 >
 > [github和gitee配置](https://www.css3er.com/p/347.html)
 
 最开始我创建一个ssh同时用于`gitee`和`github`，但是之后发现gitee可以用，但是github一直报`ssh: connect to host github.com port 22: Connection timed out`的错，所以怀疑是不是因为一个ssh不能同时用两个网站。
+
+#### (1)分别绑定gitee和GitHub
 
 所以我**首先按照操作给gitee和github分别设置了ssh密钥。**
 
@@ -231,6 +233,12 @@ ssh -T git@gitee.com
 > 可以参考如下：
 >
 > [报错bad owner](https://support.huaweicloud.com/modelarts_faq/modelarts_05_3211.html)
+
+
+
+#### (2)同时绑定gitee和github
+
+> [绑定gitee和GitHub](https://www.css3er.com/p/347.html)
 
 
 
