@@ -69,9 +69,9 @@ values目录下存放的是一些属性变量，可以在布局时候引用
   > Android 框架还提供许多其他 ID 资源。引用 Android 资源 ID 时，不需要加号，但必须添加 android 软件包命名空间。添加 android 软件包命名空间后，我们现在将从 android.R 资源类而非本地资源类引用 ID。
   > ```
 
-#### ②**View绑定
+#### ②viewbinding
 
-在Android Studio3.6及更高版本中**通过使用view绑定来替代`findViewById`**。
+在Android Studio3.6及更高版本中**通过使用viewbinding来替代`findViewById`**。
 
 **启用绑定**
 
@@ -175,6 +175,65 @@ private ResultProfileBinding binding;
 
 
 
+#### ③databinding
+
+> [databinding详解](https://juejin.cn/post/6844904085800353805)
+
+`DataBinding`是一种更为高级的视图绑定框架，允许你在布局文件中直接绑定数据。于Android Studio 1.3引入，相较于`ViewBinding`：
+
+- 支持双向数据绑定，即当数据变化时，视图也会相应地更新，反之亦然。 
+- 具有更强大的表达式语言，支持一些逻辑和运算符。
+
+**使用**
+
+```groovy
+android {
+        ...
+        dataBinding {
+            enabled = true
+        }
+    }
+```
+
+
+
+`DataBinding`使用布局文件中的数据绑定表达式将数据直接与视图绑定。 
+
+```xml
+<!--示例代码-->
+<!--布局文件 activity_main.xml-->
+<!--要以layout开头-->
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <variable
+            name="user"
+            type="com.example.User" />
+    </data>
+
+    <LinearLayout>
+    	<TextView
+            android:id="@+id/myTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{user.name}" />
+    </LinearLayout>
+    
+    
+</layout>
+```
+
+```java
+// 在 Activity 中使用 DataBinding
+ActivityMainBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+User user = new User("John Doe");
+binding.setUser(user);
+```
+
+
+
 #### **布局位置**
 
 可以通过调用 `getLeft()` 方法和 `getTop()` 方法来检索视图的位置。例如：***如果 `getLeft()` 返回 20，则表示视图位于其直接父项左边缘向右 20 个像素处。***，此外系统还提供了getRight()和getBottom来计算右/下边缘坐标，例如：***调用 `getRight()` 类似于进行以下计算：`getLeft() + getWidth()`。也就是该View最右边距离父视图最左边的距离，而不是视图右边距离父视图右边的距离***
@@ -237,6 +296,8 @@ View尺寸拥有两对宽度和高度值：
 > 3、`android:layout_gravity="center_vertical"`表示该布局在父布局里垂直居中，此时其父布局必须应设置成 `android:orientation="horizontal"`属性（默认为该属性），且其父布局的高度应设置为 android:layout_height="fill_parent"属性；
 >
 > 4、`android:gravity="center_horizontal"`表示该布局下的元素水平居中；
+>
+> **5、内部元素居中：在LinearLayout中写属性` android:gravity=”center”  `即可**
 
 ### 2.RelativeLayout
 

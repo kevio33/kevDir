@@ -129,7 +129,7 @@ android系统启动的大概流程：
 
 ### (1)init进程是什么？
 
-Linux系统的用户进程，是所有用户进程的鼻祖，进程号为1，它有许多重要的职责，比如创建[Zygote](#Zygote)孵化器和属性服务等。并且它是由多个源文件组成的，对应源码目录system/core/init中。
+Linux系统的用户进程，是所有用户进程的鼻祖，进程号为1，它有许多重要的职责，比如创建[Zygote](#Zygote)孵化器和`属性服务`等。并且它是由多个源文件组成的，对应源码目录system/core/init中。
 
  ![android-booting](framework.assets/android-booting.jpg) 
 
@@ -553,11 +553,35 @@ dex文件是Android系统的可执行文件，包含应用程序内的全部指�
 >
 > 一般存放[魔数](#magicnumber)等信息
 
-
-
 # 三、AMS
 
-AMS （ActivityManagerService ），是 Android 系统中的一个核心服务，负责管理应用程序的生命周期、任务栈和应用程序之间的交互。 AMS 在 Android 中起到以下几个重要作用： 
+> [AMS启动流程](https://juejin.cn/post/6877054356856766478)
+
+**AMS （ActivityManagerService ）**，是 Android 系统中的一个核心服务，负责管理应用程序的生命周期、任务栈和应用程序之间的交互。 AMS 在 Android 中起到以下几个重要作用： 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # 其他
 
