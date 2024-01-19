@@ -150,6 +150,90 @@ git checkout 052c0233bcaef35bbf6e6ebd43bfd6a648e3d93b /path/to/file
 
 
 
+## 五.问题
+
+### 1.同时绑定gitee和github
+
+> [同时使用Gitee和Github并设置代理](https://duter2016.github.io/2021/01/22/Git%E5%90%8C%E6%97%B6%E4%BD%BF%E7%94%A8Gitee%E5%92%8CGithub%E5%B9%B6%E8%AE%BE%E7%BD%AE%E4%BB%A3%E7%90%86/)
+>
+> [github和gitee配置](https://www.css3er.com/p/347.html)
+
+最开始我创建一个ssh同时用于`gitee`和`github`，但是之后发现gitee可以用，但是github一直报`ssh: connect to host github.com port 22: Connection timed out`的错，所以怀疑是不是因为一个ssh不能同时用两个网站。
+
+所以我**首先按照操作给gitee和github分别设置了ssh密钥。**
+
+```shell
+#先删除全局的名字和邮箱
+$ git config --global --unset user.name "你的名字"
+$ git config --global --unset user.email "你的邮箱"
+
+#生成GitHub 的钥匙
+ssh-keygen -t rsa -f "~/.ssh/id_rsa.github" -C "邮箱"
+
+#生成Gitee 的钥匙
+ssh-keygen -t rsa -f "~/.ssh/id_rsa.gitee" -C "邮箱"
+```
+
+
+
+**多账户必须配置config文件**，若无 config 文件，则需创建 config 文件 
+
+```
+#Default gitHub user Self
+Host github.com
+Hostname ssh.github.com
+Port 443
+HostName github.com
+User your@email
+PreferredAuthentications publickey
+IdentityFile ~/.ssh/id_rsa.github
+
+#Add gitee user
+Host gitee.com
+HostName gitee.com
+User your@email
+PreferredAuthentications publickey
+IdentityFile ~/.ssh/id_rsa.gitee
+```
+
+> > - Host
+> >   它涵盖了下面一个段的配置，我们可以通过他来替代将要连接的服务器地址。
+> >   这里可以使用任意字段或通配符。
+> >   当ssh的时候如果服务器地址能匹配上这里Host指定的值，则Host下面指定的HostName将被作为最终的服务器地址使用，并且将使用该Host字段下面配置的所有自定义配置来覆盖默认的/etc/ssh/ssh_config配置信息。
+>
+> > - Port
+> >   自定义的端口。默认为22，可不配置
+>
+> > - User
+> >   自定义的用户名，默认为git，设置为你的注册邮箱,也可不配置，不写邮箱，每次都报please tell who you are！
+>
+> > - HostName
+> >   真正连接的服务器地址
+>
+> > - PreferredAuthentications
+> >   指定优先使用哪种方式验证，支持密码和秘钥验证方式
+>
+> > - IdentityFile
+> >   指定本次连接使用的密钥文件
+
+
+
+**之后再把ssh公钥添加到github和gitee上面，在本地进行测试：**
+
+```shell
+ssh -T git@github.com
+
+ssh -T git@gitee.com
+```
+
+> **如果报错` Bad owner or permissions on /home/username/.ssh/config `**
+>
+> 可以参考如下：
+>
+> [报错bad owner](https://support.huaweicloud.com/modelarts_faq/modelarts_05_3211.html)
+
+
+
 ## 文件
 
 ### 1.`“.gitignore”`
