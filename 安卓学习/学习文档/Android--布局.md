@@ -2693,6 +2693,10 @@ dependencies {
 
 
 
+### 15.smartRefreshLayout
+
+
+
 ### 改善布局性能
 
 布局的是Android应用中直接影响用户体验的关键部分，如果布局不当会导致占用大量内存，应用界面异常缓慢。
@@ -3325,16 +3329,16 @@ public PieChart(Context context, AttributeSet attrs) {
 属性是控制视图行为和外观的强大方式，但只能在视图初始化时读取。如需提供动态行为，请为每个自定义属性公开一个 getter 与 setter 属性对。以下代码段展示了 `PieChart` 如何公开名为 `showText` 的属性：
 
 ```java
- public boolean isShowText() {
-       return mShowText;
-    }
+public boolean isShowText() {
+    return mShowText;
+}
 
-    public void setShowText(boolean showText) {
-       mShowText = showText;
-        //调用两个函数通知系统进行视图重绘
-       invalidate();
-       requestLayout();
-    }
+public void setShowText(boolean showText) {
+    mShowText = showText;
+    //调用两个函数通知系统进行视图重绘
+    invalidate();
+    requestLayout();
+}
 //setShowText 会调用 invalidate() 和 requestLayout()。这些调用对于确保视图可靠运行至关重要。您必须在视图属性发生任何可能改变其外观的更改后使该视图失效，以便系统知道需要重新绘制该视图。同样，如果属性更改可能会影响视图的大小或形状，则需要请求新的布局。
 ```
 
@@ -4027,3 +4031,57 @@ public boolean onTouchEvent(MotionEvent event) {
 > 参考——https://blog.csdn.net/Sky_Cat/article/details/125557189
 >
 > https://www.jianshu.com/p/bd645a85ec2d
+
+
+
+
+
+## 三、其他
+
+### 1.LayoutInflater
+
+ LayoutInflater 是 Android 中用于将布局文件转换为 View 对象的工具。它是 Android 框架中的一个重要组件，用于构建用户界面。 
+
+LayoutInflater 提供了以下方法来将布局文件转换为 View 对象：
+
+```java
+inflate(int resource, ViewGroup root, boolean attachToRoot)//将布局文件填充到指定的 ViewGroup 中，并指定是否将 View 对象附加到 ViewGroup。第一个参数是布局文件的资源 ID。第二个参数是将布局文件填充到的 ViewGroup。第三个参数指定是否将 View 对象附加到 ViewGroup。
+```
+
+> **示例**
+>
+> ```java
+> public class MainActivity extends AppCompatActivity {
+> 
+>     @Override
+>     protected void onCreate(Bundle savedInstanceState) {
+>         super.onCreate(savedInstanceState);
+> 
+>         // 创建 LinearLayout
+>         LinearLayout layout = new LinearLayout(this);
+>         layout.setOrientation(LinearLayout.VERTICAL);
+> 
+>         // 将布局文件填充到 LinearLayout
+>         layout.addView(LayoutInflater.from(this).inflate(R.layout.activity_main, layout, false));
+> 
+>         setContentView(layout);
+>     }
+> }
+> ```
+
+
+
+**如何获取LayoutInflater**
+
+①从Activity、Fragment、View中获取
+
+```java
+LayoutInflater inflater = getLayoutInflater();
+```
+
+②从Context中获取
+
+```java
+LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+```
+
