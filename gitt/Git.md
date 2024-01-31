@@ -1,6 +1,6 @@
 # Git
 
-## 一.本地仓库链接github
+## 一.电脑通过ssh链接github
 
 > 参考：
 >
@@ -150,7 +150,31 @@ git checkout 052c0233bcaef35bbf6e6ebd43bfd6a648e3d93b /path/to/file
 
 
 
-## 五.问题
+## 五.本地仓库链接远程仓库
+
+首先在本地项目初始化仓库
+
+```shell
+git init
+```
+
+然后关联本地仓库和远程仓库
+
+```shell
+git remote add origin 仓库地址
+```
+
+然后就可以推送内容了
+
+```shell
+git add .
+git commit -m "Initial commit"
+git push -u origin master
+```
+
+
+
+## 六.问题
 
 ### 1.ssh同时绑定gitee和github
 
