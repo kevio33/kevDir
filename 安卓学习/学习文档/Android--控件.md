@@ -318,7 +318,7 @@ android:onClick="showToast" #调用
         android:background="#00ff00"
         android:src="@drawable/ultraman"  #图片名称一定要有字母
         android:scaleType="centerCrop"/>  
-         <!--scaleType的三个属性：1.fitXY：撑满控件，宽高比会被拉伸；
+         <!--scaleType的三个属性：1.fitXY：控件被撑满，宽高比会被拉伸；
                                  2.fitCenter/center：保持宽高比缩放，直至能够完全显示
                                  3.centerCrop：保持宽高比缩放，直至完全覆盖控件，裁剪显                                                    示-->
   
@@ -565,6 +565,50 @@ private RadioGroup radioGroup;
 
 ### 6.EditText
 
+> [editText](https://blog.51cto.com/u_16213568/8608169)
+
+> **常用属性：**
+>
+> android:hint：Text为空时显示的文字提示信息，可通过textColorHint设置提示信息的颜色。
+>
+> android:singleLine：设置单行输入，一旦设置为true，则文字不会自动换行。
+>
+> android:gray="top" ：多行中指针在第一行第一位置et.setSelection(et.length());：调整光标到最后一行
+>
+> android:autoText ：自动拼写帮助。这里单独设置是没有效果的，可能需要其他输入法辅助才行
+>
+> android:capitalize ：设置英文字母大写类型。设置如下值：sentences仅第一个字母大写；words每一个单词首字母大小，用空格区分单词；characters每一个英文字母都大写。
+>
+> android:digits ：设置允许输入哪些字符。如“1234567890.+-*/%\n()”
+>
+> android:singleLine ：是否单行或者多行，回车是离开文本框还是文本框增加新行android:numeric ：如果被设置，该TextView接收数字输入。有如下值设置：integer正整数、signed带符号整数、decimal带小数点浮点数。
+>
+> android:inputType:设置文本的类型
+>
+> android:password ：密码，以小点”.”显示文本
+>
+> android:phoneNumber ：设置为电话号码的输入方式。
+>
+> android:editable ：设置是否可编辑。仍然可以获取光标，但是无法输入。
+>
+> android:autoLink=”all” ：设置文本超链接样式当点击网址时，跳向该网址
+>
+> android:textColor = "#ff8c00"：字体颜色
+>
+> android:textStyle="bold"：字体，bold, italic, bolditalic
+>
+> android:textAlign="center"：EditText没有这个属性，但TextView有
+>
+> android:textColorHighlight="#cccccc"：被选中文字的底色，默认为蓝色
+>
+> android:textColorHint="#ffff00"：设置提示信息文字的颜色，默认为灰色
+>
+> android:textScaleX="1.5"：控制字与字之间的间距
+>
+> android:typeface="monospace"：字型，normal, sans, serif, monospace
+>
+> android:background="@null"：空间背景，这里没有，指透明
+
 新建跳转EditText按钮
 
 ```xml
@@ -622,6 +666,27 @@ private RadioGroup radioGroup;
 ```
 
 ![1607241846829](Android--控件.assets/1607241846829.png)
+
+
+
+> **高版本android edittext没有了下划线，所以需要自定义：**
+>
+> - **在theme.xml中定义样式**
+>
+> ```xml
+> <style name="MyEditText" parent="Theme.AppCompat.Light">
+>     <item name="colorControlNormal">@android:color/darker_gray</item>
+>     <item name="colorControlActivated">@android:color/holo_orange_dark</item>
+> </style>
+> ```
+>
+> 然后在 `EditText`中，加上`android:theme="@style/MyEditText"` 属性 
+>
+> - **在drawable中定义样式**
+>
+>   
+
+
 
 ### 7.ScrollView
 

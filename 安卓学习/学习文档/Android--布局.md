@@ -2,17 +2,7 @@
 
 
 
-## 一、项目结构
-
-### manifest.xml文件：
-
-每创建一个activity就需要在该文件里面声明
-
-![1606984283104](Android--布局.assets/1606984283104.png)
-
-
-
-## 二、布局
+## 一、布局
 
 ### 概述
 
@@ -85,6 +75,14 @@ android {
         }
     }
 ```
+
+> `gradle 8.2`更换了写法
+>
+> ```groovy
+> buildFeatures {
+>     viewBinding true
+> }
+> ```
 
 如果您希望在生成绑定类时**忽略某个布局文件**，请将 `tools:viewBindingIgnore="true"` 属性添加到相应布局文件的根视图中：
 
@@ -295,7 +293,7 @@ View尺寸拥有两对宽度和高度值：
 >
 > 3、`android:layout_gravity="center_vertical"`表示该布局在父布局里垂直居中，此时其父布局必须应设置成 `android:orientation="horizontal"`属性（默认为该属性），且其父布局的高度应设置为 android:layout_height="fill_parent"属性；
 >
-> 4、`android:gravity="center_horizontal"`表示该布局下的元素水平居中；
+> 4、`android:gravity="center_horizontal"`表示该布局下的统一水平线的元素在垂直方向居中（**对于图片和文字水平线上面对齐很有帮助**）；
 >
 > **5、内部元素居中：在LinearLayout中写属性` android:gravity=”center”  `即可**
 
@@ -305,44 +303,44 @@ View尺寸拥有两对宽度和高度值：
 
 > **常用属性**
 >
-> - 相对于父控件，例如：android:layout_alignParentTop=“true”
+> - **相对于父控件**：
 >
->         android:layout_alignParentTop      控件的顶部与父控件的顶部对齐;
->                             
->         android:layout_alignParentBottom  控件的底部与父控件的底部对齐;
->                             
->         android:layout_alignParentLeft      控件的左部与父控件的左部对齐;
->                             
->         android:layout_alignParentRight     控件的右部与父控件的右部对齐;
+>      `android:layout_alignParentTop `     控件的顶部与父控件的顶部对齐;
 >
-> - 相对给定Id控件，例如：android:layout_above=“@id/**”
+>      `android:layout_alignParentBottom`  控件的底部与父控件的底部对齐;
 >
->         android:layout_above 控件的底部置于给定ID的控件之上;
->                             
->         android:layout_below     控件的顶部置于给定ID的控件之下;
->                             
->         android:layout_toLeftOf    控件的右边缘与给定ID的控件左边缘对齐;
->                             
->         android:layout_toRightOf  控件的左边缘与给定ID的控件右边缘对齐;
->                             
->         android:layout_alignBaseline  控件的baseline与给定ID的baseline对齐;
->                             
->         android:layout_alignTop        控件的顶部边缘与给定ID的顶部边缘对齐;
->                             
->         android:layout_alignBottom   控件的底部边缘与给定ID的底部边缘对齐;
->                             
->         android:layout_alignLeft       控件的左边缘与给定ID的左边缘对齐;
->                             
->         android:layout_alignRight      控件的右边缘与给定ID的右边缘对齐;
+>      `android:layout_alignParentLeft`      控件的左部与父控件的左部对齐;
 >
-> - 居中，例如：android:layout_centerInParent=“true”
+>      `android:layout_alignParentRight  `   控件的右部与父控件的右部对齐;
 >
->         android:layout_centerHorizontal 水平居中;
->                             
->         android:layout_centerVertical    垂直居中;
->                             
->         android:layout_centerInParent  父控件的中央;
-> 
+> - **相对给定Id控件**
+>
+>      `android:layout_above` 控件的底部置于给定ID的控件之上;
+>
+>      `android:layout_below `    控件的顶部置于给定ID的控件之下;
+>
+>      `android:layout_toLeftOf `   控件的右边缘与给定ID的控件左边缘对齐;
+>
+>      `android:layout_toRightOf` 控件的左边缘与给定ID的控件右边缘对齐;
+>
+>      `android:layout_alignBaseline`  控件的baseline与给定ID的baseline对齐;
+>
+>      `android:layout_alignTop `       控件的顶部边缘与给定ID的顶部边缘对齐;
+>
+>      `android:layout_alignBottom  ` 控件的底部边缘与给定ID的底部边缘对齐;
+>
+>      `android:layout_alignLeft   `    控件的左边缘与给定ID的左边缘对齐;
+>
+>      `android:layout_alignRight  `    控件的右边缘与给定ID的右边缘对齐;
+>
+> - **居中**：
+>
+>      `android:layout_centerHorizontal `水平居中;
+>      
+>      `android:layout_centerVertical `   垂直居中;
+>      
+>      `android:layout_centerInParent  `父控件的中央;
+>
 
 相对其他元素进行布局
 
@@ -367,15 +365,13 @@ View尺寸拥有两对宽度和高度值：
         android:background="#ff0000"
         android:id="@+id/view_2"  
         android:layout_below="@id/view_1"  
-        android:layout_toLeftOf="@id/view_1"/>  <!--相对于view1左边布局-->
+        android:layout_toLeftOf="@id/view_1"/>  <!--相对于view1左边布局，view2的右边缘与view1的左边缘对齐-->
      
 
 </RelativeLayout>
 ```
 
-> ```xml
-> layout_centerHorizontal="true" #设置是否水平居中
-> ```
+
 
 ### 3.ConstraintLayout
 
@@ -2584,6 +2580,8 @@ public static int growSize(int currentSize) {
 
 ### 10.CardView
 
+> [cardview](https://juejin.cn/post/7002526755835609102)
+
 **卡片式布局**，比较常用
 
 ```groovy
@@ -2594,16 +2592,20 @@ dependencies {
 
 常用属性：
 
-| 属性                                                     | 作用         |
-| -------------------------------------------------------- | ------------ |
-| card_view:cardElevation                                  | 调整阴影     |
-| card_view:cardCornerRadius(CardView.setRadius代码中设置) | 卡片边缘半径 |
-| card_view:cardBackgroundColor                            | 背景颜色     |
-|                                                          |              |
+`app:cardCornerRadius` 设置CardView圆角 
+ `app:cardElevation` 设置CardView阴影 
+ `app:cardMaxElevation`设置CardView最大阴影 
+ `app:cardBackgroundColor` 设置CardView背景色 `app:cardUseCompatPadding` 设置内边距，V21+的版本和之前的版本仍旧具有一样的计算方式 
+ `app:cardPreventCornerOverlap` 在V20和之前的版本中添加内边距，这个属性为了防止内容和边角的重叠 
+ `app:contentPadding` 设置卡片内容到四周的边距 
+ `app:contentPaddingLeft` 设置卡片内容到左边的边距 
+ `app:contentPaddingRight` 设置卡片内容到右边的边距 
+ `app:contentPaddingTop` 设置卡片内容到顶部的边距 
+ `app:contentPaddingBottom` 设置卡片内容到底部的边距 
+ `android:minWidth` 设置卡片的最小宽度 
+ `android:minHeight` 设置卡片的最小高度
 
-> 更多参考文档--
->
-> https://developer.android.google.cn/reference/androidx/cardview/widget/CardView
+
 
 ### 11.DrawerLayout
 
@@ -4036,7 +4038,7 @@ public boolean onTouchEvent(MotionEvent event) {
 
 
 
-## 三、其他
+## 二、其他
 
 ### 1.LayoutInflater
 
@@ -4082,6 +4084,6 @@ LayoutInflater inflater = getLayoutInflater();
 ②从Context中获取
 
 ```java
-LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+LayoutInflater inflater = (LayoutInflater)getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 ```
 
