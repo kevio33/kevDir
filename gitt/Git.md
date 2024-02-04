@@ -144,6 +144,72 @@ git checkout 052c0233bcaef35bbf6e6ebd43bfd6a648e3d93b /path/to/file
 
 
 
+### 2.回退版本
+
+> [git回退版本](https://blog.csdn.net/yxlshk/article/details/79944535)
+
+**git版本管理知识**
+使用git的每次提交，Git都会自动把它们串成一条时间线，这条时间线就是一个分支。如果没有新建分支，那么只有一条时间线，即只有一个分支，在Git里，这个分支叫主分支，即master分支。有一个HEAD指针指向当前分支（只有一个分支的情况下会指向master，而master是指向最新提交）。每个版本都会有自己的版本信息，如特有的版本号、版本名等。如下图，假设只有一个分支：
+![1707051546850](Git.assets/1707051546850.png) 
+
+**如何回退版本**
+
+**（1）git reset**
+
+ git reset的作用是修改HEAD的位置，即将HEAD指向的位置改变为之前存在的某个版本 
+
+![1707051522549](Git.assets/1707051522549.png) 
+
+
+
+**具体操作：**
+
+ **查看版本号：**
+可以使用命令“git log”查看： 
+
+![1707051507624](Git.assets/1707051507624.png) 
+
+> 也可以在github网站查看
+
+然后**使用`git reset --hard 目标版本号`命令将版本回退** 
+
+ **使用“git push -f”提交更改：**
+此时如果用“git push”会报错，因为我们本地库HEAD指向的版本比远程库的要旧： 
+
+ ![这里写图片描述](https://imgconvert.csdnimg.cn/aHR0cDovL2ltZy5ibG9nLmNzZG4ubmV0LzIwMTgwNDE0MjAzNjA1Nzk3) 
+
+ 所以要用`git push -f`强制推上去 
+
+
+
+**（2）git revert**
+
+**原理**：` git revert`是用于“反做”某一个版本，以达到撤销该版本的修改的目的。比如，我们commit了三个版本（版本一、版本二、 版本三），突然发现版本二不行（如：有bug），想要撤销版本二，但又不想影响撤销版本三的提交，就可以用 git revert 命令来反做版本二，生成新的版本四，这个版本四里会保留版本三的东西，但撤销了版本二的东西。如下图所示：
+ ![这里写图片描述](https://imgconvert.csdnimg.cn/aHR0cDovL2ltZy5ibG9nLmNzZG4ubmV0LzIwMTgwNDE0MjA1ODE2MTg4) 
+
+**查看版本号：**
+可以通过命令行查看（输入git log）：
+如图，最近的两个版本分别叫：“add text.txt”（即新增了文件text.txt）、“add text2.txt”（新增了文件text2.txt）。这个时候我们不需要text.txt这个文件了，那就是说不想要“add text.txt”那个版本的操作，那可以通过反做“add text.txt”这个版本来实现。
+ ![在这里插入图片描述](https://img-blog.csdnimg.cn/20190726105234748.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3l4bHNoaw==,size_16,color_FFFFFF,t_70) 
+
+ **使用“git revert -n 版本号”反做，并使用“git commit -m 版本名”提交：**
+（1）反做，使用“git revert -n 版本号”命令。如下命令，我们反做版本号为8b89621的版本： 
+
+```shell
+git revert -n 8b89621019c9adc6fc4d242cd41daeb13aeb9861
+```
+
+ **注意：** 这里可能会出现冲突，那么需要手动修改冲突的文件。而且要git add 文件名。
+（2）提交，使用“git commit -m 版本名”，如： 
+
+```shell
+git commit -m "revert add text.txt" 
+```
+
+
+
+
+
 ## 四.查看远程更新
 
 > https://juejin.cn/s/git%20%E6%9F%A5%E7%9C%8B%E8%BF%9C%E7%A8%8B%E5%88%86%E6%94%AF%E6%98%AF%E5%90%A6%E6%9C%89%E6%9B%B4%E6%96%B0
