@@ -256,7 +256,7 @@ DataStore 提供两种不同的实现：`Preferences DataStore` 和 `Proto DataS
 >
 > ```java
 > Flowable<Integer> exampleCounterFlow =
->     dataStore.data().map(settings -> settings.getExampleCounter());
+>        dataStore.data().map(settings -> settings.getExampleCounter());
 > ```
 >
 > **写入内容**
@@ -275,6 +275,8 @@ DataStore 提供两种不同的实现：`Preferences DataStore` 和 `Proto DataS
 
 
 ## 二、SQLite
+
+> [sqlLite使用](https://blog.csdn.net/huweiliyi/article/details/105461725)
 
 ### 	(1)概述：
 

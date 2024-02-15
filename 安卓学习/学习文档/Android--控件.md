@@ -1575,3 +1575,24 @@ button3.setOnClickListener(new View.OnClickListener() {
 
 > [Android之viewpager](https://cloud.tencent.com/developer/article/2108418)
 
+#### (2)滑动问题
+
+假设底部有三个`tablayout`，如果当前在第一个tab，若直接点击第三个tab，那么页面会从**页面1滑动到页面2，再滑动到页面3**，为了优化这一过程，通常采用自定义viewPager，取消滑动动画
+
+```java
+public class MyViewPager extends ViewPager {
+    public MyViewPager(@NonNull Context context) {
+        super(context);
+    }
+
+    public MyViewPager(@NonNull Context context, @Nullable AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    @Override
+    public void setCurrentItem(int item) {
+        super.setCurrentItem(item,false);//禁止滑动
+    }
+}
+```
+
