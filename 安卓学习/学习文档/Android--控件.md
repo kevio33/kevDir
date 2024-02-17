@@ -1575,7 +1575,9 @@ button3.setOnClickListener(new View.OnClickListener() {
 
 > [Android之viewpager](https://cloud.tencent.com/developer/article/2108418)
 
-#### (2)滑动问题
+#### (2)问题
+
+**①滑动问题**
 
 假设底部有三个`tablayout`，如果当前在第一个tab，若直接点击第三个tab，那么页面会从**页面1滑动到页面2，再滑动到页面3**，为了优化这一过程，通常采用自定义viewPager，取消滑动动画
 
@@ -1596,3 +1598,16 @@ public class MyViewPager extends ViewPager {
 }
 ```
 
+
+
+**②页面缓存问题**
+
+**当viewpager包含多个fragment的时候，如果闲置时刻，没有显示的frag会被销毁，因此可能会造成划回去闪退。**
+
+`viewPager.setOffscreenPageLimit(int size)`方法用于设置ViewPager在闲置状态下保留在当前页面两侧的页面数。超过此限制的页面将在需要时从适配器中重新创建。 
+
+该方法有以下作用：
+
+- **提高页面切换的流畅度。**当用户快速滑动页面时，ViewPager可以提前加载相邻页面，从而避免页面切换时出现卡顿现象。
+
+- **减少内存消耗**。当页面数量较多时，ViewPager可以销毁超出限制的页面，从而减少内存占用。

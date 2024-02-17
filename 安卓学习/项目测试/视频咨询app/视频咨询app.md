@@ -6,3 +6,18 @@
 
 **项目使用的三方的[TabLayout](https://github.com/H07000223/FlycoTabLayout)**
 
+
+
+[项目需要安装MongoDB](https://blog.csdn.net/muguli2008/article/details/80591256)
+
+[MongoDB Compress运行命令](https://www.modb.pro/db/27045)
+
+[MongoDB](https://blog.didispace.com/mongodbdatabsecollections/)
+
+
+
+**项目后端打包文件、数据库打包文件等放在doc目录下面**
+
+
+
+项目tomcat要求的java版本为1.8

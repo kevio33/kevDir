@@ -682,7 +682,20 @@ public class BActivity extends AppCompatActivity {
 
 #### 6.任务和返回栈
 
-每一个应用都有自己的堆栈来管理Activity，在后台的任务会停止，等待前台任务完成。
+**任务：**
+
+> 在 Android 系统中，**任务是指一组相关的 Activity**。这些 Activity 通常是用户为了完成某个特定任务而启动的，例如查看照片、编辑文档或玩游戏。
+>
+> 任务可以分为两种类型：
+>
+> - **标准任务**：标准任务是默认的任务类型。它包含一个或多个 Activity。
+> - **单例任务**：单例任务只能包含一个 Activity。
+
+**返回栈**
+
+> **任务由系统管理，并保存在返回栈中**。返回栈是一个 LIFO（后进先出）数据结构，它存储了用户启动的所有 Activity。当用户按下返回键时，系统会从返回栈中弹出 Activity 并将其销毁。
+
+**因此， 一个应用程序可以有多个返回栈，取决于应用程序的任务数量 **
 
 ![image-20220217155501000](https://gitee.com/kevinyong/kevin-pic-gall2/raw/master/image-20220217155501000.png)
 
@@ -690,29 +703,29 @@ public class BActivity extends AppCompatActivity {
 
 
 
-##### 管理任务
+##### 6.1管理任务
 
 在开发中很可能会出现以下几种情况：
 
-- 如果多个Activity可以启动同一个Activity A，且Activity不在栈顶，那么就会在返回堆栈创建多个Activity实例
+- 如果多个Activity可以启动同一个`Activity A`，且`Activity A`不在栈顶，那么就会在返回堆栈创建多个`Activity A`实例
 
   ![image-20220217155624244](https://gitee.com/kevinyong/kevin-pic-gall2/raw/master/image-20220217155624244.png)
 
 - 在用户离开任务时清除返回堆栈中除根Activity以外的所有Activity
 
-要想解决实现以上方法，可以通过借助`<activity>`清单元素属性和传递给startActivity的intent来标记实现上述目的
+要想解决实现以上方法，可以通过借助`<activity>`清单元素属性和传递给`startActivity`的`intent`来标记实现上述目的
 
-`<activity>`属性包括：
+- `<activity>`属性包括：
 
 ![image-20220217155721879](https://gitee.com/kevinyong/kevin-pic-gall2/raw/master/image-20220217155721879.png)
 
-`intent`标记包括:
+- `intent`标记包括:
 
 ![image-20220217155740300](https://gitee.com/kevinyong/kevin-pic-gall2/raw/master/image-20220217155740300.png)
 
 
 
-##### 启动模式
+###### 6.1.1启动模式
 
 在`manifest`的`<activity>`中给`launchMode`属性指定该activity应该如何与任务关联。launchMode提供了四种可指定属性。
 
@@ -722,21 +735,15 @@ public class BActivity extends AppCompatActivity {
 android:launchMode=""
 ```
 
-###### `Standard`
+①`Standard`
 
 > 默认值。系统在启动该 Activity 的任务中创建 Activity 的新实例，并将 intent 传送给该实例。Activity 可以多次实例化，每个实例可以属于不同的任务，一个任务可以拥有多个实例。
 
-
-
-###### `singleTop`
+②`singleTop`
 
 > 这种启动模式下，**如果要启动的Activity已经处于栈的顶部**，那么此时系统不会创建新的实例，而是直接打开此页面，同时它的**`onNewIntent()`**方法会被执行，我们可以通过Intent进行传值，而且它的**`onCreate()，onStart()方法不会被调用`**，因为它并没有发生任何变化。
 
-
-
-
-
-###### `singleTask`
+③`singleTask`
 
 > 在这个模式下，**如果栈中存在这个Activity的实例就会复用这个Activity**，不管它是否位于栈顶，<font color='red'>复用时，会将它上面的Activity全部出栈</font>，因为singleTask本身自带clearTop这种功能。并且会回调该实例的**`onNewIntent()`**方法。(其实这个过程还存在一个任务栈的匹配，因为这个模式启动时，会在自己需要的任务栈中寻找实例，这个任务栈就是通过taskAffinity属性指定。如果这个任务栈不存在，则会创建这个任务栈。不设置taskAffinity属性的话，默认为应用的包名)
 >
@@ -762,7 +769,7 @@ android:launchMode=""
 
 
 
-###### `singleInstance`
+④`singleInstance`
 
 每个Activity占用一个栈:
 
@@ -770,23 +777,36 @@ android:launchMode=""
 
 
 
-##### 使用Intent标记
+###### 6.1.2Intent标记启动模式
+
+```java
+Intent intent = new Intent(mContext, MyActivity.class);
+intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+//这段代码将启动 MyActivity 并清除与 MyActivity 匹配的任务中的所有活动。这意味着 MyActivity 将成为该任务中的第一个活动。
+```
 
 **`FLAG_ACTIVITY_NEW_TASK`**
 
-在新任务中启动 Activity。如果您现在启动的 Activity 已经有任务在运行，则系统会将该任务转到前台并恢复其最后的状态，而 Activity 将在 `onNewIntent()` 中收到新的 intent。
+在新任务(new Task)中启动 Activity。如果您现在启动的 Activity 已经有任务在运行，则系统会将该任务转到前台并恢复其最后的状态。
+
+**`FLAG_ACTIVITY_CLEAR_TASK`**（慎用）
+
+该标记指示系统在启动 Activity 之前清除与 Intent 匹配的任务中的其他所有活动。这意味着 Activity 将成为该任务中的第一个活动 
 
 **`FLAG_ACTIVITY_SINGLE_TOP`**
 
-如果要启动的 Activity 是当前 Activity（即位于返回堆栈顶部的 Activity），则现有实例会收到对 `onNewIntent()` 的调用，而不会创建 Activity 的新实例。
+如果要启动的 Activity 是当前 Activity（即位于返回堆栈顶部的 Activity），则不会创建 Activity 的新实例。
 
 **`FLAG_ACTIVITY_CLEAR_TOP`**
 
-如果要启动的 Activity 已经在当前任务中运行，则不会启动该 Activity 的新实例，而是会销毁位于它之上的所有其他 Activity，并通过 `onNewIntent()` 将此 intent 传送给它的已恢复实例（现在位于堆栈顶部）。
+如果要启动的 Activity 已经在当前任务中运行，则不会启动该 Activity 的新实例，而是会销毁位于它之上的所有其他 Activity，并将此 intent 传送给它的已恢复实例（现在位于堆栈顶部）。
 
 
 
-##### 清除返回堆栈
+
+
+##### 6.2清除返回堆栈
 
 如果用户离开任务较长时间，系统会清除任务中除根 Activity 以外的所有 Activity。当用户再次返回到该任务时，只有根 Activity 会恢复。所以可以使用一些属性来修改此行为
 
