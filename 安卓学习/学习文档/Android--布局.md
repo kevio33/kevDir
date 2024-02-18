@@ -1266,10 +1266,7 @@ MotionLayout是ConstraintLayout子类，可以帮助管理应用中的运动和v
 **实质是类似在一个RecyclerView里面可以放多个textview**
 
 ```groovy
-//引入依赖
-implementation 'com.android.support:design:25.3.1'
-//或者
-implementation 'com.android.support:recyclerview-v7:29+'
+implementation 'androidx.recyclerview:recyclerview:1.3.0'
 ```
 
 xml文件添加视图
@@ -1279,28 +1276,30 @@ xml文件添加视图
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
        android:id="@+id/rv1">
-
    </androidx.recyclerview.widget.RecyclerView>
 ```
 
-在对应的activity找到组件并添加布局管理器
+在对应的activity找到组件并添加**布局管理器**
 
 ```java
-  private RecyclerView recyclerView;
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_recyview);
-        recyclerView = findViewById(R.id.rv1);
-        recyclerView.setLayoutManager(new LinearLayoutManager(recyviewActivity.this));//声明布局管理器，默认垂直
-    }
+private RecyclerView recyclerView;
+@Override
+protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_recyview);
+    recyclerView = findViewById(R.id.rv1);
+    LinearLayoutManager lm = new LinearLayoutManager(recyviewActivity.this)
+    lm.setOrientation(LinearLayoutManager.VERTICAL);
+    
+    recyclerView.setLayoutManager(lm);//声明布局管理器，默认垂直
+}
 ```
 
 创建Adapter
 
 关于adapter：①https://www.jianshu.com/p/ba6db19b9353
 
-**==（recyclerview是用于展示大量数据的，但数据无法直接传给recyclerview用的，adapter适配器就是为此而存在的）==** 
+**（recyclerview是用于展示大量数据的，但数据无法直接传给recyclerview用的，adapter适配器就是为此而存在的）** 
 
 新建布局文件：
 
@@ -2707,7 +2706,7 @@ dependencies {
 
 在一些进行布局的例子中，会出现一些布局麻烦问题：
 
-> **避免室友嵌套Layout**
+> **避免嵌套Layout**
 >
 > 使用**嵌套的 `LinearLayout`** 实例会导致视图层次结构过深。此外，嵌套多个使用 `layout_weight` 参数的 `LinearLayout` 实例成本非常高，因为每个子级都需要测量两次。如果要反复膨胀布局（例如，在 `ListView` 或 `GridView` 中使用时），要特别注意这方面。
 
@@ -2717,7 +2716,7 @@ dependencies {
 
 ![image-20210927160414219](Android--布局.assets/image-20210927160414219.png)
 
-![布局检查器的屏幕截图，其中包含指示“Component Tree”、“布局检查器工具栏”、“Layout Display”和“Attributes”的标签](Android--控件、布局.assets/layout-inspector-callouts.png)
+![布局检查器的屏幕截图，其中包含指示“Component Tree”、“布局检查器工具栏”、“Layout Display”和“Attributes”的标签](Android--布局.assets/layout-inspector-callouts.png)
 
 > 用法同Flutter类型，还可以保存快照
 
@@ -2737,7 +2736,7 @@ dependencies {
 
 
 
-#### 通过标记重复使用布局
+#### 避免重复布局
 
 可以使用 **`<include/>`** 和 **`<merge/>`** 标记在当前布局中嵌入其他布局。
 
@@ -2777,7 +2776,7 @@ dependencies {
         android:background="@color/app_bg"
         android:gravity="center_horizontal">
 
-        <include layout="@layout/titlebar"/>
+        <include layout="@layout/titlebar"/><!--引入布局，避免嵌套-->
 
         <TextView android:layout_width="match_parent"
                   android:layout_height="wrap_content"

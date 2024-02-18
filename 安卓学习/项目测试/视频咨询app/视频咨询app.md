@@ -4,9 +4,13 @@
 >
 > [项目视频](https://www.bilibili.com/video/BV16Z4y1H7jj/?spm_id_from=333.999.0.0)
 
+
+
+## 三方工具：
+
 **项目使用的三方的[TabLayout](https://github.com/H07000223/FlycoTabLayout)**
 
-
+**[使用三方播放工具](https://github.com/xusigh/dueeeke-DKVideoPlayer)**
 
 [项目需要安装MongoDB](https://blog.csdn.net/muguli2008/article/details/80591256)
 
