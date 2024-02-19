@@ -210,6 +210,12 @@ git commit -m "revert add text.txt"
 
 
 
+### 3.撤销add 和commit
+
+https://www.cnblogs.com/FengZeng666/p/15753153.html
+
+
+
 ## 四.查看远程更新
 
 > https://juejin.cn/s/git%20%E6%9F%A5%E7%9C%8B%E8%BF%9C%E7%A8%8B%E5%88%86%E6%94%AF%E6%98%AF%E5%90%A6%E6%9C%89%E6%9B%B4%E6%96%B0
