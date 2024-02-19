@@ -1,8 +1,8 @@
 
 
-## 一、原生控件
+# 一、原生控件
 
-### 1.TextView
+## 1.TextView
 
 
 
@@ -199,7 +199,7 @@ public class Marquee_Text extends TextView {
             android:focusableInTouchMode="true"/>
 ```
 
-### 2.Button
+## 2.Button
 
 Android中所有的控件都具有这两个属性，可选值有3种：**match_parent、fill_parent、wrap_content.**
 
@@ -308,7 +308,7 @@ android:onClick="showToast" #调用
 
 
 
-### 3.ImageView
+## 3.ImageView
 
 ```xml
  
@@ -362,9 +362,21 @@ dependencies {
     <uses-permission android:name="android.permission.INTERNET"/>
 ```
 
+### 圆形图片
+
+自定义imageView可以实现
+
+> https://www.jb51.net/article/215866.htm
+>
+> https://www.cnblogs.com/tangs/articles/5917954.html
+
+```java
+
+```
 
 
-### 4.RadioButton
+
+## 4.RadioButton
 
 ```java
 /*由于每一个按钮点击跳转事件都重复写太过繁琐，以下为更新*/
@@ -420,7 +432,7 @@ public class MainActivity extends AppCompatActivity {
 }
 ```
 
-#### **!! gravity属性 !!**
+### **!! gravity属性 !!**
 
 **补上一个需要记忆的点:**
 
@@ -487,7 +499,7 @@ private RadioGroup radioGroup;
     }
 ```
 
-### 5.CheckBox
+## 5.CheckBox
 
 ```xml
     <TextView
@@ -563,7 +575,7 @@ private RadioGroup radioGroup;
     }
 ```
 
-### 6.EditText
+## 6.EditText
 
 > [editText](https://blog.51cto.com/u_16213568/8608169)
 
@@ -642,7 +654,7 @@ private RadioGroup radioGroup;
 
 ![image-20210815232541719](Android--控件.assets/image-20210815232541719.png)
 
-#### 设置EditText的监听事件
+### 设置EditText的监听事件
 
 ```java
         private EditText editText;
@@ -688,7 +700,7 @@ private RadioGroup radioGroup;
 
 
 
-### 7.ScrollView
+## 7.ScrollView
 
 注意：scrollview里面只能有一个直接子元素，所以可以创建一个linearlayout，然后再linear里面创建控件
 
@@ -809,7 +821,7 @@ private RadioGroup radioGroup;
 
 ![1607420111228](Android--控件.assets/1607420111228.png)
 
-### 8.Spinner
+## 8.Spinner
 
 ![image-20210815232814917](Android--控件.assets/image-20210815232814917.png)
 
@@ -863,7 +875,7 @@ adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 spinner.setAdapter(adapter);
 ```
 
-### 9.WebView
+## 9.WebView
 
 ![1607500399012](Android--控件.assets/1607500399012.png)
 
@@ -1089,7 +1101,7 @@ webView.evaluateJavascript("javascript:alert('hello')");
 
 
 
-### 10.Toast
+## 10.Toast
 
 消息提示快
 
@@ -1164,7 +1176,7 @@ webView.evaluateJavascript("javascript:alert('hello')");
 
 
 
-#### 封装
+### 封装
 
 由于`toast`也属于对象，所以如果连续按压会导致每一个toast等待前面一个toast结束之后才会显示，为此，书写一个工具类进行封装优化
 
@@ -1189,7 +1201,7 @@ ToastUtil.showMsg(getApplicationContext(),"toastutil");
 
 
 
-### 11.Popup window
+## 11.Popup window
 
 创建PopupActivity
 
@@ -1290,7 +1302,7 @@ public class PopupActivity extends AppCompatActivity {
 }
 ```
 
-### 12.Dialog
+## 12.Dialog
 
 **1.默认样式的dialog**
 
@@ -1447,7 +1459,7 @@ builder.show();
 
 ![1607601157067](Android--控件.assets/1607601157067.png)
 
-### 13.ProgressBar
+## 13.ProgressBar
 
 <img src="https://gitee.com/kevinyong/kevin-gallery/raw/master/1607844381023.png" alt="1607844381023" style="zoom: 50%;" />
 
@@ -1465,7 +1477,7 @@ builder.show();
 
 ![1607848094882](Android--控件.assets/1607848094882.png)
 
-#### 进度条
+### 进度条
 
 ```xml
 <ProgressBar
@@ -1528,7 +1540,7 @@ public class ProgressBarActivity extends AppCompatActivity {
 
 
 
-#### progressdialog
+### progressdialog
 
 ```java
 button2.setOnClickListener(new View.OnClickListener() {
@@ -1547,7 +1559,7 @@ button2.setOnClickListener(new View.OnClickListener() {
 
 ![1607849100946](Android--控件.assets/1607849100946.png)
 
-#### 自定义进度条
+### 自定义进度条
 
 ```java
 button3.setOnClickListener(new View.OnClickListener() {
@@ -1571,7 +1583,7 @@ button3.setOnClickListener(new View.OnClickListener() {
 
 ![1607850043302](Android--控件.assets/1607850043302.png)
 
-### 14.viewpager
+## 14.viewpager
 
 > [Android之viewpager](https://cloud.tencent.com/developer/article/2108418)
 

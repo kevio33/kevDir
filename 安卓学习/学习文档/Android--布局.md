@@ -2694,10 +2694,6 @@ dependencies {
 
 
 
-### 15.smartRefreshLayout
-
-
-
 ### 改善布局性能
 
 布局的是Android应用中直接影响用户体验的关键部分，如果布局不当会导致占用大量内存，应用界面异常缓慢。
