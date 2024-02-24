@@ -3,6 +3,8 @@
 > [项目作者提供的源码](https://gitee.com/hwdroid/myapp)
 >
 > [项目视频](https://www.bilibili.com/video/BV16Z4y1H7jj/?spm_id_from=333.999.0.0)
+>
+> [完成后的demo](https://github.com/kevio33/videoinfo_app)
 
 
 
@@ -25,3 +27,7 @@
 
 
 项目tomcat要求的java版本为1.8
+
+
+
+视频收藏功能出错，接口报500

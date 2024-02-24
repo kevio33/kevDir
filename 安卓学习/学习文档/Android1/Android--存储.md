@@ -61,23 +61,23 @@ public class SharedPreferencesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         .....
 
-        //实例化
         sharedPreferences = getSharedPreferences("data",MODE_PRIVATE);//两个参数，文件名和模式，priva模式：其他应用无法读取这个应用数据
         editor = sharedPreferences.edit();
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                editor.putString("name",editText.getText().toString());//键值对
-                editor.apply();//要提交,异步存入，commit()同步存入
-                ToastUtil.showMsg(getApplicationContext(),"保存成功");
+                editor.putString("name",editText.getText().toString());//写数据
+                editor.apply();//异步存入，commit()同步存入
+                ToastUtil.showMsg(this,"保存成功");
             }
         });
 
         button2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                textView.setText(sharedPreferences.getString("name",""));//查询数据并且显示在textview上面
+                String name = sharedPreferences.getString("name","");//读数据
+                textView.setText(name);
             }
         });
     }

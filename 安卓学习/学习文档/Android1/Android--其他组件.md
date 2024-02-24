@@ -4,7 +4,7 @@
 
 ### 1.概述
 
->  Fragment表示应用界面中可重复使用的一部分。Fragment 定义和管理自己的布局，具有自己的生命周期，并且可以处理自己的输入事件。Fragment 不能独立存在，而是必须由 Activity 或另一个 Fragment 托管。Fragment 的视图层次结构会成为宿主的视图层次结构的一部分，或附加到宿主的视图层次结构。
+>  Fragment表示应用界面中可重复使用的一部分。Fragment 定义和管理自己的布局，具有自己的生命周期，并且可以处理自己的输入事件。**Fragment 不能独立存在，而是必须由 Activity 或另一个 Fragment 托管**。Fragment 的视图层次结构会成为宿主的视图层次结构的一部分，或附加到宿主的视图层次结构。
 
 ### 2.模块化
 
@@ -626,5 +626,51 @@ private Bundle saveState() {
 ### 9.Fragment通信
 
 > 参见--https://developer.android.google.cn/guide/fragments/communicate
+>
+> [Fragment的四种跳转](https://www.jianshu.com/p/ab1cb7ddf91f)
+
+- **1.从同一个Activiy的一个Fragment跳转到另外一个Fragment**
+
+  > ```java
+  > getActivity().getSupportFragmentManager() 
+  >     .beginTransaction()
+  >     .replace(R.id.xx, new XxxFragment(), null) 
+  >     .addToBackStack(null)
+  >     .commit();
+  > ```
+
+- **2.从一个Activity的Fragment跳转到另外一个Activity**
+
+  > ```java
+  > Intent intent = new Intent(getActivity(),OtherActivity.class); 
+  > startActivity(intent);
+  > ```
+
+- **3.从一个Activity跳转到另外一个Activity的Fragment上**
+
+  > ```java
+  > //Activity1
+  > Intent intent = new Intent(OtherActivity.this, MainActivity.class);
+  > intent.putExtra("id",1);
+  > startActivity(intent);
+  > 
+  > //Activity2
+  > int id = getIntent().getIntExtra("id", 0);
+  > if (id == 1) {      
+  >     getSupportFragmentManager()
+  >         .beginTransaction()
+  >         .replace(R.id.fragment_container,new YourFragment())
+  >         .addToBackStack(null)
+  >         .commit(); 
+  > }
+  > ```
+
+- **4.从一个Activity的Fragment跳转到另外一个Activity的Fragment上**
+
+  > ```java
+  > Intent intent = new Intent(getActivity(), MainActivity.class);
+  > ```
+  >
+  > 
 
 ## 三、Navigation
