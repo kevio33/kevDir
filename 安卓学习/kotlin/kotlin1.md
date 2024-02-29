@@ -31,6 +31,7 @@ Kotlin中数据类型全部是`对象数据类型`
 | boolean | Boolean |
 | char    | Char    |
 | byte    | Byte    |
+| void    | Unit    |
 
 ```kotlin
 fun main() {
@@ -195,11 +196,35 @@ fun largerNumber(num1: Int, num2: Int) = max(num1, num2) //这里连函数返回
 
 
 
-**3.1.2**
 
 
 
-### 3.2函数修饰符
+
+
+
+### 3.2标准库函数
+
+**3.2.1 repeat**
+
+ 用于执行指定次数的循环操作 
+
+```kotlin
+repeat(times: Int, action: (Int) -> Unit)
+```
+
+例如：
+
+```kotlin
+repeat(5) { index ->
+    println(index + 1)
+}
+```
+
+
+
+
+
+### 3.3函数修饰符
 
 Kotlin中有4种函数修饰符，分别是`public`、`private`、`protected`和 `internal`
 
@@ -210,11 +235,11 @@ Kotlin中有4种函数修饰符，分别是`public`、`private`、`protected`和
 
 
 
-### 3.3lambda
+### 3.4lambda
 
-#### 3.3.1 maxBy
+#### （1）maxBy
 
-**最简单的lambda形式：**
+**简化lambda形式：**
 
 查找长度最长的单词
 
@@ -245,7 +270,7 @@ val maxLengthFruit = list.maxBy { it.length }
 
 
 
-#### 3.3.2map函数
+#### （2）map函数
 
 ```kotlin
 val list = listOf("Apple", "Banana", "Orange", "Pear", "Grape", "Watermelon")
@@ -257,7 +282,7 @@ for (fruit in newList) {
 
 
 
-#### 3.3.3筛选元素
+#### （3）筛选元素
 
 **filter**
 
@@ -271,7 +296,7 @@ val newList = list.filter { it.length <= 5 }
 
 **any和all**
 
-中any函数用于判断集合中是否至少存在一个元素满足指定条件，all函数用于判断集合中是否所有元素都满足指定条 件
+any函数用于判断集合中是否至少存在一个元素满足指定条件，all函数用于判断集合中是否所有元素都满足指定条 件
 
 ```kotlin
 val list = listOf("Apple", "Banana", "Orange", "Pear", "Grape", "Watermelon")
@@ -282,7 +307,7 @@ println("anyResult is " + anyResult + ", allResult is " + allResult)
 
 
 
-#### 3.3.4调用java函数时api
+#### （4）调用java函数时api
 
 当kotlin调用一个方法，且该方法接收一个Java`单抽象方法接口（即只有一个方法的接口）`作为参数，就可以使用函数式API
 
@@ -302,9 +327,9 @@ Thread(Runnable {
 
 
 
-### 3.4匿名类
+### 3.5匿名类
 
-创建匿名类实例的时候不再使用new，而是改用了`object`关键字
+**创建匿名类实例的时候不再使用new，而是改用了`object`关键字**
 
 ```kotlin
 Thread(object : Runnable {
@@ -411,6 +436,8 @@ fun main() {
 
 ## 6.面向对象
 
+> [kotlin中的构造函数](https://juejin.cn/post/6844903872016678919)
+
 ### 6.1构造函数
 
 #### 主构造体函数
@@ -418,35 +445,17 @@ fun main() {
 可以在类名后面直接指定主构造函数(默认构造函数)
 
 ```kotlin
-class Student(val sno: String, val grade: Int) : Person() {
+class Student(val sno: String, val grade: Int)  {
 }
 ```
 
 如果主构造函数有函数体，可以放在init里面
 
 ```kotlin
-class Student(val sno: String, val grade: Int) : Person() {
+class Student(val sno: String, val grade: Int) {
     init {
         println("sno is " + sno)
         println("grade is " + grade)
-    }
-}
-```
-
-如果父类主体构造函数有参数
-
-```kotlin
-class Student(val sno: String, val grade: Int, name: String, age: Int) ://这里参数不能声明为val/var，否则作为子类属性,会和父类重名
-Person(name, age) {
-    ...
-}
-```
-
-如果没有主构造函数，那么次构造函数需要通过`super`调用父类的构造函数
-
-```kotlin
-class Student : Person {//因为没有主构造函数，因此继承时候也不用加括号
-    constructor(name: String, age: Int) : super(name, age) {
     }
 }
 ```
@@ -455,7 +464,7 @@ class Student : Person {//因为没有主构造函数，因此继承时候也不
 
 #### 次构造体函数
 
-次构造函数是通过constructor关键字来定义的。
+次构造函数是通过`constructor`关键字来定义的。
 
 **当一个类既有主构造函数又有次构造函数时，所有的次构造函数都必须调用主构造函数（包括间接调用）**
 
@@ -489,6 +498,23 @@ open class Person {
 
 ```kotlin
 class Student(val sno: String, val grade: Int) : Person() {
+}
+```
+
+如果父类主体构造函数有参数
+
+```kotlin
+class Student(val sno: String, val grade: Int, name: String, age: Int) : Person(name, age) {//这里参数不能声明为val/var，否则作为子类属性,会和父类重名
+    ...
+}
+```
+
+如果没有主构造函数，那么次构造函数需要通过`super`调用父类的构造函数
+
+```kotlin
+class Student : Person {//因为没有主构造函数，因此继承时候也不用加括号
+    constructor(name: String, age: Int) : super(name, age) {
+    }
 }
 ```
 
@@ -550,4 +576,324 @@ object Singleton {
 ```kotlin
 Singleton.singletonTest()
 ```
+
+
+
+
+
+## 7.空指针检查
+
+### 7.1可空类型系统
+
+kotlin的变量默认不为空，因此在编译时就会判断变量是否为空并报错
+
+```kotlin
+fun  main(args: Array<String>) {
+   n(null)//报错：error: null can not be a value of a non-null type Int
+}
+private fun n( a:Int){
+    print("我是n")
+}
+```
+
+
+
+为了应对开发中的特殊情况，可以在变量名后面加上问号，表示改变量可空
+
+```kotlin
+private fun n( a:Int?){
+    print("我是n")
+}
+```
+
+
+
+### 7.2判空的辅助工具
+
+#### **`?.`**
+
+当对象不为空时正常调用相应的方法，当对象为空时则什么都不做。比如以下的判空处理代码：
+
+```kotlin
+//例如下面判空之后调用something方法可以简化为
+if (a != null) {
+    a.doSomething()
+}
+
+//使用判空辅助工具
+a?.doSomething()
+```
+
+
+
+#### **`?:`**
+
+若**左边表达式**不为空取左边表达式，否则取右边表达式
+
+```kotlin
+val c = if (a ! = null) {
+    a
+} else {
+    b
+}
+```
+
+```kotlin
+//简化为
+val c = a ?: b
+```
+
+
+
+**结合使用**
+
+```kotlin
+fun getTextLength(text: String?): Int {
+    if (text != null) {
+        return text.length
+    }
+    return 0
+}
+```
+
+通过`?.`和`?:`简化
+
+```kotlin
+fun getTextLength(text: String?): Int {
+    return text?.length ?: 0
+}
+```
+
+
+
+#### `!!`
+
+让一个可能为null的对象强行通过编译，如果运行时候null为空，会抛出异常
+
+```kotlin
+val name: String? = null
+val upperCaseName = name!!.toUpperCase() // 不会编译错误，但可能会抛出 NullPointerException 异常
+```
+
+
+
+
+
+#### let
+
+let是一个标准函数，提供了函数式API的接口，并将原始调用对象作为参数传递到lambda表达式中
+
+```kotlin
+obj.let { obj2 ->//这里的obj2和obj是一个对象，只是为了区分
+ // 编写具体的业务逻辑
+}
+```
+
+
+
+因此结合`?.`简化判空条件可以写为
+
+```kotlin
+fun doStudy(study: Study?) {
+    study?.let { stu ->
+                stu.readBooks()
+                stu.doHomework()
+    }
+}
+```
+
+
+
+**并且最重要的一点，let可以处理全局变量的判空，而if语句不可以**
+
+```kotlin
+var stu:Study = Study()
+private fun n(){
+    if(stu != null){//报错
+        stu.showName()
+    }
+}
+```
+
+**改用使用let判断则没有问题**
+
+```kotlin
+var stu:Study = Study()
+
+private fun n(){
+    stu?.let{ob->ob.showName()}
+}
+```
+
+
+
+## 8.协程 Coroutines 
+
+> [协程](https://juejin.cn/post/6908271959381901325)
+
+协程是一种轻量级的线程。Java的线程需要依靠操作系统的调度才能实现不同线程之间的切换，而协程可以仅在编程语言的层面就能实现不同协程间的切换，从而大大提升并发编程效率。
+
+协程允许在**单线程模式**下模拟多线程编程的效果，**代码执行时的挂起与恢复完全是由编程语言来控制的**，和操作系统无关
+
+> 使用协程需要单独引入依赖
+>
+> ```groovy
+> dependencies {
+>        implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2'
+>        implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2'
+> }
+> ```
+>
+
+### 8.1创建协程
+
+**（1）`GlobelScope.launch`开启一个顶级协程（协程也层级关系，协程还可以创建子协程）**，这种协程会随着应用结束而结束
+
+```kotlin
+GlobalScope.launch {
+    println("codes run in coroutine scope")
+}
+```
+
+
+
+**（2）`runBlocking`开启一个协程，会保证协程作用域内的所有子协程和代码执行完之前一直阻塞当前线程**
+
+> 只建议测试时候使用，正式环境会引起某些问题
+
+```kotlin
+runBlocking {
+    println("codes run in coroutine scope")
+    delay(1500)
+    println("codes run in coroutine scope finished")
+}
+```
+
+
+
+**(3)`coroutineScope`开启一个协程作用域，只会阻塞当前协程，既不影响其他协程，也不影响任何线程。因此不会造成性能问题，推荐使用！！**
+
+**(4)创建子协程**
+
+`launch`方法当前协程的作用域下创建子协程。子协程的特点是如果外层作用域的协程结束了，该作用域下的所有子协程也会一同结束。相比而言，GlobalScope.launch函数创建的永远是顶层协程
+
+```kotlin
+fun main() {
+    runBlocking {
+        launch {//创建子协程
+            println("launch1")
+            delay(1000)
+            println("launch1 finished")
+        }
+        launch {
+            println("launch2")
+            delay(1000)
+            println("launch2 finished")
+        }
+    }
+}
+```
+
+
+
+### 8.2阻塞协程
+
+**delay()**
+
+`delay()`函数是一个**非阻塞式**的挂起函数，它只会挂起当前协程，并不会影响其他协程的运行，**delay函数只能在协程作用域或其他挂起函数中调用**
+
+> 而Thread.sleep()方法会阻塞当前的线程，这样运行在该线程下的所有协程都会被阻塞
+
+```kotlin
+GlobalScope.launch {
+    println("codes run in coroutine scope")
+    delay(1500)//阻塞协程1.5s
+    println("codes run in coroutine scope finished")
+}
+Thread.sleep(1000)//阻塞线程1s，会阻塞该线程下所有协程
+```
+
+
+
+### 3.suspend
+
+Kotlin提供了一个`suspend`关键字，使用它可以将**任意函数声明成挂起函数**，而**挂起函数之间都是可以互相调用的**，如下所示： 
+
+```kotlin
+suspend fun printDot() {//挂起函数
+    println(".")
+    delay(1000)//函数声明为suspend之后就可以在内部调用delay
+}
+```
+
+
+
+**但是仍然存在问题：函数不具备协程作用域**，因此需要通过`coroutineScope`函数来解决。coroutineScope函数也是一个挂起函数。它的特点是会继承外部的协程的作用域并创建一个子协程，借助这个特性，就可以给任意挂起函数提供协程作用域了
+
+```kotlin
+suspend fun printDot() = coroutineScope {
+    launch {
+        println(".")
+        delay(1000)
+    }
+}
+```
+
+
+
+
+
+## 新特性
+
+### 字符串内嵌
+
+避免使用`+`进行字符串的拼接
+
+```kotlin
+class Obj(var name:String){
+    
+}
+
+fun main(){
+    var obj = Obj("kevin")
+    var str = "hello, ${obj.name}. nice to meet you!"//可以直接得到obj.name
+}
+```
+
+
+
+**在某些情况非常简便**
+
+```kotlin
+val brand = "Samsung"
+val price = 1299.99
+println("Cellphone(brand=$brand, price=$price)")
+```
+
+
+
+
+
+### 默认参数
+
+```kotlin
+fun printParams(num: Int, str: String = "hello") {
+    println("num is $num , str is $str")
+}
+```
+
+
+
+如果默认参数是第一个的情况，该如何避免第二个参数传递给第一个参数
+
+```kotlin
+fun printParams(num: Int = 100, str: String) {
+    println("num is $num , str is $str")
+}
+fun main() {
+    printParams(str = "world")//通过键值对的形式传递参数，这样避免传递给第一个参数，造成类型不匹配
+}
+```
+
+
 

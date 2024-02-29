@@ -267,6 +267,12 @@ set(EXECUTABLE_OUTPUT_PATH ..)
 
 > [vscode配置Java](https://blog.csdn.net/weixin_51456573/article/details/114727769)
 
+
+
+## 4.配置kotlin
+
+> https://blog.csdn.net/m0_50275697/article/details/128002833
+
 # 二、usage
 
 ## 1.自动格式化代码
