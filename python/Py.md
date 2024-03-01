@@ -743,6 +743,26 @@ fs = frozenset([1, 2, 3])
 
 
 
+##### 模块函数
+
+**counter**
+
+ `counter` 函数是在 `collections` 模块中定义的。它用于跟踪值出现的次数。 接收一个可迭代对象作为参数，返回一个字典，键为可迭代对象元素，值为出现次数
+
+```python
+from collections import Counter
+
+s = "hello world"
+c = Counter(s)
+print(c)
+
+#输出：Counter({'l': 3, 'o': 2, 'h': 1, 'e': 1, ' ': 1, 'w': 1, 'r': 1, 'd': 1})
+```
+
+
+
+
+
 #### (3)日期和时间
 
 Python 提供了一个 time 和 calendar 模块可以用于格式化日期和时间。
