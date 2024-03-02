@@ -1,3 +1,7 @@
+
+
+> [官方文档](https://kotlinlang.org/docs/getting-started.html)
+
 # 一、基础语法
 
 ## 1.赋值
@@ -166,6 +170,38 @@ for ((fruit, number) in map) {
 
 
 
+
+
+### 2.5 Unit / Nothing/Any
+
+> https://www.jianshu.com/p/223e95ac41ef
+
+#### **Unit**
+
+ 由于在Kotlin中，一切方法/函数都是表达式，表达式是总是有值的，所以每一个方法都必有一个返回值。如果没有用 `return` 明确的指定，那么一般来说就会用自动帮我们加上 `Unit`，等同于这样: 
+
+```kotlin
+fun returnUnit():Unit{
+    return Unit
+}
+```
+
+
+
+#### Nothing
+
+
+
+
+
+#### Any
+
+Any其实就跟Java里的Object是一样的，也就是说在Kotlin中Any取代了Java中的Object，成为了Kotlin中所有类的父类。**不过这个说法还不是很严谨**，因为`Any`是不可为空的，而Kotlin中还有一个 `Any?`，是指可空的 `Any` 。显而易见， `Any?` 是 `Any` 的父类，那么严格来说， `Any?` 是所有类的父类， `Any` 只是所有不可为空的类（也就是没有?）的父类。
+
+
+
+
+
 ## 3.函数
 
 `fun`是定义函数的关键字，无论什么函数都必须声明`fun`
@@ -219,8 +255,6 @@ repeat(5) { index ->
     println(index + 1)
 }
 ```
-
-
 
 
 
@@ -309,19 +343,19 @@ println("anyResult is " + anyResult + ", allResult is " + allResult)
 
 #### （4）调用java函数时api
 
-当kotlin调用一个方法，且该方法接收一个Java`单抽象方法接口（即只有一个方法的接口）`作为参数，就可以使用函数式API
+当kotlin调用一个方法，且该方法接收一个Java`单抽象方法接口（即只有一个方法的接口）`作为参数，就可以使用**函数式API**
 
 ```kotlin
 //例如创建runnable接口匿名类实例，kotlin如下
 Thread(object : Runnable {
- override fun run() {
- println("Thread is running")
- }
+    override fun run() {
+        println("Thread is running")
+    }
 }).start()
 
-//因为满足单抽象方法接口，可以使用函数时api
+//因为满足单抽象方法接口，可以使用函数式api
 Thread(Runnable {
- println("Thread is running")
+    println("Thread is running")
 }).start()
 ```
 
@@ -340,6 +374,10 @@ Thread(object : Runnable {
 ```
 
 
+
+
+
+### 3.6 inline
 
 
 
@@ -520,8 +558,6 @@ class Student : Person {//因为没有主构造函数，因此继承时候也不
 
 
 
-
-
 ### 6.3 接口
 
 **与java类似，类支持多继承接口**
@@ -533,7 +569,7 @@ interface Study {
 }
 ```
 
-和java一样，接口中的方法可以有默认实现
+和java(1.8开始)一样，接口中的方法可以有默认实现
 
 ```kotlin
 interface Study {
@@ -563,7 +599,7 @@ data class Cellphone(val brand: String, val price: Double)
 不像java中创建单例模式那么繁琐，kotlin提供了`object`关键字可以创建单例类
 
 ```kotlin
-//object关键字
+//object关键字替换掉class
 object Singleton {
     fun singletonTest() {
         println("singletonTest is called.")
@@ -731,9 +767,11 @@ private fun n(){
 
 > [协程](https://juejin.cn/post/6908271959381901325)
 
-协程是一种轻量级的线程。Java的线程需要依靠操作系统的调度才能实现不同线程之间的切换，而协程可以仅在编程语言的层面就能实现不同协程间的切换，从而大大提升并发编程效率。
+协程是一种轻量级的线程。协程是运行于线程上的，一个线程可以运行多个（几千上万个）协程。Java的线程需要依靠操作系统的调度才能实现不同线程之间的切换，而协程可以仅在编程语言的层面就能实现不同协程间的切换，从而大大提升并发编程效率。
 
 协程允许在**单线程模式**下模拟多线程编程的效果，**代码执行时的挂起与恢复完全是由编程语言来控制的**，和操作系统无关
+
+ 
 
 > 使用协程需要单独引入依赖
 >
@@ -747,6 +785,20 @@ private fun n(){
 
 ### 8.1创建协程
 
+#### CoroutineScope
+
+ CoroutineScope 即 **协程作用域**，用于对协程进行追踪。如果我们启动了多个协程但是没有一个可以对其进行统一管理的途径的话，就会导致我们的代码臃肿杂乱，甚至发生**内存泄露**或者**任务泄露**。 
+
+CoroutineScope 大体上可以分为三种：
+
+- GlobalScope。即全局协程作用域，在这个范围内启动的协程可以一直运行直到应用停止运行。GlobalScope 本身不会阻塞当前线程，且启动的协程相当于守护线程，不会阻止 JVM 结束运行
+- runBlocking。一个顶层函数，和 GlobalScope 不一样，它会阻塞当前线程直到其内部所有相同作用域的协程执行结束
+- 自定义 CoroutineScope。可用于实现主动控制协程的生命周期范围，对于 Android 开发来说最大意义之一就是可以在 Activity、Fragment、ViewModel 等具有生命周期的对象中按需取消所有协程任务，从而确保生命周期安全，避免内存泄露
+
+
+
+
+
 **（1）`GlobelScope.launch`开启一个顶级协程（协程也层级关系，协程还可以创建子协程）**，这种协程会随着应用结束而结束
 
 ```kotlin
@@ -757,7 +809,7 @@ GlobalScope.launch {
 
 
 
-**（2）`runBlocking`开启一个协程，会保证协程作用域内的所有子协程和代码执行完之前一直阻塞当前线程**
+**（2）`runBlocking`开启一个协程作用域，会保证协程作用域内的所有子协程和代码执行完之前一直阻塞当前线程**
 
 > 只建议测试时候使用，正式环境会引起某些问题
 
@@ -771,11 +823,11 @@ runBlocking {
 
 
 
-**(3)`coroutineScope`开启一个协程作用域，只会阻塞当前协程，既不影响其他协程，也不影响任何线程。因此不会造成性能问题，推荐使用！！**
+**（3）`coroutineScope`开启一个协程作用域，只会阻塞当前协程，既不影响其他协程，也不影响任何线程。因此不会造成性能问题，推荐使用！！**
 
-**(4)创建子协程**
+**（4）创建子协程**
 
-`launch`方法当前协程的作用域下创建子协程。子协程的特点是如果外层作用域的协程结束了，该作用域下的所有子协程也会一同结束。相比而言，GlobalScope.launch函数创建的永远是顶层协程
+`launch`方法当前协程的作用域下创建子协程。子协程的特点是如果外层作用域的协程结束了，该作用域下的所有子协程也会一同结束。相比而言，`GlobalScope.launch`函数创建的永远是顶层协程
 
 ```kotlin
 fun main() {
@@ -800,9 +852,9 @@ fun main() {
 
 **delay()**
 
-`delay()`函数是一个**非阻塞式**的挂起函数，它只会挂起当前协程，并不会影响其他协程的运行，**delay函数只能在协程作用域或其他挂起函数中调用**
+`delay()`函数是一个**非阻塞式**的挂起函数，它**只会挂起当前`协程`**，并不会影响其他协程的运行，**delay函数只能在协程作用域或其他挂起函数中调用**
 
-> 而Thread.sleep()方法会阻塞当前的线程，这样运行在该线程下的所有协程都会被阻塞
+> 而Thread.sleep()方法会**阻塞当前的`线程`**，这样运行在该线程下的所有协程都会被阻塞
 
 ```kotlin
 GlobalScope.launch {
@@ -815,9 +867,17 @@ Thread.sleep(1000)//阻塞线程1s，会阻塞该线程下所有协程
 
 
 
-### 3.suspend
 
-Kotlin提供了一个`suspend`关键字，使用它可以将**任意函数声明成挂起函数**，而**挂起函数之间都是可以互相调用的**，如下所示： 
+
+
+
+
+
+### 3.suspend 
+
+> [suspend原理](https://blog.csdn.net/future234/article/details/122248766)
+
+Kotlin提供了一个`suspend`关键字，使用它可以将**任意函数声明成挂起函数**，而**挂起函数之间都是可以互相调用的（ suspend 函数只能由其它 suspend 函数调用，或者是由协程来调用 ）**，如下所示： 
 
 ```kotlin
 suspend fun printDot() {//挂起函数
@@ -840,6 +900,18 @@ suspend fun printDot() = coroutineScope {
 ```
 
 
+
+
+
+### 4.取消协程
+
+`scope.cancel()`
+
+
+
+## 9.异常
+
+> https://kotlinlang.org/docs/exceptions.html#checked-exceptions
 
 
 
@@ -897,3 +969,253 @@ fun main() {
 
 
 
+
+
+
+
+### object关键字
+
+> [object关键字的使用场景](https://blog.csdn.net/xlh1191860939/article/details/79460601)
+
+object主要有以下三种使用场景：
+
+- **对象声明**（Object Declaration）
+- **伴生对象**（Companion Object）
+- **对象表达式**（Object Expression）
+
+#### (1)对象声明
+
+语法含义：将类的声明和定义该类的单例对象结合在一起（即通过object就实现了单例模式） 
+
+即将class关键字替换为object关键字，来声明一个类，与此同时也声明它的一个对象。只要编写这么多代码，这个类就已经是单例的了。 
+
+```kotlin
+object RepositoryManager{
+    fun method(){
+        println("I'm in object declaration")
+    }
+}
+```
+
+
+
+> **注意点：**
+>
+> - 尽管和普通类的声明一样，可以包含属性、方法、初始化代码块以及可以继承其他类或者实现某个接口，但是它**不能包含构造器（包括主构造器以及次级构造器）**
+> - 它也可以定义在一个类的内部：
+>
+> ```kotlin
+> class ObjectOuter {
+>     object Inner{
+>         fun method(){
+>             println("I'm in inner class")
+>         }
+>     }
+> }
+> fun main(args: Array<String>) {
+>     ObjectOuter.Inner.method()
+> }
+> ```
+
+
+
+#### (2)伴生对象（Companion object）
+
+在Kotlin中是**没有static关键字**的，也就是意味着没有了静态方法和静态成员。那么在kotlin中如果要想表示这种概念，取而代之的是`包级别函数（package-level function）`和这里提到的`伴生对象`。
+
+```kotlin
+class A{
+    companion object 伴生对象名(可以省略){
+        //define method and field here
+    }
+}
+```
+
+> **示例**
+>
+> ```kotlin
+> class ObjectTest {
+>     companion object MyObjec{
+>         val a = 20
+>         fun method() {
+>             println("I'm in companion object")
+>         }
+>     }
+> }
+> ```
+>
+> **调用**
+>
+> ```kotlin
+> fun main(args: Array<String>) {
+>     //方式一
+>     ObjectTest.MyObject.method()
+>     println(ObjectTest.MyObject.a)
+> 
+>     //方式二（推荐方式）
+>     ObjectTest.method()
+>     println(ObjectTest.a)
+> }
+> ```
+>
+> > 在定义（定义时如果省略了伴生对象名，那么编译器会为其提供默认的名字Companion）和调用时伴生对象名是可以省略的。 
+> >
+> > **所以一个类只允许有一个伴生对象，因为可以省略伴生对象名**
+
+#### (3) **对象表达式（Object Expression）** 
+
+在Java中，有匿名内部类
+
+```java
+interface Contents {
+    void absMethod();
+}
+public class Hello {
+
+    public Contents contents() {
+        return new Contents() {
+
+            @Override
+            public void absMethod() {
+                System.out.println("method invoked...");
+            }
+        };
+    }
+
+    public static void main(String[] args) {
+
+        Hello hello = new Hello();
+        hello.contents().absMethod();    //打印method invoked...
+    }
+}
+```
+
+但是如果在匿名内部类中新添加了一些属性和方法，那么在外界是无法调用的，并且一个匿名内部类最多只可以实现一个接口或类
+
+```java
+return new Contents() {
+    private int i = 1;
+
+    public int value() {
+        return i;
+    }
+
+    @Override
+    public void absMethod() {
+        System.out.println("method invoked...");
+    }
+};
+
+public static void main(String[] args) {
+
+    Hello hello = new Hello();
+
+    hello.contents().value();  //Cannot resolve method 'value()'
+}
+```
+
+
+
+**而在Kotlin中，则可以访问匿名内部类的属性**
+
+ a.实现一个接口或类 
+
+```kotlin
+interface AA {
+    fun a()
+}
+
+fun main(args: Array<String>) {
+
+    val aa = object : AA {
+        override fun a() {
+            println("a invoked")
+        }
+    }
+
+    aa.a()
+}
+```
+
+b.不实现任何类，并且在匿名内部类中添加方法
+
+```kotlin
+fun main(args: Array<String>) {
+
+    val obj = object  {
+        fun a() {
+            println("a invoked")
+        }
+    }
+    obj.a()  //打印：a invoked
+}
+```
+
+c.实现多个接口和类
+
+```kotlin
+fun main(args: Array<String>) {
+    val cc = object : AA, BB() {
+        override fun a() {
+        }
+        override fun b() {
+        }
+    }
+    cc.a()
+    cc.b()
+}
+```
+
+
+
+**注意：匿名对象只有定义成`局部变量`或`private变量`时候才有意义，否则编译不通过**
+
+```kotlin
+class MyTest {
+
+    private val foo = object {//private变量
+        fun method() {
+            println("private")
+        }
+    }
+
+    val foo2 = object {//全局变量
+        fun method() {
+            println("public")
+        }
+    }
+
+    fun m() = object {//public函数
+        fun method(){
+            println("method")
+        }
+    }
+
+    fun invoke(){
+
+        val local = object {//局部变量
+            fun method(){
+                println("local")
+            }
+        }
+
+        local.method()  //编译通过
+        foo.method()    //编译通过
+        foo2.method()   //编译通不过
+        m().method()    //编译通不过
+    }
+}
+
+```
+
+
+
+
+
+#### 三者初始化时机
+
+a. `object declaration`：当第一次访问它时才初始化，是一种懒初始化
+
+b. `Companion object`：当它对应的类被加载后，它才初始化，类似Java中的静态代码块
+
+c. `object expression`：一旦它被执行，立马初始化
