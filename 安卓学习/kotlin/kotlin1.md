@@ -168,10 +168,6 @@ for ((fruit, number) in map) {
 
 
 
-
-
-
-
 ### 2.5 Unit / Nothing/Any
 
 > https://www.jianshu.com/p/223e95ac41ef
@@ -634,7 +630,7 @@ private fun n( a:Int){
 
 
 
-为了应对开发中的特殊情况，可以在变量名后面加上问号，表示改变量可空
+为了应对开发中的特殊情况，可以在变量名后面加上问号，表示该变量可空
 
 ```kotlin
 private fun n( a:Int?){
@@ -783,9 +779,9 @@ private fun n(){
 > ```
 >
 
-### 8.1创建协程
+### 1创建协程
 
-#### CoroutineScope
+#### **CoroutineScope**
 
  CoroutineScope 即 **协程作用域**，用于对协程进行追踪。如果我们启动了多个协程但是没有一个可以对其进行统一管理的途径的话，就会导致我们的代码臃肿杂乱，甚至发生**内存泄露**或者**任务泄露**。 
 
@@ -797,9 +793,7 @@ CoroutineScope 大体上可以分为三种：
 
 
 
-
-
-**（1）`GlobelScope.launch`**
+##### **(1)`GlobelScope.launch`**
 
 **开启一个`顶级协程`（协程也有层级关系，协程还可以创建子协程）**，这种协程的生命周期只受整个应用程序的生命周期的限制，因此会随着应用结束而结束
 
@@ -839,7 +833,7 @@ GlobalScope.launch {
 
 
 
-**（2）`runBlocking`**
+##### **(2)`runBlocking`**
 
 开启一个协程作用域，**会保证协程作用域内的所有子协程和代码执行完之前一直阻塞当前线程**
 
@@ -887,7 +881,7 @@ fun main() {
 > - `runBlocking`内部启动的协程是非阻塞式，但`runBlocking`阻塞其所在线程。
 > - 并且`runBlocking`只会等待相同作用域的协程完成才会退出，而不会等待`GlobalScope`等其他作用域启动的协程
 
-**（3）`coroutineScope`**
+##### **(3)`coroutineScope`**
 
 **开启一个协程作用域，只会阻塞当前协程，既不影响其他协程，也不影响任何线程。因此不会造成性能问题，推荐使用！！**
 
@@ -932,7 +926,7 @@ fun main() = runBlocking {
 >
 > [coroutineScope和runBlocking](https://www.jianshu.com/p/51a4ecc1902a)
 
-**（4）`supervisorScope`**
+##### **(4)`supervisorScope`**
 
 `supervisorScope` 函数用于创建一个使用了 `SupervisorJob` 的 `coroutineScope`，该作用域的特点就是抛出的异常不会连锁取消同级协程和父协程 
 
@@ -965,15 +959,178 @@ fun main() = runBlocking {
 
 
 
-**（5）自定义croutineScope**
+##### **(5)自定义croutineScope**
+
+为了避免在Activity中开启多个协程导致的内存泄漏，创建与Activity生命周期相关的协程作用域来管理协程的生命周期
+
+CoroutineScope 的实例可以通过 `CoroutineScope()` 或 `MainScope()` 的工厂函数来构建。前者创建通用作用域，后者创建 UI 应用程序的作用域并使用 `Dispatchers.Main` 作为默认的调度器 
+
+```kotlin
+class Activity {
+    private val mainScope = MainScope()//创建MainScope对象
+
+    fun onCreate() {
+        mainScope.launch {
+            repeat(5) {
+                delay(1000L * it)
+            }
+        }
+    }
+
+    fun onDestroy() {
+        mainScope.cancel()
+    }
+}
+```
+
+或者，可以通过委托模式来让 Activity 实现 `CoroutineScope `接口，从而可以在 Activity 内直接启动协程而不必显示地指定它们的上下文，并且在 `onDestroy()`中自动取消所有协程 ，如下代码所示，当调用`onDestroy`函数之后，协程被取消
+
+```kotlin
+//实现接口，并且使用Dispatchers.Default调度器
+class Activity : CoroutineScope by CoroutineScope(Dispatchers.Default) {
+
+    fun onCreate() {
+        launch {
+            repeat(5) {
+                delay(200L * it)
+                log(it)
+            }
+        }
+        log("Activity Created")
+    }
+
+    fun onDestroy() {
+        cancel()
+        log("Activity Destroyed")
+    }
+
+}
+
+fun main() = runBlocking {
+    val activity = Activity()
+    activity.onCreate()
+    delay(1000)
+    activity.onDestroy()
+    delay(1000)
+}
+
+
+//输出结果
+Activity Created
+0
+1
+2
+Activity Destroyed
+```
+
+>  **已取消的作用域无法再创建协程**。因此，仅当控制其生命周期的类被销毁时，才应调用 `scope.cancel()`。 
+
+
+
+#### coroutineBuilder
+
+##### (1)launch
+
+ 用于在不阻塞当前线程的情况下启动一个协程，并返回对该协程任务的引用，即 Job 对象 
+
+```kotlin
+public fun CoroutineScope.launch(
+    context: CoroutineContext = EmptyCoroutineContext,//指定协程上下文
+    start: CoroutineStart = CoroutineStart.DEFAULT,//用于指定协程的启动方式，默认值为 CoroutineStart.DEFAULT，即协程会在声明的同时就立即进入等待调度的状态，即可以立即执行的状态。可以通过将其设置为CoroutineStart.LAZY来实现延迟启动，即懒加载
+    block: suspend CoroutineScope.() -> Unit//用于传递协程的执行体，即希望交由协程执行的任务
+): Job
+```
 
 
 
 
 
+##### (2)job
+
+ Job 是协程的句柄。使用 `launch` 或 `async` 创建的每个协程都会返回一个 Job 实例，该实例唯一标识协程并管理其生命周期。**Job 是一个接口类型**，列举 Job 几个比较有用的属性和函数 
+
+```kotlin
+//当 Job 处于活动状态时为 true
+//如果 Job 未被取消或没有失败，则均处于 active 状态
+public val isActive: Boolean
+
+//当 Job 正常结束或者由于异常结束，均返回 true
+public val isCompleted: Boolean
+
+//当 Job 被主动取消或者由于异常结束，均返回 true
+public val isCancelled: Boolean
+
+//启动 Job
+//如果此调用的确启动了 Job，则返回 true
+//如果 Job 调用前就已处于 started 或者是 completed 状态，则返回 false 
+public fun start(): Boolean
+
+//用于取消 Job，可同时通过传入 Exception 来标明取消原因
+public fun cancel(cause: CancellationException? = null)
+
+//阻塞等待直到此 Job 结束运行
+public suspend fun join()
+
+//当 Job 结束运行时（不管由于什么原因）回调此方法，可用于接收可能存在的运行异常
+public fun invokeOnCompletion(handler: CompletionHandler): DisposableHandle
+```
+
+**示例**
+
+```kotlin
+fun main() {
+    //将协程设置为延迟启动
+    val job = GlobalScope.launch(start = CoroutineStart.LAZY) {
+        for (i in 0..100) {
+            //每循环一次均延迟一百毫秒
+            delay(100)
+        }
+    }
+    job.invokeOnCompletion {
+        log("invokeOnCompletion：$it")
+    }
+    log("1. job.isActive：${job.isActive}")
+    log("1. job.isCancelled：${job.isCancelled}")
+    log("1. job.isCompleted：${job.isCompleted}")
+
+    job.start()
+
+    log("2. job.isActive：${job.isActive}")
+    log("2. job.isCancelled：${job.isCancelled}")
+    log("2. job.isCompleted：${job.isCompleted}")
+
+    //休眠四百毫秒后再主动取消协程
+    Thread.sleep(400)
+    job.cancel(CancellationException("test"))
+
+    //休眠四百毫秒防止JVM过快停止导致 invokeOnCompletion 来不及回调
+    Thread.sleep(400)
+
+    log("3. job.isActive：${job.isActive}")
+    log("3. job.isCancelled：${job.isCancelled}")
+    log("3. job.isCompleted：${job.isCompleted}")
+}
+```
 
 
-### 8.2阻塞协程
+
+##### (3)async
+
+看下 `async` 函数的方法签名。`async` 也是一个作用于 CoroutineScope 的扩展函数，和 `launch` 的区别主要就在于：**`async` 可以返回协程的执行结果，而 `launch` 不行** 
+
+```kotlin
+public fun <T> CoroutineScope.async(
+    context: CoroutineContext = EmptyCoroutineContext,
+    start: CoroutineStart = CoroutineStart.DEFAULT,
+    block: suspend CoroutineScope.() -> T
+): Deferred<T>
+```
+
+ 通过`await()`方法可以拿到 async 协程的执行结果 
+
+
+
+### 2阻塞协程
 
 **delay()**
 
@@ -1030,7 +1187,280 @@ suspend fun printDot() = coroutineScope {
 
 ### 4.取消协程
 
-`scope.cancel()`
+> https://juejin.cn/post/7158008928930906148
+
+`cancel`函数调用后会马上返回而不是等待协程结束，所以需要借助`join`函数等待协程结束
+
+-  `job.cancel()`就用于取消协程
+
+- `job.join()`用于阻塞等待协程运行结束。 
+
+- ` cancelAndJoin() `结合了两者情况
+
+```kotlin
+fun main() = runBlocking {
+    val job = launch {
+        repeat(1000) { i ->
+            log("job: I'm sleeping $i ...")
+            delay(500L)
+        }
+    }
+    delay(1300L)
+    log("main: I'm tired of waiting!")
+    job.cancel()
+    job.join()
+    log("main: Now I can quit.")
+}
+//结果：
+[main] job: I'm sleeping 0 ...
+[main] job: I'm sleeping 1 ...
+[main] job: I'm sleeping 2 ...
+[main] main: I'm tired of waiting!
+[main] main: Now I can quit.
+```
+
+#### 协程无法取消
+
+**协程库中的所有挂起函数都是可取消的**，**它们在运行前检查协程是否被取消了**，并在取消时抛出 CancellationException 从而结束整个任务。
+
+ 如果协程在运行过程中**没有挂起点，则不能取消协程** 。
+
+> 下列代码没有手动判断协程被取消，所以即使主动取消了，协程也只会在完成既定循环后才结束运行，因为协程没有在每次循环前先进行检查，导致任务不受取消操作的影响 
+>
+> ```kotlin
+> fun main() = runBlocking {
+>     val startTime = System.currentTimeMillis()
+>     val job = launch(Dispatchers.Default) {
+>         var nextPrintTime = startTime
+>         var i = 0
+>         while (i < 5) {
+>             if (System.currentTimeMillis() >= nextPrintTime) {
+>                 log("job: I'm sleeping ${i++} ...")
+>                 nextPrintTime += 500L
+>             }
+>         }
+>     }
+>     delay(1300L)
+>     log("main: I'm tired of waiting!")
+>     job.cancelAndJoin()
+>     log("main: Now I can quit.")
+> }
+> 
+> //输出
+> [DefaultDispatcher-worker-1] job: I'm sleeping 0 ...
+> [DefaultDispatcher-worker-1] job: I'm sleeping 1 ...
+> [DefaultDispatcher-worker-1] job: I'm sleeping 2 ...
+> [main] main: I'm tired of waiting!
+> [DefaultDispatcher-worker-1] job: I'm sleeping 3 ...
+> [DefaultDispatcher-worker-1] job: I'm sleeping 4 ...
+> [main] main: Now I can quit.
+> ```
+>
+> 通过`isActive`判断协程是否活跃
+>
+> ```kotlin
+> fun main() = runBlocking {
+>     val startTime = System.currentTimeMillis()
+>     val job = launch(Dispatchers.Default) {//这里如果去掉Dispatchers.Default，就取消不了
+>         var nextPrintTime = startTime
+>         var i = 0
+>         while (i < 5) {
+>             if (isActive) {
+>                 if (System.currentTimeMillis() >= nextPrintTime) {
+>                     log("job: I'm sleeping ${i++} ...")
+>                     nextPrintTime += 500L
+>                 }
+>             } else {
+>                 return@launch
+>             }
+>         }
+>     }
+>     delay(1300L)
+>     log("main: I'm tired of waiting!")
+>     job.cancelAndJoin()
+>     log("main: Now I can quit.")
+> }
+> ```
+
+
+
+#### NonCancellable
+
+在极少数情况下我们需要在取消的协程中再调用挂起函数，此时可以使用 `withContext` 函数和 `NonCancellable`上下文将相应的代码包装在 `withContext(NonCancellable) {...}` 代码块中，NonCancellable 就用于创建一个无法取消的协程作用域
+
+```kotlin
+val job = launch {
+    try {
+        repeat(1000) { i ->
+            println("job: I'm sleeping $i ...")
+            delay(500L)
+        }
+    } finally {
+        withContext(NonCancellable) {
+            println("job: I'm running finally")
+            delay(1000L)
+            println("job: And I've just delayed for 1 sec because I'm non-cancellable")
+        }
+    }
+}
+delay(1300L) // delay a bit
+println("main: I'm tired of waiting!")
+job.cancelAndJoin() // cancels the job and waits for its completion
+println("main: Now I can quit.")
+```
+
+
+
+### withTimeout
+
+`withTimeout` 函数用于指定协程的运行超时时间，如果超时则会抛出 TimeoutCancellationException，从而令协程结束运行 
+
+```kotlin
+fun main() = runBlocking {
+    log("start")
+    val result = withTimeout(300) {
+        repeat(5) {
+            delay(100)
+        }
+        200
+    }
+    log(result)
+    log("end")
+}
+
+//结果
+[main] start
+Exception in thread "main" kotlinx.coroutines.TimeoutCancellationException: Timed out waiting for 300 ms
+	at kotlinx.coroutines.TimeoutKt.TimeoutCancellationException(Timeout.kt:186)
+	at kotlinx.coroutines.TimeoutCoroutine.run(Timeout.kt:156)
+	at kotlinx.coroutines.EventLoopImplBase$DelayedRunnableTask.run(EventLoop.common.kt:497)
+	at kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:274)
+	at kotlinx.coroutines.DefaultExecutor.run(DefaultExecutor.kt:69)
+	at java.lang.Thread.run(Thread.java:748)
+
+```
+
+> - `CancellationException`报错不会造成app crush
+>
+> - `withTimeout`方法抛出的 TimeoutCancellationException 是 CancellationException 的子类，该异常会造成程序崩溃
+>
+>  如果不希望因为异常导致协程结束，可以改用`withTimeoutOrNull`方法，如果超时就会返回 null 
+
+### 5.CoroutineContext
+
+ CoroutineContext 是 Kotlin 协程中一个重要的概念，它代表了一组协程执行相关的属性。CoroutineContext 包含以下几个重要的元素： 
+
+- **Job:** 代表协程的生命周期，可以用来控制协程的启动、取消和销毁。
+- **Dispatcher:** 指定协程运行的线程或线程池。
+- **CoroutineName:** 为协程命名，方便调试和跟踪。
+- **CoroutineExceptionHandler:** 处理协程执行过程中发生的异常。
+
+
+
+#### 协程调度器
+
+> https://juejin.cn/post/7244409860833394725
+
+`CoroutineDispatcher`（协程调度器）用于指定执行协程的目标载体，即**运行于哪个线程**。CoroutineDispatcher 可以将协程的执行操作限制在特定线程上，也可以将其分派到线程池中，或者让它无限制地运行。 
+
+ **Kotlin 协程库提供了四个 Dispatcher 用于指定在哪一类线程中执行协程**： 
+
+- `Dispatchers.Default`。默认调度器，适合用于执行占用大量 CPU 资源的任务。例如：对列表排序和解析 JSON
+
+- `Dispatchers.IO`。适合用于执行磁盘或网络 I/O 的任务。例如：使用 Room 组件、读写磁盘文件，执行网络请求
+
+- `Dispatchers.Unconfined`。对执行协程的线程不做限制，可以直接在当前调度器所在线程上执行
+
+- `Dispatchers.Main`。使用此调度程序可用于在 Android 主线程上运行协程，只能用于与界面交互和执行快速工作，例如：更新 UI、调用 `LiveData.setValue`
+
+> **注意：**
+>
+> ①`launch` 在不执行 Dispatchers 的情况下使用时，它从外部的协程作用域继承上下文和调度器，即和 runBlocking 保持一致，均在 main 线程执行
+>
+> ②IO 和 Default 均依靠后台线程池来执行，`GlobalScope` 启动协程时默认使用的调度器是 `Dispatchers.Default`，因此也是在后台线程池中执行
+>
+> ③`Unconfined `则不限定具体的线程类型，当前调度器在哪个线程，就在该线程上进行执行
+>
+> ④`newSingleThreadContext` 用于为协程专门创建一个新的线程，专用线程是一种成本非常昂贵的资源，在实际开发时必须当不再需要时释放掉线程资源，或者存储在顶级变量中以便在整个应用程序中进行复用
+
+
+
+#### withContext
+
+ **withContext** 是 Kotlin 协程库中的一个 **挂起函数**，用于 **切换协程的上下文**。 可以通过该函数代替复杂的回调
+
+```kotlin
+suspend fun fetchDocs() {                      // Dispatchers.Main
+    val result = get("developer.android.com")  // Dispatchers.Main
+    show(result)                               // Dispatchers.Main
+}
+
+suspend fun get(url: String) =                 // Dispatchers.Main
+    withContext(Dispatchers.IO) {              // Dispatchers.IO (main-safety block)
+        /* perform network IO here */          // Dispatchers.IO (main-safety block)
+    }                                          // Dispatchers.Main
+}
+```
+
+
+
+#### CoroutineName
+
+ CoroutineName 用于为协程指定一个名字，方便调试和定位问题 
+
+```kotlin
+fun main() = runBlocking<Unit>(CoroutineName("RunBlocking")) {
+    log("start")
+    launch(CoroutineName("MainCoroutine")) {
+        launch(CoroutineName("Coroutine#A")) {
+            delay(400)
+            log("launch A")
+        }
+        launch(CoroutineName("Coroutine#B")) {
+            delay(300)
+            log("launch B")
+        }
+    }
+}
+```
+
+
+
+#### 组合上下文元素
+
+当需要为协程上下文定义多个元素时候，可以通过`+`
+
+```kotlin
+fun main() = runBlocking<Unit> {
+    launch(Dispatchers.Default + CoroutineName("test")) {//指定调度器和协程名称
+        log("Hello World")
+    }
+}
+```
+
+
+
+### 6.返回值
+
+ `return@launch` 语句用于 **从当前协程中返回**，并 **将返回值传递给启动它的 `launch` 函数**。 
+
+```kotlin
+suspend fun main() {
+    val job = launch {
+        val result = getData()
+        return@launch result
+    }
+
+    val result = job.await()
+    println(result)
+}
+
+suspend fun getData(): String {
+    // ...
+}
+```
+
+
 
 
 
@@ -1335,8 +1765,6 @@ class MyTest {
 
 
 
-
-
 #### 三者初始化时机
 
 a. `object declaration`：当第一次访问它时才初始化，是一种懒初始化
@@ -1344,3 +1772,11 @@ a. `object declaration`：当第一次访问它时才初始化，是一种懒初
 b. `Companion object`：当它对应的类被加载后，它才初始化，类似Java中的静态代码块
 
 c. `object expression`：一旦它被执行，立马初始化
+
+
+
+
+
+# 
+
+## 
