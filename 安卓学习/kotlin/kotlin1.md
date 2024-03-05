@@ -799,7 +799,9 @@ CoroutineScope 大体上可以分为三种：
 
 
 
-**（1）`GlobelScope.launch`开启一个顶级协程（协程也层级关系，协程还可以创建子协程）**，这种协程会随着应用结束而结束
+**（1）`GlobelScope.launch`**
+
+**开启一个`顶级协程`（协程也有层级关系，协程还可以创建子协程）**，这种协程的生命周期只受整个应用程序的生命周期的限制，因此会随着应用结束而结束
 
 ```kotlin
 GlobalScope.launch {
@@ -807,44 +809,167 @@ GlobalScope.launch {
 }
 ```
 
+> ```kotlin
+> fun main() {
+>     log("start")
+>     GlobalScope.launch {
+>         launch {
+>             delay(400)
+>             log("launch A")
+>         }
+>         launch {
+>             delay(300)
+>             log("launch B")
+>         }
+>         log("GlobalScope")
+>     }
+>     log("end")
+>     Thread.sleep(500)
+> }
+> 
+> //结果
+> start
+> end
+> GlobalScope
+> launch B
+> launch A
+> ```
+>
+> 如果主线程不休眠，那么协程里面内容来不及执行程序就结束了，也就不会输出结果
 
 
-**（2）`runBlocking`开启一个协程作用域，会保证协程作用域内的所有子协程和代码执行完之前一直阻塞当前线程**
+
+**（2）`runBlocking`**
+
+开启一个协程作用域，**会保证协程作用域内的所有子协程和代码执行完之前一直阻塞当前线程**
 
 > 只建议测试时候使用，正式环境会引起某些问题
 
 ```kotlin
-runBlocking {
-    println("codes run in coroutine scope")
-    delay(1500)
-    println("codes run in coroutine scope finished")
-}
-```
-
-
-
-**（3）`coroutineScope`开启一个协程作用域，只会阻塞当前协程，既不影响其他协程，也不影响任何线程。因此不会造成性能问题，推荐使用！！**
-
-**（4）创建子协程**
-
-`launch`方法当前协程的作用域下创建子协程。子协程的特点是如果外层作用域的协程结束了，该作用域下的所有子协程也会一同结束。相比而言，`GlobalScope.launch`函数创建的永远是顶层协程
-
-```kotlin
 fun main() {
+    log("start")
     runBlocking {
-        launch {//创建子协程
-            println("launch1")
-            delay(1000)
-            println("launch1 finished")
+        launch {
+            repeat(3) {
+                delay(100)
+                log("launchA - $it")
+            }
         }
         launch {
-            println("launch2")
-            delay(1000)
-            println("launch2 finished")
+            repeat(3) {
+                delay(100)
+                log("launchB - $it")
+            }
+        }
+        GlobalScope.launch {//不会等待该作用域下协程运行完成
+            repeat(3) {
+                delay(120)
+                log("GlobalScope - $it")
+            }
         }
     }
+    log("end")
 }
+
+//输出结果
+[main] start
+[main] launchA - 0
+[main] launchB - 0
+[DefaultDispatcher-worker-1] GlobalScope - 0
+[main] launchA - 1
+[main] launchB - 1
+[DefaultDispatcher-worker-1] GlobalScope - 1
+[main] launchA - 2
+[main] launchB - 2
+[main] end
 ```
+
+> - `runBlocking`内部启动的协程是非阻塞式，但`runBlocking`阻塞其所在线程。
+> - 并且`runBlocking`只会等待相同作用域的协程完成才会退出，而不会等待`GlobalScope`等其他作用域启动的协程
+
+**（3）`coroutineScope`**
+
+**开启一个协程作用域，只会阻塞当前协程，既不影响其他协程，也不影响任何线程。因此不会造成性能问题，推荐使用！！**
+
+> `runBlocking` 和 `coroutineScope` 看起来很像，因为它们都需要等待其内部所有相同作用域的协程结束后才会结束自己。两者的主要区别在于：
+>
+> `runBlocking` 方法会阻塞当前线程，而 `coroutineScope`不会，而是会挂起并释放底层线程以供其它协程使用。基于这个差别，`runBlocking` 是一个普通函数，而 `coroutineScope` 是一个挂起函数，**所以可以用来给挂起函数提供一个协程作用域**
+>
+> ```kotlin
+> suspend fun printDot() = coroutineScope {
+>     launch {
+>         println(".")
+>         delay(1000)
+>     }
+> }
+> ```
+
+```kotlin
+fun main() = runBlocking {
+    launch {
+        delay(100)
+        log("Task from runBlocking")
+    }
+    coroutineScope {
+        launch {
+            delay(500)
+            log("Task from nested launch")
+        }
+        delay(50)
+        log("Task from coroutine scope")
+    }
+    log("Coroutine scope is over")
+}
+
+//结果
+[main] Task from coroutine scope
+[main] Task from runBlocking
+[main] Task from nested launch
+[main] Coroutine scope is over
+```
+
+> [coroutineScope和runBlocking区别与联系](https://blog.csdn.net/sziitjin/article/details/129729249)
+>
+> [coroutineScope和runBlocking](https://www.jianshu.com/p/51a4ecc1902a)
+
+**（4）`supervisorScope`**
+
+`supervisorScope` 函数用于创建一个使用了 `SupervisorJob` 的 `coroutineScope`，该作用域的特点就是抛出的异常不会连锁取消同级协程和父协程 
+
+```kotlin
+fun main() = runBlocking {
+    launch {
+        delay(100)
+        log("Task from runBlocking")
+    }
+    supervisorScope {
+        launch {
+            delay(500)
+            log("Task throw Exception")
+            throw Exception("failed")
+        }
+        launch {
+            delay(600)
+            log("Task from nested launch")
+        }
+    }
+    log("Coroutine scope is over")
+}
+
+//结果
+[main] Task from runBlocking
+[main] Task throw Exception
+[main] Task from nested launch
+[main] Coroutine scope is over
+```
+
+
+
+**（5）自定义croutineScope**
+
+
+
+
 
 
 
