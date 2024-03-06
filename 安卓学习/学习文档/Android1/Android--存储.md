@@ -407,78 +407,75 @@ private static final int DATABASE_VERSION = 1;//  将版本号 由 1 改为2
 
 ## 应用专属存储空间
 
-### 1.两个存储位置
+> https://blog.51cto.com/u_16213394/7063732
 
-- 内部存储空间目录：
+### 文件权限
 
-  > 这些目录既包括用于存储持久性文件的专属位置，也包括用于存储缓存数据的其他位置。因为系统会对这些位置进行加密，所以这些位置非常适合存储只有应用本身才能访问的敏感数据。
+在清单文件声明读文件权限
 
-- 外部存储空间目录：
+```xml
+<!--读文件权限-->
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+```
 
-  > 这些目录既包括用于存储持久性文件的专属位置，也包括用于存储缓存数据的其他位置。虽然其他应用可以在具有适当权限的情况下访问这些目录，但存储在这些目录中的文件仅供应用使用。
+运行时动态申请权限
 
-> 如果用户卸载应用，系统会移除保存在应用专属存储空间中的文件。
+> ```java
+> // 检查是否已经拥有读取文件的权限
+> if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+>     != PackageManager.PERMISSION_GRANTED) {
+>     // 如果没有权限，则向用户申请权限
+>     ActivityCompat.requestPermissions(this,
+>             new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+>             REQUEST_CODE_READ_FILE);
+> } else {
+>     // 如果已经有权限，则进行文件读取操作
+>     readFile();
+> }
+> ```
+>
+> 下面是像用户申请权限的返回结果
+>
+> ```JAVA
+> @Override
+> public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+>     if (requestCode == REQUEST_CODE_READ_FILE) {
+>         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+>             // 用户授权成功，进行文件读取操作
+>             readFile();
+>         } else {
+>             // 用户拒绝授权，可以给出相应的提示或处理
+>             Toast.makeText(this, "读取文件权限被拒绝", Toast.LENGTH_SHORT).show();
+>         }
+>     }
+> }
+> ```
 
 
 
-### 2.从内部存储访问
+### 2.访问内部存储
 
-> 这些目录的空间通常比较小。在将应用专属文件写入内部存储空间之前，应[查询设备上的可用空间]。
+> 这些目录的空间通常比较小。在将应用专属文件写入内部存储空间之前，应查询设备上的可用空间。
+>
+> **内部存储是被保护起来的，每个应用有自己的内部存储，其他应用正常情况下无法访问**
+>
+> 当应用被删除之后，就会删除该应用的内部存储目录
 
 #### (1)访问持久性文件
 
-可以使用上下文对象的 [`filesDir`]属性访问拥有应用的普通持久性文件目录。
+位置：`/data/user/0/{应用包名}/files`
 
-##### **①访问和存储文件**
+```java
+context.getFilesDir() 
+```
 
-利用File访问存储文件
+**访问和存储文件**
 
 ```java
 File file = new File(context.getFilesDir(), filename);
 ```
 
-
-
-##### **②流方式读和写文件**
-
-```java
-//读文件
-FileInputStream fis = context.openFileInput(filename);
-InputStreamReader inputStreamReader = new InputStreamReader(fis, StandardCharsets.UTF_8);
-StringBuilder stringBuilder = new StringBuilder();
-try (BufferedReader reader = new BufferedReader(inputStreamReader)) {
-    String line = reader.readLine();
-    while (line != null) {
-        stringBuilder.append(line).append('\n');
-        line = reader.readLine();
-    }
-} catch (IOException e) {
-    // Error occurred when opening raw file for reading.
-} finally {
-    String contents = stringBuilder.toString();
-}
-```
-
-> 如果在安装时需要以信息流的形式访问文件，请将文件保存在项目的 `/res/raw` 目录中。您可以使用 [`openRawResource()`]打开这些文件，传入带有 `R.raw` 前缀的文件名作为资源 ID。此方法将返回一个 [`InputStream`]，您可以使用它读取文件。您无法写入原始文件。
->
-> > 存储在 res/raw 位置的文件不会被平台编译，而是作为可用的原始资源。
-> > 读取原始资源非常简单。
-> > 首先调用 Context.getResource 获得当前应用程序上下文的 Resources引用 .
-> > 然后调用 openRawResource(int id) 得到 InputStream .
-> > 最后，操作 InputStream 得到数据。
-
-```java
-//写文件
-String filename = "myfile";
-String fileContents = "Hello world!";
-try (FileOutputStream fos = context.openFileOutput(filename, Context.MODE_PRIVATE)) {
-    fos.write(fileContents.toByteArray());
-}
-```
-
-
-
-##### **③查看文件列表**
+**查看文件列表**
 
 ```java
 //调用 fileList() 获取包含 filesDir 目录中所有文件名称的数组
@@ -487,7 +484,13 @@ Array<String> files = context.fileList();
 
 
 
-#### (2)缓存文件
+#### (2)访问缓存文件
+
+位置：`/data/user/0/{应用包名}/cache`
+
+```java
+context.getCacheDir()
+```
 
 **创建缓存文件**
 
@@ -497,7 +500,7 @@ Array<String> files = context.fileList();
 File.createTempFile(filename, null, context.getCacheDir());
 ```
 
-> 需确定应用当前可用的缓存空间大小，请调用 [`getCacheQuotaBytes()`]。
+> 在创建缓存文件之前，需调用：`getCacheQuotaBytes()`以确定应用当前可用的缓存空间大小。
 >
 > **注意**：当设备的内部存储空间不足时，Android 可能会删除这些缓存文件以回收空间。因此，请在读取前检查缓存文件是否存在。
 
@@ -523,13 +526,74 @@ File cacheFile = new File(context.getCacheDir(), filename);
 
 
 
-### 3.从外部存储访问
+### 3.访问外部存储
 
-#### (1)验证存储空间可用性
+> 外部存储：指的是设备外部扩展存储空间，例如TF卡、SD卡等。外部存储空间一般较大，但是访问速度较慢。外部存储空间可以用来存储用户的音乐、视频、图片等文件，也可以用来存储应用程序的数据。外部存储空间是公共的，所有应用程序都可以访问。但是，从安卓4.4版本开始，为了保护用户的隐私，对外部存储空间的访问做了一些限制，应用程序需要获取用户的授权才能访问外部存储空间。 
+>
+> 外部存储也分为`私有外部存储`和`共有外部存储`
+
+#### 私有外部存储
+
+位置：`/storage/emulated/0/Android/data/{应用包名}/files/Download`
+
+```java
+getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString();//需要有一个参数，指定访问该目录下的目录类型
+```
+
+##### (1)选择物理存储位置
+
+有时，分配内部存储分区作为外部存储空间的设备也会提供 SD 卡插槽。这意味着设备具有多个可能包含外部存储空间的物理卷，因此需要选择用于应用专属存储空间的物理卷。
+
+```java
+//返回数组中的第一个元素被视为主外部存储卷。除非该卷已满或不可用，否则请使用该卷。
+File[] externalStorageVolumes =
+        ContextCompat.getExternalFilesDirs(getApplicationContext(), null);
+File primaryExternalStorage = externalStorageVolumes[0];
+```
+
+##### (2)访问持久性文件
+
+如需从外部存储设备访问应用专用文件，调用 `getExternalFilesDir()`。
+
+```java
+File appSpecificExternalDir = new File(context.getExternalFilesDir(null), filename);
+```
+
+> **注意**：在 Android 11（API 级别 30）及更高版本中，应用无法在外部存储设备上创建自己的应用专用目录。
+>
+> 也就是说从安卓11开始，这个方法返回的目录被限制在应用程序的沙盒中，无法再访问外部存储设备上的其他目录。这意味着，如果想在外部存储设备上创建文件或目录，就需要使用新的方法。 
+>
+> **新的方法是使用`MediaStore API`将媒体文件插入到媒体存储中。**
+
+##### (3)缓存文件
+
+**创建缓存文件**
+
+```java
+File externalCacheFile = new File(context.getExternalCacheDir(), filename);
+```
+
+**移除缓存文件**
+
+```java
+externalCacheFile.delete();
+```
+
+
+
+#### 公有外部存储
+
+位置：`/storage/emulated/0`
+
+```java
+Environment.getExternalStorageDirectory();
+```
+
+##### (1)验证存储空间可用性
 
 由于外部存储空间位于用户可能能够移除的物理卷上，因此在尝试从外部存储空间读取应用专属数据或将应用专属数据写入外部存储空间之前，请验证该卷是否可访问。
 
-> 可以通过调用 [`Environment.getExternalStorageState()`]查询该卷的状态。
+> 可以通过调用 **`Environment.getExternalStorageState()`**查询该卷的状态。
 >
 > - 如果返回的状态为 [**`MEDIA_MOUNTED`**]，那么就可以在外部存储空间中***读取和写入***应用专属文件。
 > - 如果返回的状态为 [**`MEDIA_MOUNTED_READ_ONLY`**]，**只能读**这些文件。
@@ -556,46 +620,7 @@ private boolean isExternalStorageReadable() {
 
 
 
-#### (2)选择物理存储位置
-
-有时，分配内部存储分区作为外部存储空间的设备也会提供 SD 卡插槽。这意味着设备具有多个可能包含外部存储空间的物理卷，因此需要选择用于应用专属存储空间的物理卷。
-
-```java
-//返回数组中的第一个元素被视为主外部存储卷。除非该卷已满或不可用，否则请使用该卷。
-File[] externalStorageVolumes =
-        ContextCompat.getExternalFilesDirs(getApplicationContext(), null);
-File primaryExternalStorage = externalStorageVolumes[0];
-```
-
-
-
-#### (3)访问持久性文件
-
-如需从外部存储设备访问应用专用文件，调用 [`getExternalFilesDir()`]。
-
-```java
-File appSpecificExternalDir = new File(context.getExternalFilesDir(null), filename);
-```
-
-> **注意**：在 Android 11（API 级别 30）及更高版本中，应用无法在外部存储设备上创建自己的应用专用目录。
-
-#### (4)缓存文件
-
-**创建缓存文件**
-
-```java
-File externalCacheFile = new File(context.getExternalCacheDir(), filename);
-```
-
-**移除缓存文件**
-
-```java
-externalCacheFile.delete();
-```
-
-
-
-#### (5)媒体内容
+##### (2)媒体内容
 
 如果应用支持使用仅在您的应用内对用户有价值的媒体文件，最好将这些文件存储在外部存储空间中的应用专属目录中，如以下代码段所示：
 
@@ -612,7 +637,7 @@ File getAppSpecificAlbumStorageDir(Context context, String albumName) {
 }
 ```
 
->  [`DIRECTORY_PICTURES`] 是 API 常量提供的目录名称。这些目录名称可确保系统正确处理文件。如果没有适合您文件的[预定义子目录名称](https://developer.android.google.cn/reference/android/os/Environment?hl=zh-cn#fields)，可以改为将 `null` 传递到 `getExternalFilesDir()`。这将返回外部存储空间中的应用专属根目录。
+>  `DIRECTORY_PICTURES`是 API 常量提供的目录名称。这些目录名称可确保系统正确处理文件。如果没有适合您文件的[预定义子目录名称](https://developer.android.google.cn/reference/android/os/Environment?hl=zh-cn#fields)，可以改为将 `null` 传递到 `getExternalFilesDir()`。这将返回外部存储空间中的应用专属根目录。
 
 
 

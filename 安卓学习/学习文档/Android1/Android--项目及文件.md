@@ -54,7 +54,7 @@
 
 ## **3.2 res**目录下的结构 
 
-![1707045932285](Android--文件.assets/1707045932285.png)
+![1707045932285](Android--项目及文件.assets/1707045932285.png)
 
 ### 3.2.1 drawable和mipmap
 
@@ -302,17 +302,45 @@ release {
 
 >  [Linux的so文件到底是干嘛的？浅析Linux的动态链接库 ](https://www.zhihu.com/tardis/zm/art/235551437?source_id=1005) 
 
+
+
+
+
 # 三.dex文件
 
+> [Dex文件解析](https://juejin.cn/post/6844903847647772686)
+
+dex文件是Android系统的可执行文件，包含应用程序内的全部指令以及运行时数据。将原来每个`class`文件都有的共有信息合成一体，这样减少了`class`的冗余。
+
+> 生成dex文件命令
+>
+> 首先生成class文件
+>
+> ```shell
+> java Test.java
+> ```
+>
+> 然后生成dex文件
+>
+> ```shell
+> dx --dex --output=a.dex Test.class
+> ```
+
+**Dex文件构成**
+
+![1703664831535](Android--项目及文件.assets/1703664831535.png)
+
+> **header**：
+>
+> 一般存放[魔数](#magicnumber)等信息
 
 
 
 
 
+# 
 
-# 四.读写文件
 
-> https://blog.51cto.com/u_16213394/7063732
 
 
 
