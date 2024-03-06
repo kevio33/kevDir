@@ -1,4 +1,4 @@
-# Git
+
 
 ## 一.电脑通过ssh链接github
 
@@ -109,7 +109,87 @@ git push
 > git push
 > ```
 
+### 1.查看远程分支
 
+```shell
+git branch -r 
+#输出
+origin/master
+origin/feature
+```
+
+### 2.删除分支
+
+ **删除本地分支`master`：** 
+
+```shell
+git branch -d master
+```
+
+ **删除远程分支`master`：** 
+
+将本地 master 分支推送到远程仓库 origin 的 master 分支，并 删除 远程仓库 origin 的 master 分支。
+
+```shell
+git push origin :master 
+#或者
+git push origin --delete master
+```
+
+
+
+### 3.将本地分支链接到远程分支
+
+在本地创建了一个新分支，如果要链接远程分支的话使用如下命令
+
+```shell
+git branch --set-upstream-to=origin/<远程分支名> <本地分支名>
+```
+
+
+
+### 4.查看本地、远程分支
+
+**查看本地分支**
+
+```shell
+git branch
+```
+
+**查看远程分支**
+
+```shell
+git branch -r
+```
+
+**查看本地分支和远程分支链接情况**
+
+```shell
+git branch -vv
+
+* main 11222f8 [origin/main] '2024-3-6'
+```
+
+
+
+### 5.添加一个远程仓库
+
+命令将指定的 GitHub 仓库 URL 添加为本地 Git 仓库的远程仓库，并命名为 “origin”
+
+```shell
+git remote add origin <仓库地址> 
+```
+
+
+
+### 拉取不同历史记录的更改
+
+```shell
+git pull origin main --allow-unrelated-histories
+```
+
+- 从远程仓库 `origin` 的 `main` 分支拉取最新的更改并合并到本地当前分支。
+- 允许合并来自不同历史记录的更改。
 
 ## 三.回退版本
 
@@ -222,7 +302,7 @@ https://www.cnblogs.com/FengZeng666/p/15753153.html
 
 
 
-## 五.本地仓库链接远程仓库
+## 五.初始化项目并链接
 
 首先在本地项目初始化仓库
 
@@ -230,10 +310,10 @@ https://www.cnblogs.com/FengZeng666/p/15753153.html
 git init
 ```
 
-然后关联本地仓库和远程仓库
+然后添加远程仓库
 
 ```shell
-git remote add origin 仓库地址
+git remote add origin <仓库地址> # 命令将指定的 GitHub 仓库 URL 添加为本地 Git 仓库的远程仓库，并命名为 “origin”
 ```
 
 然后就可以推送内容了
@@ -241,7 +321,7 @@ git remote add origin 仓库地址
 ```shell
 git add .
 git commit -m "Initial commit"
-git push -u origin master
+git push -u origin <远程分支名> #追踪远程分支并推送
 ```
 
 
@@ -335,6 +415,29 @@ ssh -T git@gitee.com
 #### (2)同时绑定gitee和github
 
 > [绑定gitee和GitHub](https://www.css3er.com/p/347.html)
+
+
+
+### 2.git push和git push origin master的区别
+
+> [git push和git push origin master](https://blog.csdn.net/weixin_41287260/article/details/89743120)
+
+**git push是git push origin master的一种简写形式**
+
+> - `origin`远程仓库的别名
+> - `master`远程仓库的分支名
+
+（1）当只关联一个远程，只有一个分支时，这两个命令没什么区别。
+
+（2）当你关联了两个甚至多个、有多个分支时，git push可能会报错，因为它不知道要上传代码到哪里去；
+
+
+
+### 3.master分支和main分支
+
+> [为什么默认分支从master变为了main](https://pages.carm.cc/doc/branch-main.html)
+>
+> [Github仓库master分支到main分支迁移指南](https://zhuanlan.zhihu.com/p/339370999)
 
 
 

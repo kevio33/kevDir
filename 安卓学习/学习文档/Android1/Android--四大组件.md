@@ -2527,6 +2527,14 @@ CP端定义权限
 
 
 
+### （5）FileProvider
+
+> https://blog.csdn.net/yingaizhu/article/details/118972148
+>
+> https://developer.android.com/reference/androidx/core/content/FileProvider
+
+`FileProvider` 是 `ContentProvider` 的一个特殊[子类](https://so.csdn.net/so/search?q=子类&spm=1001.2101.3001.7020)，它可以为应用生成关联的 `content://` 内容 URI ，而不是 `file:///` 类型的 URI，使得应用能够实现安全地共享文件。 
+
 ### 四、Broadcast
 
 #### (1)概述:
