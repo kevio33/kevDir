@@ -80,7 +80,7 @@ android {
 >
 > ```groovy
 > buildFeatures {
->     viewBinding true
+>        viewBinding true
 > }
 > ```
 

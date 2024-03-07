@@ -387,25 +387,7 @@ private static final int DATABASE_VERSION = 1;//  将版本号 由 1 改为2
 
 > 具体参考`JetPack`笔记
 
-## 五、LitePal存储
-
-> [LitePal数据库](https://blog.csdn.net/gpf1320253667/article/details/82819795)
-
-## Realm
-
-> [Realm介绍](https://juejin.cn/post/6844903908171579405)
->
-> [Realm使用详解](https://www.cnblogs.com/endv/p/12229594.html)
-
-
-
-## LevelDB
-
-用的少
-
-
-
-## 应用专属存储空间
+## 五、应用专属存储空间
 
 > https://blog.51cto.com/u_16213394/7063732
 
@@ -666,6 +648,115 @@ if (availableBytes >= NUM_BYTES_NEEDED_FOR_MY_APP) {
 
 > 如需请求用户在设备上选择文件进行移除，请调用包含 [`ACTION_MANAGE_STORAGE`] 操作的 intent。此 intent 会向用户显示提示。如果需要，此提示可以显示设备上的可用空间量。如需显示此人性化信息，请使用以下计算结果：
 
+
+
+## 六、访问资源文件
+
+> 参考——https://blog.csdn.net/qq_24382363/article/details/86480943
+
+Android 资源文件大致可以分为两种：
+
+- **res/raw**
+
+  > res/raw 目录下存放可编译的资源文件
+  > 这种资源文件系统会在 R.Java 里面自动生成该资源文件的 ID，所以可以通过资源ID映射访问资源文件
+
+- **assets**
+
+  > assets目录下存放原生资源文件，可以存放一些图片，html，js, css等文件。
+  > 因为**系统在编译的时候不会编译 assets 下的资源文件**，所以不能通过 `R.XXX.ID `的方式访问它们。那我么能不能通过该资源的绝对路径去访问它们呢？因为apk安装之后会放在`/data/app/**.apk`目录下，以apk形式存在，`asset/res/raw`被绑定在apk里，并不会解压到`/data/data/YourApp`目录下去，所以**无法直接获取到 assets 的绝对路径**，因为它们根本就没有。
+  >
+
+### 1.assets
+
+**assets 文件里的文件都是保持原始的文件格式，需要使用 AssetManager 以字节流的形式读取文件。**
+
+> 通常步骤是：
+>
+> - 获取到AssetManager
+> - 然后AssetManager的open方法打开资源文件
+> - 再通过输入流读取内容
+
+  ```java
+AssetManager assetManager = getAssets();
+InputStream inputStream = null;
+try {
+    inputStream = assetManager.open("filename.txt");
+    // 读取文件内容
+    int size = inputStream.available();
+    byte[] buffer = new byte[size];
+    inputStream.read(buffer);
+    inputStream.close();
+    String text = new String(buffer);
+    // 处理文件内容
+} catch (IOException e) {
+    e.printStackTrace();
+}
+  ```
+
+
+
+### 2.res/raw
+
+```java
+Resources resources = getResources();
+InputStream inputStream = null;
+try {
+    inputStream = resources.openRawResource(R.raw.filename);//通过传入资源ID获取资源
+    // 读取文件内容
+    int size = inputStream.available();
+    byte[] buffer = new byte[size];
+    inputStream.read(buffer);
+    inputStream.close();
+    String text = new String(buffer);
+    // 处理文件内容
+} catch (IOException e) {
+    e.printStackTrace();
+}
+```
+
+> 如果是其他资源， 例如res/values、res/layout、res/drawable等目录下的资源，可以使用相应的资源ID来获取。 
+
+
+
+### 区别
+
+**相同点：**
+
+- 两者目录下的文件在打包后会原封不动的保存在apk中，不会被变成二进制。
+- 两者都只能读不能写
+
+**不同点：**
+
+- res/raw 中的文件会被映射到 R.Java 文件中，访问的时候直接使用资源 ID 即 R.XXX.ID；assets 文件夹下的文件不会被映射到 R.Java 中，访问的时候需要 AssetManager 类。
+- res/raw 不可以有目录结构；而 assets 则可以有目录结构，也就是 assets 目录下可以再建立文件夹。
+-  在 AssertManager 中不能处理单个超过1MB的文件，不然会报异常，raw 没这个限制，可以放个4MB的Mp3文件没问题。 
+-  assets 文件夹是存放不进行编译加工的原生文件，即该文件夹里面的文件不会像 xml， java 文件被预编译，可以存放一些图片，html，js, css 等文件。 
+
+
+
+
+
+## LitePal存储
+
+> [LitePal数据库](https://blog.csdn.net/gpf1320253667/article/details/82819795)
+
+## Realm
+
+> [Realm介绍](https://juejin.cn/post/6844903908171579405)
+>
+> [Realm使用详解](https://www.cnblogs.com/endv/p/12229594.html)
+
+
+
+## LevelDB
+
+用的少
+
+
+
+
+
 # 存储策略
 
 ## 一、移动设备存储空间
@@ -684,7 +775,7 @@ if (availableBytes >= NUM_BYTES_NEEDED_FOR_MY_APP) {
 
 ### 1.内部存储
 
-随应用卸载被删除
+**随应用卸载被删除**
 
 **内部存储：不需要任何权限**
 
