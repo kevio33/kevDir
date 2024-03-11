@@ -7,7 +7,7 @@
 #### 用long定义长整型数字时
 
 ```java
-long a = 1;  // 类型int向上转型为long
+long a = 1;  // 类型int，然后向上转型为long
 long a = 1L; // 类型直接定义为long
 
 long a = 2147483648;  // 错误 int的最大表示范围是2147483647
@@ -130,7 +130,9 @@ public class Test {
 
 > **参考：**
 >
->  [【Java】子类的构造函数什么时候需要加 super()](https://blog.csdn.net/weixin_40473794/article/details/104624515) 
+> [【Java】子类的构造函数什么时候需要加 super()](https://blog.csdn.net/weixin_40473794/article/details/104624515) 
+>
+> https://blog.csdn.net/abe_abd/article/details/75255577
 
 #### 	1.概述
 
@@ -508,7 +510,7 @@ password: null//密码字段为null，说明反序列化时根本没从文件中
 ### 2.实现多态方法
 
 - 方法重载
-- 方法覆盖（重写）
+- 方法重写
 
 ###   3.重载:
 
@@ -516,7 +518,7 @@ password: null//密码字段为null，说明反序列化时根本没从文件中
 
 ### 4.重写:
 
-实现的是**运行时候的多态性。**发生在子类和父类之间，重写要求子类重写方法和父类有相同参数列表，有兼容的返回类型（例如：子类中方法的返回类型是父类中返回类型的子类），且**子类函数的访问修饰权限不能少于父类的**
+实现的是**运行时候的多态性。**发生在子类和父类之间，**重写要求子类重写方法和父类有相同参数列表**，有兼容的返回类型（例如：子类中方法的返回类型是父类中返回类型的子类），且**子类函数的访问修饰权限不能少于父类的**
 
 > 参考
 >
@@ -526,11 +528,15 @@ password: null//密码字段为null，说明反序列化时根本没从文件中
 
 ### 1.为什么使用继承:
 
-对于方法覆盖(因此可以实现运行时的多态性)，提高代码可重用性。在Java中，子类可继承父类中的方法，而不需要重新编写相同的方法。但有时子类并不想原封不动地继承父类的方法，而是想作一定的修改，这就需要采用方法的重写(覆盖)
+提高代码可重用性。在Java中，子类可继承父类中的方法，而不需要重新编写相同的方法。但有时子类并不想原封不动地继承父类的方法，而是想作一定的修改，这就需要采用方法的重写
+
+> **继承**
+>
+> 在一个子类被创建的时候，首先会在内存中创建一个父类对象，然后在父类对象外部放上子类独有的属性，两者合起来形成一个子类的对象，所以子类可以继承父类中所有的属性和方法，包括private修饰的属性和方法，但是子类只是拥有父类private修饰的属性和方法，却不能直接使用它，也就是无法直接访问到它（子类可以通过调用父类的public声明的get方法来获取父类的private属性，但无法访问父类的private方法）。同时子类可以对继承的方法进行重写（@Override），并且新建自己独有的方法。
 
 ###   2.继承类型：
 
-java中有三种类型继承：单一、多级、分层，**但java不支持多继承**
+java中有三种类型继承：单一、多级、分层，**（java不支持多继承）**
 
   ![img](https://gitee.com/kevinyong/kevin-gallery/raw/master/7c78300802ea2c10c49795f28ddd5266.png)
 
@@ -572,22 +578,60 @@ i am BaseClass
 i am Base
 ```
 
-执行顺序:
+> 执行顺序:
+>
+> 1. 父类静态代码块、静态变量
+> 2. 子类静态代码块、静态变量
+> 3. 父类局部代码块、成员变量
+> 4. 父类构造函数
+> 5. 子类局部代码块、成员变量
+> 6. 子类构造函数
+>
+>  **静态优先，构造随后，无论静态还是构造，先父再子**
 
-1. 父类静态代码块、静态变量
-2. 子类静态代码块、静态变量
-3. 父类局部代码块、成员变量
-4. 父类构造函数
-5. 子类局部代码块、成员变量
-6. 子类构造函数
-
- **静态优先，构造随后，无论静态还是构造，先父再子**
 
 
+#### 静态代码块和实例代码块
 
-### 4.向上向下转型
+**①静态代码块**在类被加载和初始化时执行，并且只会执行一次 
 
-> Java中的继承机制使得一个类可以继承另一个类，继承的类称为子类，被继承的类称为父类。在一个子类被创建的时候，首先会在内存中创建一个父类对象，然后在父类对象外部放上子类独有的属性，两者合起来形成一个子类的对象，所以子类可以继承父类中所有的属性和方法，包括private修饰的属性和方法，但是子类只是拥有父类private修饰的属性和方法，却不能直接使用它，也就是无法直接访问到它（子类可以通过调用父类的public声明的get方法来获取父类的private属性，但无法访问父类的private方法）。同时子类可以对继承的方法进行重写（@Override），并且新建自己独有的方法。
+ 静态代码块可以用于初始化静态变量和静态资源，也可以用于在类加载时执行一些特定的操作。 
+
+```java
+public class Demo extends BaseClass{
+    public Demo(){}
+    {
+        System.out.println("i am Base");
+    }
+    static{
+        System.out.println("static Base");
+    }
+
+    public static void main(String[] args) {
+        Demo demo;//只执行静态代码块
+    }
+}
+
+class BaseClass{
+    public BaseClass(){}
+    
+    {
+        System.out.println("i am BaseClass");
+    }
+    
+    static {
+        System.out.println("static baseclass");
+    }
+}
+```
+
+**②实例代码块**在每次创建新实例时执行，并且在构造函数执行之前执行 
+
+实例代码块可以用于初始化实例变量和资源，也可以用于在创建实例时执行一些特定的操作 
+
+
+
+### 4.上下转型
 
 #### 向上转型:
 
@@ -599,8 +643,7 @@ class Fruit{
 		System.out.println("this is a fruit");
 	}
 }
-有一个Apple类继承自Fruit类，该类有自己的方法test（），并且重写了父类的show（）方法，代码如下：
-
+//有一个Apple类继承自Fruit类，该类有自己的方法test（），并且重写了父类的show（）方法，代码如下：
 class Apple extends Fruit{
     @Override
     public void show() {
@@ -630,7 +673,7 @@ fruit.test();
 
 ![image-20210904201952312](https://gitee.com/kevinyong/kevin-gallery/raw/master/image-20210904201952312.png)
 
-**分析：**这里用到了向上转型，换言之，就是用父类的引用变量去引用子类的实例，这是允许的。当向上转型之后，父类引用变量可以访问子类中属于父类的属性和方法，但是不能访问子类独有的属性和方法。例子中由于子类重写了父类的show（）方法，所以调用的show（）方法是子类的show（）方法，输出结果为：“this is a apple”,而调用子类的test（）方法则会报错。
+**分析：**这里用到了向上转型，换言之，就是用父类的引用变量去引用子类的实例，这是允许的。**当向上转型之后，父类引用变量可以访问子类中属于父类的属性和方法，但是不能访问子类独有的属性和方法**。例子中由于子类重写了父类的show（）方法，所以调用的show（）方法是子类的show（）方法，输出结果为：“this is a apple”,而调用子类的test（）方法则会报错。
 
 
 
@@ -679,8 +722,8 @@ Orange orange = (Orange) fruit;
 
 ```java
 public static void run(Fruit fruit) {
-	fruit.show();
-   }
+    fruit.show();
+}
 ```
 
 在main（）方法中的代码如下：
@@ -703,33 +746,33 @@ public static void main(String[] args) {
 
 抽象是隐藏实现细节并仅向用户显示功能的过程。
 
-另一种方式，它只向用户显示重要的事情，并隐藏内部详细信息，例如：发送短信，只需输入文本并发送消息。您也不需要知道有关邮件传递的内部处理过程。
-
 抽象可以让你专注于对象做什么(实现的功能)，而不是它如何做。
 
 ### 2.实现方式：
 
-**抽象类(部分)**
+#### 抽象类(部分)
 
 使用 `abstract`关键字声明的类被称为抽象类。需要扩展和实现它的方法。 
 
 > **抽象类不能被实例化**。
+>
+> **抽象类可以有数据成员，抽象方法，方法体，构造函数甚至`main()`方法**
+>
+> **规则：如果在类中有任何抽象方法，那个类必须声明为抽象的。**
 
-**抽象类可以有数据成员，抽象方法，方法体，构造函数甚至`main()`方法**
-
-**规则：如果在类中有任何抽象方法，那个类必须声明为抽象的。**
 
 
+#### 接口 (完全)
 
-**接口 (完全)**
+接口也不能被实例化
 
 > 从java8开始，支持接口中方法进行默认实现
 >
 > ```java
 > interface InnerApple {
->     default public void hello(){
->         System.out.println("s");
->     }
+>        default public void hello(){
+>            System.out.println("s");
+>        }
 > }
 > ```
 
@@ -777,23 +820,24 @@ public static void main(String[] args) {
 
 ### 2.进制表示
 
-​	java中的二进制数据都是以补码表示（最高位为符号位），所以如果是整数则它的二进制数；如果是负数，则先转换成原码，在转换成补码。（原码和补码互相转换:①符号位不变，整数位取反；②整个数加一）
+java中的二进制数据都是以补码表示（最高位为符号位），所以：
+
+- 如果是整数则直接为它的二进制数；
+- 如果是负数，先将负数转换为无符号整数，然后再转换为补码 。（原码和补码互相转换:①符号位不变，整数位取反；②整个数加一）
 
 ```java
 System.out.println("Java二进制7: "+Integer.toBinaryString(7));
-System.out.println("Java二进制-7: "+Integer.toBinaryString(-7));
+System.out.println("Java二进制-7: "+Integer.toBinaryString(-7));//先将-7转换为无符号整数7,然后求7的补码也就是1001
 
 输出：
 Java二进制7: 111
-Java二进制-7: 11111111111111111111111111111001
-//Java中对于不满32位的int二进制自动补齐，所以变成了 (29个0)111
+Java二进制-7: 11111111111111111111111111111001 //Java中对于不满32位的int二进制自动补齐，所以变成了 (29个0)111
 ```
 
-可以看到，java中的二进制数都是有符号数，但如果我们想要二进制表示为无符号数，且将其转换成十进制，可以在引用类型中调用
+可以看到，java中的二进制数都是有符号数，但如果我们想要二进制表示为无符号数，且将其转换成十进制
 
 ```java
-Byte.toUnsignedInt((byte) -2)
-这样就将二进制数一律看做正数进行转换
+Byte.toUnsignedInt((byte) -2)//这样就将二进制数一律看做正数进行转换
     
 输出：254（因为-2的二进制为 11111110 ）
 ```
@@ -812,8 +856,9 @@ int radixO = Integer.parseInt(c, 16);//将16进制的c转换成10进制
 ```java
 int var = -23243;
 String hex = Integer.toHexString(var);
-Integer.parseInt(hex, 16);
-会报错，因为Integer.parseInt，会将传入的十六进制数字一致认为是正数，由于负数前面都是1为符号位，导致该数字超出int的最大范围，解决方案：
+int radix = Integer.parseInt(hex, 16);
+
+//会报错，因为Integer.parseInt，会将传入的十六进制数字一致认为是正数，由于负数前面都是1为符号位，导致该数字超出int的最大范围，解决方案：
     
 BigInteger bi = new BigInteger(hex, 16);
 通过BigInteger.intValue();和 BigInteger.longValue(); 得到你所需要的int或long型值。
@@ -831,7 +876,7 @@ BigInteger bi = new BigInteger(hex, 16);
 
 ### 参数
 
-java函数参数经常有三个点
+java函数参数如果带有`...`
 
 ```java
 public Object query(String sql, ResultSetHandler<?> rsh, Object... params)
@@ -845,8 +890,7 @@ public Object query(String sql, ResultSetHandler<?> rsh, Object... params)
 
 ```java
 // 传统的方式
-
-// 正常的输出
+// 该传参正常输出
 test_Array(new int[]{1,2,3,4});  
 // 报错，提示参数不能为空
 test_Array();
@@ -854,7 +898,7 @@ test_Array();
 
 ```java
 // 三个点的方式
-// 正常输出
+// 该传参正常输出
 test_dots(1,2,2,3,4);  
 // 也可以正常输出
 test_dots();
@@ -877,8 +921,6 @@ test_dots();
 
 
 
-
-
 ## 十、引用
 
 > https://www.jianshu.com/p/cdb2ea3792b5
@@ -887,5 +929,41 @@ test_dots();
 
 **switch**
 
-switch只支持传入int或短于int的变量(byte，short，char)作为条件。JDK1.7以后支持了String
+switch只**支持传入int或短于int的变量(byte，short，char)作为条件**。JDK1.7以后支持了String
 
+
+
+## 十二、异常
+
+Java 中的异常类都是从 java.lang.Throwable 类继承而来的。
+
+ Throwable 类有两个直接子类：
+
+- Error
+
+  > Error 类一般表示程序无法处理的错误，比如内存溢出、栈溢出等，这些错误通常是不可恢复的，并且不建议在程序中捕获和处理它们。 
+
+- Exception
+
+  > Exception 类则表示程序可能遇到的各种异常情况，比如文件找不到、网络连接失败等，这些异常可以在程序中捕获和处理。 
+
+
+
+### 1.Exception
+
+**RuntimeException:**
+
+RuntimeException 是一个**非检查型异常(不需要try-catch)**，RuntimeException 类及其子类表示可能在 Java 虚拟机正常运行期间发生的各种异常情况。 
+
+例如：
+
+1. NullPointerException：当程序试图在需要对象引用的地方使用 null 值时抛出。
+2. ArithmeticException：当执行算术运算时发生错误时抛出，例如除以零。
+3. ArrayIndexOutOfBoundsException：当使用无效的索引访问数组时抛出。
+4. ClassCastException：当试图将对象强制转换为不兼容的类型时抛出。
+5. IllegalArgumentException：当向方法传递了一个不合法或不适当的参数时抛出。
+6. IllegalStateException：当在对象处于不适当或不可能的状态下调用方法时抛出。
+7. IndexOutOfBoundsException：当使用无效的索引访问集合、列表或字符串等数据结构时抛出。
+8. NumberFormatException：当应用程序试图将字符串转换为数字，但该字符串不能表示为有效的数字时抛出。
+9. SecurityException：当违反安全规则时抛出。
+10. UnsupportedOperationException：当调用不支持的操作时抛出。

@@ -396,8 +396,12 @@ private static final int DATABASE_VERSION = 1;//  将版本号 由 1 改为2
 在清单文件声明读文件权限
 
 ```xml
-<!--读文件权限-->
+<!--访问外部存储读文件权限-->
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+<!--访问外部存储写权限-->
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+<!--申请挂载和卸载文件系统的权限。具有该权限的应用程序可以挂载和卸载外部存储设备，如SD卡-->
+<uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"/>
 ```
 
 运行时动态申请权限
@@ -717,8 +721,6 @@ try {
 
 > 如果是其他资源， 例如res/values、res/layout、res/drawable等目录下的资源，可以使用相应的资源ID来获取。 
 
-
-
 ### 区别
 
 **相同点：**
@@ -734,6 +736,27 @@ try {
 -  assets 文件夹是存放不进行编译加工的原生文件，即该文件夹里面的文件不会像 xml， java 文件被预编译，可以存放一些图片，html，js, css 等文件。 
 
 
+
+### 3.bitmap
+
+ Bitmap 是 Android 中用于处理位图图像的一种数据类型，它可以用来显示和操作图像。Bitmap 本身不是编解码图像的工具，而是一种用于存储图像数据的内存格式。 
+
+ 可以使用 BitmapFactory 类将图像文件解码为 Bitmap 对象，也可以使用 Canvas 类在 Bitmap 上绘制图形和文本。 
+
+```java
+Resources resources = getResources();
+Bitmap bitmap = BitmapFactory.decodeResource(resources,id);
+
+//将图像转换为bitmap对象，然后写入到外部存储
+String path = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)+"/forest.jpg";
+FileOutputStream outputStream = null;
+
+outputStream = new FileOutputStream(path);
+bitmap.compress(Bitmap.CompressFormat.JPEG,100,outputStream);//将bitmap流写入到外部私有存储区
+if (outputStream!=null){
+    outputStream.flush();//刷新
+}
+```
 
 
 
