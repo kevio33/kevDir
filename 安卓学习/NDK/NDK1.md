@@ -281,7 +281,7 @@ jdouble Java_pkg_Cls_f__ILjava_lang_String_2 (JNIEnv *env, jobject obj, jint i, 
 }
 ```
 
-> - `*env`：一个接口指针
+> - `env`：一个接口指针
 >
 > - `obj`：在本地方法中声明的对象引用，谁调用这个方法，object指向谁(MainActivity.java)
 >
@@ -301,7 +301,7 @@ obj、i和s的类型可以参考下面的JNI数据类型，JNI有自己的原始
 
 #### JNIEnv
 
-首先说一个概念**JavaVM**:
+首先说一个概念**JavaVM结构体**:
 
 > 每个JVM虚拟机都在本地环境中有一个`JavaVM结构体`，该结构体在创建Java虚拟机时被返回。**JavaVM是Java虚拟机在JNI层的代表，JNI全局仅仅有一个JavaVM**，JavaVM结构中封装了一些函数指针（或叫函数表结构），JavaVM中封装的这些函数指针主要是对JVM操作接口。
 
@@ -677,7 +677,7 @@ target_link_libraries( # Specifies the target library.
 
 **②获取属性、方法**
 
-> JNI在jni.h头文件中定义了jfieldID和jmethodID这两种类型来分别代表Java端的属性和方法。
+> JNI在jni.h头文件中定义了`jfieldID`和`jmethodID`这两种类型来分别代表Java端的属性和方法。
 >
 > 在**访问或者设置Java某个属性**的时候，首先就要现在本地代码中取得代表该Java类的属性的`jfieldID`，然后才能在本地代码中进行Java属性的操作，同样，在需要调用Java类的某个方法时，也是需要取得代表该方法的`jmethodID`才能进行Java方法操作。
 >

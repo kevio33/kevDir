@@ -29,13 +29,11 @@ Constructor constructor = clz.getConstructor();
 //使用 Constructor 对象的 newInstance 方法获取反射类对象
 Object object = constructor.newInstance();
 
-//获取方法的 Method 对象
+//获取对象的方法
 Method method = clz.getMethod("setPrice", int.class);
-//调用method
+//调用method，要传入对象
 method.invoke(object, 4);
 ```
-
-> 和1的执行结果完全相同
 
 
 
@@ -59,6 +57,7 @@ public class Apple {
         Apple apple = new Apple();
         apple.setPrice(5);
         System.out.println("Apple Price:" + apple.getPrice());
+        
         //使用反射调用
         Class clz = Class.forName("com.chenshuyi.api.Apple");
         Method setPriceMethod = clz.getMethod("setPrice", int.class);
@@ -78,8 +77,6 @@ public class Apple {
 ### 1.获取反射中的Class对象
 
  在反射中，要获取一个类对象或调用一个类的方法，我们首先需要获取到该类的 Class 对象。 
-
-
 
 **第一种，使用 Class.forName 静态方法。**当你知道该类的全路径名时，你可以使用该方法获取 Class 类对象。
 
