@@ -1623,3 +1623,6 @@ public class MyViewPager extends ViewPager {
 - **提高页面切换的流畅度。**当用户快速滑动页面时，ViewPager可以提前加载相邻页面，从而避免页面切换时出现卡顿现象。
 
 - **减少内存消耗**。当页面数量较多时，ViewPager可以销毁超出限制的页面，从而减少内存占用。
+
+
+
