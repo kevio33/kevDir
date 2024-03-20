@@ -4,7 +4,7 @@
 
 Android平台架构组件如下：
 
- ![Android 软件堆栈](framework.assets/android-stack_2x.png) 
+ ![Android 软件堆栈](../../trash/公司/面试遇到的问题.assets/android-stack_2x.png) 
 
 > **①Linux内核**
 >
@@ -37,11 +37,11 @@ Android平台架构组件如下：
 > > - **Dalvik 使用 Just-In-Time (JIT，即时) 编译**，即在应用程序运行时，将字节码编译为机器码。这意味着应用程序的第一次运行会比较慢，但之后的运行会比较快。
 > > - **ART 使用 Ahead-Of-Time (AOT，预先) 编译**，即在应用程序安装时，将字节码编译为机器码。这意味着应用程序的第一次运行会比较快，但应用程序的大小会更大。
 > >
-> > 除了字节码编译方式的区别外，两者还有以下一些区别：
+> > **除了字节码编译方式的区别外，两者还有以下一些区别：**
 > >
-> > - **Dalvik 使用 Dex 文件格式**，而 ART 使用 Odex 文件格式。
-> > - **Dalvik 使用 Dalvik 虚拟机堆**，而 ART 使用 ART 虚拟机堆。
-> > - **Dalvik 使用 Dalvik 垃圾回收器**，而 ART 使用 ART 垃圾回收器。
+> > - Dalvik 使用 Dex 文件格式，而 ART 使用 Odex 文件格式。
+> > - Dalvik 使用 Dalvik 虚拟机堆，而 ART 使用 ART 虚拟机堆。
+> > - Dalvik 使用 Dalvik 垃圾回收器，而 ART 使用 ART 垃圾回收器。
 > >
 > > 总体而言，ART 比 Dalvik 具有更好的性能和安全性，但应用程序的大小会更大。
 > >

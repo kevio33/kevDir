@@ -1,4 +1,16 @@
- 通过调用下面几个静态函数来获取一个Builder 对象： 
+## Application
+
+`Application`是应用程序的**全局上下文**。Application 组件在应用程序启动时被创建，并在整个应用程序生命周期中保持存在。 
+
+**Application 组件在 Android 应用程序中是单例的**，即在整个应用程序中只有一个 Application 实例。因此，它可以用于在不同组件之间共享数据和状态。
+
+### 作用 
+
+Application 组件主要用于存储和管理应用程序的全局状态和数据，例如用户信息、应用程序配置信息、数据库连接等。 
+
+往往通过继承Application类实现自己的Application
+
+
 
 ## 四大组件
 
