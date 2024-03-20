@@ -1275,7 +1275,7 @@ Android应用中可以创建两种不同类型的链接：
 
 创建流程
 
-##### ①创建Service
+##### ①创建Service类
 
 ##### ②`manifest.xml`中声明
 
@@ -1291,27 +1291,29 @@ Android应用中可以创建两种不同类型的链接：
 </manifest>
 ```
 
-service标签的属性包括
+> service标签的属性包括
+>
+> ```xml
+> <service android:enabled=["true" | "false"]
+> 
+>          android:exported=["true" | "false"]
+> 
+>          android:icon="drawable resource"
+> 
+>          android:isolatedProcess=["true" | "false"]
+> 
+>          android:label="string resource"
+> 
+>          android:name="string"
+> 
+>          android:permission="string"
+> 
+>          android:process="string" >
+> 
+> </service>
+> ```
 
-```xml
-<service android:enabled=["true" | "false"]
 
-         android:exported=["true" | "false"]
-
-         android:icon="drawable resource"
-
-         android:isolatedProcess=["true" | "false"]
-
-         android:label="string resource"
-
-         android:name="string"
-
-         android:permission="string"
-
-         android:process="string" >
-
-</service>
-```
 
 - `android:exported`：代表是否能被其他应用隐式调用，其默认值是由service中有无intent-filter决定的，如果有intent-filter，默认值为true，否则为false。为false的情况下，即使有intent-filter匹配，也无法打开，即无法被其他应用隐式调用。
 - `android:name`：对应Service类名
@@ -1328,7 +1330,7 @@ service标签的属性包括
 public class SimpleService extends Service {
  
     /**
-     * 绑定服务时才会调用
+     * service绑定时才会调用
      * 必须要实现的方法  
      * @param intent
      * @return
@@ -1340,7 +1342,7 @@ public class SimpleService extends Service {
     }
  
     /**
-     * 首次创建服务时，系统将调用此方法来执行一次性设置程序（在调用 onStartCommand() 或 onBind() 之前）。
+     * 首次创建服务时，系统将调用此方法来执行一次性设置程序（在调用 onStartCommand() 或 onBind() 之前调用）。
      * 如果服务已在运行，则不会调用此方法。该方法只被调用一次
      */
     @Override
@@ -1351,10 +1353,6 @@ public class SimpleService extends Service {
  
     /**
      * 每次通过startService()方法启动Service时都会被回调。
-     * @param intent
-     * @param flags
-     * @param startId
-     * @return
      */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -1423,9 +1421,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 > **与启动服务不同的是**：
 >
-> 绑定服务的生命周期通常只在为其他应用组件(如Activity)服务时处于活动状态，不会无限期在后台运行，也就是说宿主(如Activity)解除绑定后，绑定服务就会被销毁。
+> 绑定服务的生命周期通常只在为其他应用组件(如Activity)服务时处于活动状态，不会无限期在后台运行，也就是说**宿主(如Activity)解除绑定后，绑定服务就会被销毁。**
 
-那么在提供绑定的服务时，该如何实现呢？实际上**必须提供一个 IBinder接口的实现类，该类用以提供客户端用来与服务进行交互的编程接口，可以通过三种方法定义接口**：
+##### **如何实现绑定**
+
+实际上**必须提供一个 IBinder接口的实现类，该类用以提供客户端用来与服务进行交互的编程接口，可以通过三种方法定义接口**：
 
 > - **扩展 Binder 类** 
 > 如果服务是提供给自有应用专用的，并且Service(服务端)与客户端在相同的进程中运行（常见情况），则应通过扩展 Binder 类并从 onBind() 返回它的一个实例来创建接口。客户端收到 Binder 后，可利用它直接访问 Binder 实现中以及Service 中可用的公共方法。如果我们的服务只是自有应用的后台工作线程，则优先采用这种方法。 不采用该方式创建接口的唯一原因是，服务被其他应用或不同的进程调用。
@@ -1443,7 +1443,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
-##### 	**拓展Binder类：**
+###### 	拓展Binder类：
 
 如果**服务仅供本地应用使用，不需要跨进程工作**，则可以实现自有 Binder 类，让客户端通过该类直接访问服务中的公共方法。其使用开发步骤如下：
 
@@ -1451,14 +1451,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 - 从 onBind() 回调方法返回此 Binder 实例。
 - 在客户端中，从 onServiceConnected() 回调方法接收 Binder，并使用提供的方法调用绑定服务。
 
-**注意：**
-
-**此方式只有在客户端和服务位于同一应用和进程内才有效**，如对于需要将 Activity 绑定到在后台播放音乐的自有服务的音乐应用，此方式非常有效。另一点之所以要求服务和客户端必须在同一应用内，是为了便于客户端转换返回的对象和正确调用其 API。服务和客户端还必须在同一进程内，因为此方式不执行任何跨进程编组。
+> **注意：**
+>
+> **此方式只有在客户端和服务位于同一应用和进程内才有效**，如对于需要将 Activity 绑定到在后台播放音乐的音乐应用，此方式非常有效。之所以要求服务和客户端必须在同一应用内，是为了便于客户端转换返回的对象和正确调用其 API。服务和客户端还必须在同一进程内，因为此方式不执行任何跨进程编组。
 
 ```java
 /**
- * Created by zejian
- * Time 2016/10/2.
  * Description:绑定服务简单实例--服务端
  */
 public class LocalService extends Service{
@@ -1536,7 +1534,7 @@ public class LocalService extends Service{
 }
 ```
 
-通过onBind方法返回binder对象，而通过binder对象可以调用BindService实例进而调用service公共方法:getCount()
+
 
 接下来是Activity:
 
@@ -1567,7 +1565,7 @@ public class BindActivity extends Activity {
         btnGetDatas = (Button) findViewById(R.id.getServiceDatas);
         //创建绑定对象
         final Intent intent = new Intent(this, LocalService.class);
- 
+
         // 开启绑定
         btnBind.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -1589,23 +1587,23 @@ public class BindActivity extends Activity {
                 }
             }
         });
- 
+
         // 获取数据
         btnGetDatas.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (mService != null) {
                     // 通过绑定服务传递的Binder对象，获取Service暴露出来的数据
- 
+
                     Log.d(TAG, "从服务端获取数据：" + mService.getCount());
                 } else {
- 
+
                     Log.d(TAG, "还没绑定呢，先绑定,无法从服务端获取数据");
                 }
             }
         });
- 
- 
+
+
         conn = new ServiceConnection() {
             /**
              * 与服务器端交互的接口方法 绑定服务的时候被回调，在这个方法获取绑定Service传递过来的IBinder对象，
@@ -1619,7 +1617,7 @@ public class BindActivity extends Activity {
                 mService = binder.getService();
             }
             /**
-             * 当取消绑定的时候被回调。但正常情况下是不被调用的，它的调用时机是当Service服务被意外销毁时，
+             * 当取消绑定的时候被回调。但正常情况是不被调用的，它的调用时机是当Service服务被意外销毁:
              * 例如内存的资源不足时这个方法才被自动调用。
              */
             @Override
@@ -1631,7 +1629,7 @@ public class BindActivity extends Activity {
 }
 ```
 
-在客户端中我们创建了一个ServiceConnection对象，该代表与服务的连接，它只有两个方法， onServiceConnected和onServiceDisconnected，其含义如下：
+在客户端中我们创建了一个ServiceConnection对象，该代表与服务的连接，它只有两个方法， `onServiceConnected`和`onServiceDisconnected`，其含义如下：
 
 - **onServiceConnected(ComponentName name, IBinder service)**
 
@@ -1643,7 +1641,7 @@ public class BindActivity extends Activity {
 
 
 
-##### 使用Messenger:
+###### 使用Messenger:
 
 前面了解了如何使用IBinder应用内同一进程的通信后，接着来了解服务与远程进程（即不同进程间）通信，而不同进程间的通信，最简单的方式就是使用 Messenger 服务提供通信接口，利用此方式，我们无需使用 AIDL 便可执行进程间通信 (IPC)。以下是 Messenger 使用的主要步骤：
 
@@ -1883,7 +1881,7 @@ public void sayHello(View v) {
 
 
 
-##### [AIDL](#AIDL)
+###### AIDL
 
 > 参考——消息传递机制.md
 
@@ -2536,23 +2534,42 @@ CP端定义权限
 
 ### 四、Broadcast
 
-#### 1.概述:
+Android广播机制是在Binder进程间通信机制的基础上实现的，内部基于消息发布和订阅的事件驱动模型，广播发送者负责发送消息，广播接收者需要先订阅消息，然后才能收到消息。 
 
-1）用于不同组件间的通信（含：应用内/不同应用之间）
-2）用于多线程通信
-3）与android系统的通信
+#### 1.分类：
 
-**android 广播分为两个角色：广播发送者、广播接收者**
+##### 按照发送方式分类：
 
-##### 类型：
+- 标准广播
 
-> - 标准广播
->
->   > 是一种完全异步执行的广播，广播发出后，所以的广播接收器几乎会在同一时刻接收到这条广播消息。但是意味着他无法被截断
->
-> - 有序广播
->
->   > 是一种同步执行的广播，广播发出之后，同一时刻只会有一个广播接收器能够收到这条广播信息，当这个广播接收器逻辑执行完毕之后，广播才会继续传递。优先级高的广播接收器就可以先收到广播消息，并且前面的广播接收器还可以截断广播。
+  > 是一种完全**异步执行的广播**，广播发出后，所以的广播接收器几乎会在同一时刻接收到这条广播消息。但是意味着他无法被截断
+  >
+  > ![1710911313330](Android--四大组件.assets/1710911313330.png)
+
+- 有序广播
+
+  > 是一种**同步执行的广播**，广播发出之后，同一时刻只会有一个广播接收器能够收到这条广播信息，当这个广播接收器逻辑执行完毕之后，广播才会继续传递。优先级高的广播接收器就可以先收到广播消息，并且前面的广播接收器还可以截断广播。
+  >
+  > ![1710911328013](Android--四大组件.assets/1710911328013.png)
+
+##### 按注册方式分类
+
+- 动态注册广播
+
+  > 顾名思义，就是在代码中注册的。
+
+- 静态注册广播
+
+  > 动态注册要求程序必须在运行时才能进行，有一定的局限性，如果我们需要在程序还没启动的时候就可以接收到注册的广播，就需要静态注册了。主要是在AndroidManifest中进行注册。
+
+##### 按定义类型分：
+
+- 系统广播
+- 自定义广播
+
+
+
+**广播分为两个角色：广播发送者、广播接收者**
 
 #### 2.接收广播：
 
@@ -2561,17 +2578,19 @@ Android内置很多系统级别的广播，比如手机开机完成后会发送�
 **自定义广播接收器:**
 
 - 继承`BroadcastReceive`基类
-- 必须重写`onReceive()`方法
+- 重写`onReceive()`方法
 
 **注意：**
 
 > 1.广播接收器收到相应广播后，会自动调用`onReceive()`方法
-> 2.一般情况下，onReceive方法会涉及与其他组件之间的交互，如 发送Notification，启动server等
+>
+> 2.一般情况下，`onReceive`方法会涉及与其他组件之间的交互，如发送`Notification`，启动`server`等
+>
 > 3.默认情况下，**广播接收器运行在UI线程**，因此，`onReceive`方法不能执行耗时操作，否则将导致`ANR`
 
-##### BroadcastReceiver注册:
+##### 广播注册:
 
-**注册的方式有两种：静态注册、动态注册**
+注册的方式有两种：**静态注册、动态注册**
 
 ###### **静态注册:**
 
@@ -2587,81 +2606,107 @@ Android内置很多系统级别的广播，比如手机开机完成后会发送�
 
 ```xml
 <user-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-<user-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+<user-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/><!--接收系统开机广播权限-->
 
 <receive
-    //表示是否启用这个广播接收器
-	android:enable="true"/"false"
-         
-	//exported：是否接受其他应用发出的广播
-	//默认值时由receiver 中d有无inter-filter决定，如果有，默认true，否则默认false
-	android:exported="true"/"false"
-         
-	android:icon="drawable resource"
-	android:label="string resource"
-        
-	//创建的接收器的类名
-    android:name=".mBroadcastReceiver"
-        
-	//具有相应权限的广播发送者发送的广播才能被此BroadcastReceiver所接收；
-    android:permission="string"
-        
-	//BroadcastReceiver运行所处的进程
-	//默认为app的进程，可以指定独立的进程
-	//注：Android四大基本组件都可以通过此属性指定自己的独立进程
-    android:process="string" >
+         表示是否启用这个广播接收器
+         android:enable="true"/"false"
 
-<!--用于指定此广播接收器将接收的广播类型-->
- <intent-filter>
-     <!--用于接收网络状态改变时发出的广播-->
-	<action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
-     <!--用于接收开机之后系统发出的广播-->
-     <action android:name="android.intent.action.BOOT_COMPLETED" />
- </intent-filter>
- </receive>
+         是否接受其他应用发出或系统的广播，如果false则只接受本应用的广播
+         android:exported="true"/"false"
+
+         创建的接收器的名称
+         android:name=".mBroadcastReceiver"
+
+         具有相应权限的广播发送者发送的广播才能被此BroadcastReceiver所接收；
+         android:permission="string"
+
+         BroadcastReceiver运行所处的进程默认为app的进程，可以指定独立的进程
+         注：Android四大基本组件都可以通过此属性指定自己的独立进程
+         android:process="string" >
+
+    <!--用于指定此广播接收器将接收的广播类型-->
+    <intent-filter>
+        <!--用于接收网络状态改变时发出的广播-->
+        <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+        <!--用于接收开机之后系统发出的广播，当系统开机就会接收到广播-->
+        <action android:name="android.intent.action.BOOT_COMPLETED" />
+    </intent-filter>
+</receive>
 ```
 
-```java
-//创建的接收器
-public class mBroadcastReceiver extends BroadcastReceiver{
-    @Override
-    public void onReceive(Context context,Intent intent){
+ 创建广播接收器，以下示例中的广播接收器会记录并显示广播的内容： 
 
+```java
+public class MyBroadcastReceiver extends BroadcastReceiver {
+    private static final String TAG = "MyBroadcastReceiver";
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Action: " + intent.getAction() + "\n");
+        sb.append("URI: " + intent.toUri(Intent.URI_INTENT_SCHEME).toString() + "\n");
+        String log = sb.toString();
+        Log.d(TAG, log);
+
+       Toast.makeText(context,log,Toast.LENGTH_LONG).show();
     }
 }
 ```
 
-###### **动态注册:**
+> 系统软件包管理器会在安装应用时注册接收器。然后，该接收器就会成为应用的单独入口点，这意味着，如果应用当前未运行，系统可以启动应用并传递广播。 
+
+
+
+###### 动态注册:
 
 > 通过代码注册，每当网络状态变化时，onReceive方法就会执行
 
 ```java
-    //继承BroadcastReceiver类
-	class mBroadcastReceiver extends BroadcastReceiver{
-        @override
-        public void onReceive(Context context,Intent intent){
-            
-        }
+//继承BroadcastReceiver类
+class MyBroadcastReceiver extends BroadcastReceiver{
+    @override
+    public void onReceive(Context context,Intent intent){
+		
     }
+}
 
-	// 1. 实例化BroadcastReceiver子类 &  IntentFilter
-     mBroadcastReceiver mBroadcastReceiver = new mBroadcastReceiver();
-     IntentFilter intentFilter = new IntentFilter();
+// 1. 实例化BroadcastReceiver子类 &  IntentFilter
+MyBroadcastReceiver mBroadcastReceiver = new MyBroadcastReceiver();
+IntentFilter intentFilter = new IntentFilter();
 
-    // 2. 设置接收广播的类型：监听网络变化
-    intentFilter.addAction(android.net.conn.CONNECTIVITY_CHANGE);
+// 2. 设置接收广播的类型：监听网络变化
+intentFilter.addAction(android.net.conn.CONNECTIVITY_CHANGE);
 
-    // 3. 动态注册：调用Context的registerReceiver（）方法
-     registerReceiver(mBroadcastReceiver, intentFilter);
+//3.判断是否收听其他应用以及系统广播
+boolean listenToBroadcastsFromOtherApps = false;
+if (listenToBroadcastsFromOtherApps) {
+    receiverFlags = ContextCompat.RECEIVER_EXPORTED;
+} else {
+    receiverFlags = ContextCompat.RECEIVER_NOT_EXPORTED;
+}
+
+// 4. 动态注册：调用Context的registerReceiver（）方法
+ContextCompat.registerReceiver(context, mBroadcastReceiver, intentFilter, receiverFlags);
 
 
-	@override
-	protected void onDestroy(){
-        //动态注册广播后，需要在相应位置记得销毁广播
-		unregisterReceiver(mBroadcastReceiver);
-    }
+@override
+protected void onDestroy(){
+    //动态注册广播后，需要在相应位置记得销毁广播
+    unregisterReceiver(mBroadcastReceiver);
+}
 
 ```
+
+> **广播取消注册：**
+>
+> 如需停止接收广播，请调用 `unregisterReceiver(android.content.BroadcastReceiver)`。当不再需要接收器或上下文不再有效时，请务必取消注册接收器。
+>
+> **请注意注册和取消注册接收器的位置**：
+>
+> - 如果使用 `activity` 的`context`在 `onCreate(Bundle)` 中注册接收器，则应在 `onDestroy()` 中取消注册接收器，以防止将接收器泄露到 activity 上下文之外。
+> - 如果在 `onResume()` 中注册接收器，则应在 `onPause()` 中取消注册，以防止对其进行多次注册（如果不想在暂停时接收广播，这样可以减少不必要的系统开销）。
+
+
 
 > **注意:*动态广播最好在onResume中注册， onPause注销***
 
@@ -2695,16 +2740,16 @@ public class mBroadcastReceiver extends BroadcastReceiver{
 
 #### 3.发送广播:
 
-**广播的发送是通过intent 的 sendBroasdcast() 方法发送出去**
+**广播的发送是通过`intent`的`sendBroasdcast()`方法**
 
-> - 标准广播
+> - **标准广播**
 >
->   > ```java
->   > Intent intent = new Intent("com.example.broadcasttest.MY_BROADCAST");
->   > sendBroadcast(intent);
->   > ```
+> > ```java
+> > Intent intent = new Intent("com.example.broadcasttest.MY_BROADCAST");
+> > sendBroadcast(intent);
+> > ```
 >   
->- 有序广播
+>- **有序广播**
 > 
 >  > ```java
 >   > //第二个参数是和权限相关的字符串
@@ -2721,12 +2766,12 @@ public class mBroadcastReceiver extends BroadcastReceiver{
 >   > </receive>
 >   > ```
 >   >
->   > 如果优先级高的将广播进行截断:
+>   > 如果该应用优先级高，可以将广播进行截断:
 >   >
 >   > ```java
 >   > @Override
 >   > public void onReceive(){
->   >     abortBroadcast();
+>   >        abortBroadcast();
 >   > }
 >   > ```
 
@@ -2736,37 +2781,33 @@ public class mBroadcastReceiver extends BroadcastReceiver{
 
 我们上面发送的都是全局广播，可以被其他任何应用程序收到，但是这可能会造成一些问题，比如安全数据泄露，收到广播垃圾等等。
 
-为了解决安全性问题，Android 引入广播机制，使得广播只能在内部传播
+为了解决安全性问题，Android 引入本地广播机制，使得广播只能在内部传播
 
 > ```java
-> 
 > //使用manager进行广播管理
 > private LocalBroadcastManager localBroadcastManager;
 > 
-> 
 > public void onCreate(Bundle savedInstanceState){
->     ...
 >     //获取实例
 >     localBroadcastManager = LocalBroadcastManager.getInstance(this);
->     
->     .....
->     //发送广播
->     Intent intent = new Intent("com.example.broadcasttest.MY_BROADCAST");
->     localBroadcastManager.sendBroadcast(intent);
-> }
-> ```
->
-> ```java
+>    
+>        //发送广播
+>        Intent intent = new Intent("com.example.broadcasttest.MY_BROADCAST");
+>        localBroadcastManager.sendBroadcast(intent);
+>    }
+>    ```
+>    
+>    ```java
 > //“自定义”本地接收器
 > private LocalReceiver localReceiver;
-> //使用manager进行广播管理
+>//使用manager进行广播管理
 > private LocalBroadcastManager localBroadcastManager;
 > 
 > localReiver = new LoacalReceiver();
 > 
 > localBroadcastManager.registerReceiver(localReceiver,intentFilter);
 > ```
->
+> 
 > > 实质上就是通过一个LocalBroadcastManager进行管理，其他本质不同；
 > >
 > > <font color="red">本地广播无法通过静态注册方式进行接收</font>
@@ -2778,139 +2819,4 @@ public class mBroadcastReceiver extends BroadcastReceiver{
 用于强制下线
 
 
-
-## 跨进程通信方式
-
-#### 1.概述：
-
-由于应用程序之间不能共享内存。在不同应用程序之间交互数据（跨进程通讯），在Android SDK中提供了4种用于跨进程通讯的方式。
-
-这4种方式正好对应于android系统中4种应用程序组件：`Activity`、`Content Provider`、`Broadcast`和`Service`：
-
-- Activity可以跨进程调用其他应用程序的Activity；
-- Content Provider可以跨进程访问其他应用程序中的数据（以Cursor对象形式返回），当然，也可以对其他应用程序的数据进行增、删、改操作；
-- Broadcast可以向android系统中所有应用程序发送广播，而需要跨进程通讯的应用程序可以监听这些广播；
-- Service也可以访问其他应用程序中的数据，但不同的是，Content Provider返回的是Cursor对象，而Service返回的是Java对象，这种可以跨进程通讯的服务叫AIDL服务。
-
-#### 2.方法：
-
-##### Activity:
-
-Activity的跨进程访问与进程内访问略有不同。虽然它们都需要Intent对象，但跨进程访问并不需要指定Context对象和Activity的Class对象，而需要指定的是要访问的Activity所对应的Action（一个字符串）。有些Activity还需要指定一个Uri（通过 Intent构造方法的第2个参数指定）。
-
-```java
-// 在android系统中有很多应用程序提供了可以跨进程访问的Activity，例如，下面的代码可以直接调用拨打电话的Activity。
-Intent callIntent = new  Intent(Intent.ACTION_CALL, Uri.parse("tel:12345678" ));  
-startActivity(callIntent);
-```
-
-###### (1)将Intent和数据关联：
-
-`intent`通常还包括与操作相关的数据，例如您要查看的地址或您要发送的电子邮件。根据您要创建的intent，数据可能是 `Uri` 或其他几种数据类型之一，也可能该 intent 根本不需要数据。
-
-如果您的数据是 `Uri`，则可以使用一个简单的 `Intent()` 构造函数来定义操作和数据。
-
-```java
-Uri webpage = Uri.parse("https://www.android.com");
-Intent webIntent = new Intent(Intent.ACTION_VIEW, webpage);
-```
-
-**添加额外数据：**
-
-其他类型的隐式 intent 需要“额外”数据，以提供字符串等不同数据类型。您可以使用各种不同的 `putExtra()` 方法添加一条或多条额外数据。
-
-默认情况下，系统根据所包含的 `Uri` 数据确定 intent 需要的相应MIME类型。如果您不在 intent 中包含一个 `Uri`，通常应使用 `setType()` 来指定与 intent 相关联的数据类型。设置 MIME 类型可以进一步指定应接收 intent 的 activity 类型。
-
-以下是一些添加了额外数据来指定所需操作的其他 intent：
-
-**发送带有附件的电子邮件**:
-
-```java
-Intent emailIntent = new Intent(Intent.ACTION_SEND);
-// The intent does not have a URI, so declare the "text/plain" MIME type
-emailIntent.setType(HTTP.PLAIN_TEXT_TYPE);
-emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[] {"jan@example.com"}); // recipients
-emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Email subject");
-emailIntent.putExtra(Intent.EXTRA_TEXT, "Email message text");
-emailIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse("content://path/to/email/attachment"));
-// You can also attach multiple items by passing an ArrayList of Uris
-```
-
-**创建日历活动**
-
-```java
-// Event is on January 23, 2021 -- from 7:30 AM to 10:30 AM.
-Intent calendarIntent = new Intent(Intent.ACTION_INSERT, Events.CONTENT_URI);
-Calendar beginTime = Calendar.getInstance();
-beginTime.set(2021, 0, 23, 7, 30);
-Calendar endTime = Calendar.getInstance();
-endTime.set(2021, 0, 23, 10, 30);
-calendarIntent.putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, beginTime.getTimeInMillis());
-calendarIntent.putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endTime.getTimeInMillis());
-calendarIntent.putExtra(Events.TITLE, "Ninja class");
-calendarIntent.putExtra(Events.EVENT_LOCATION, "Secret dojo");
-```
-
-
-
-###### (2)允许其他应用访问你的Activity
-
-如果需要允许其他应用访问我们的Activity，则需要在清单文件中添加`<intent-filter>`进行intent过滤
-
-**过滤的条件有三个：**
-
-- **action**:对要执行的操作命名的字符串。通常是平台定义的值之一，比如 `ACTION_SEND` 或 `ACTION_VIEW`。
-- **data**:使用 `<data>`元素在您的 intent 过滤器中指定此内容。使用此元素中的一个或多个属性，您可以只指定 MIME 类型、URI 前缀、URI 架构，也可以指定这些内容的组合以及其他指示所接受数据类型的项。
-- **category**:通常与用户手势或activity启动的位置有关。系统支持多种不同的类别，但大多数都很少使用。不过，所有隐式 intent 默认使用 `CATEGORY_DEFAULT` 进行定义。
-
-例如
-
-```xml
-<activity android:name="ShareActivity">
-    <intent-filter>
-        <action android:name="android.intent.action.SEND"/>
-        <category android:name="android.intent.category.DEFAULT"/>
-        <data android:mimeType="text/plain"/>
-        <data android:mimeType="image/*"/>
-    </intent-filter>
-</activity>
-```
-
-> **提示**：如果您希望选择器对话框中的图标与 activity 的默认图标不同，请在`<intent-filter>` 元素中添加 `android:icon`。
-
-##### 	ContentProvider
-
- Android应用程序可以使用文件或SqlLite数据库来存储数据。Content Provider提供了一种在多个应用程序之间数据共享的方式（跨进程共享数据）。应用程序可以利用Content Provider完成下面的工作
-
-1. 查询数据
-2. 修改数据
-3. 添加数据
-4. 删除数据
-
-Android系统本身提供了很多`Content Provider`，例如，音频、视频、联系人信息等等。可以通过这些Content Provider获得相关信息的列表。这些列表数据将以Cursor对象返回。因此，从Content Provider返回的数据是二维表的形式。
-
-
-
-##### 广播(Broadcast)
-
- 广播是一种被动跨进程通讯的方式。当某个程序向系统发送广播时，其他的应用程序只能被动地接收广播数据。这就象电台进行广播一样，听众只能被动地收听，而不能主动与电台进行沟通。
-在应用程序中发送广播比较简单。只需要调用sendBroadcast方法即可。该方法需要一个Intent对象。通过Intent对象可以发送需要广播的数据。
-
-
-
-##### <a name=AIDL>Service(AIDL)</a>
-
-> [Android binder机制](https://juejin.cn/post/6892212234496425991)
-
-`AIDL (Android Interface Definition Language，Android 接口定义语言)` 是一种文件格式，用来简化 Binder 的使用。当使用 Binder 的时候，只需要创建一个后缀名为 `.aidl` 的文件，然后像定义接口一样定义方法。定义完毕之后，使用工具 `aidl.exe` 即可生成 Binder 所需要的各种文件。当然，我们的 AS 已经为我们集成了 `aidl.exe`，所以，只需要在定义了 AIDL 文件之后，**编译**即可生成使用 `Binder` 时所需的文件。当然，不使用 AIDL，直接编写 Binder 所需的 java 文件也是可以的。
-
-> **具体使用参考消息传递机制**
-
-
-
-
-
-##### **Messenger 和 Message**
-
-Messenger 是一个用于在进程间传递消息的对象，Message 是一个消息对象。可以使用 `Messenger.send()` 方法发送一个消息，并在 Messenger 的 `handleMessage()` 方法中接收和处理该消息。
 

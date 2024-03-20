@@ -1344,6 +1344,6 @@ public class MyActivity extends Activity implements LifecycleOwner {
 
 ## 六、JetPack Compose
 
-> https://developer.android.com/codelabs/jetpack-compose-basics?hl=zh-cn#0
+> https://developer.android.com/jetpack/compose/documentation?hl=zh-cn
 
  Jetpack Compose 是一款新型工具包（ 是 Jetpack 中的一个库 ），旨在帮助简化界面开发。该工具包将**响应式编程模型**与简洁易用的 Kotlin 编程语言相结合，并采用完全声明式的代码编写方式，可以通过调用一系列函数来描述界面，这些函数会将数据转换为界面层次结构。当底层数据发生变化时，框架会自动重新执行这些函数，为您更新界面层次结构。 
