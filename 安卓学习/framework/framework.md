@@ -4,7 +4,7 @@
 
 Android平台架构组件如下：
 
- ![Android 软件堆栈](../../trash/公司/面试遇到的问题.assets/android-stack_2x.png) 
+ ![Android 软件堆栈](framework.assets/android-stack_2x.png) 
 
 > **①Linux内核**
 >

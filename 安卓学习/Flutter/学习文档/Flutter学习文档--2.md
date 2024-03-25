@@ -643,9 +643,8 @@ _incrementCounter() async {
 #### (2)SQFlite
 
 ```yaml
-
 dependencies:
-  sqflite: ^2.0.0+3
+	sqflite: ^2.0.0+3
 ```
 
 ```dart

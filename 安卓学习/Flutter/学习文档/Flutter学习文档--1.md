@@ -1,5 +1,7 @@
 
 
+
+
 ## 一、Flutter生态情况
 
 ```
@@ -19,32 +21,34 @@ showcase: https://flutter.io/showcase/  flutter官网
 ```dart
 import 'package:flutter/material.dart';
 
-void main()=>runApp(MyApp());
+void main()=>runApp(MyApp());//将一个widget传给runApp函数即可
 
 //自定义组件：实质是创建一个继承自statelesswidget的类
 class MyApp extends StatelessWidget{
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Welcome to flutter',
-      home: Scaffold(
-        appBar: AppBar(//设置应用顶部bar的内容
-          title: Text("welcomr to flutter")
-        ),
-        body: Center(//设置应用中心的内容
-          child: Text("hello world"),
-        ),
-      ),
-    );
-  }
-  
+    @override
+    Widget build(BuildContext context) {
+        return MaterialApp(//widget需要位于MaterialApp内才能正常显示， 因此我们使用MaterialApp来运行该应用
+            title: 'Welcome to flutter',
+            home: Scaffold(
+                appBar: AppBar(//设置应用顶部bar的内容
+                    title: Text("welcomr to flutter")
+                ),
+                body: Center(//设置应用中心的内容
+                    child: Text("hello world"),
+                ),
+            ),
+        );
+    } 
 }
-//widget需要位于MaterialApp内才能正常显示， 因此我们使用MaterialApp来运行该应用
-//将一个widget传给runApp函数即可
-//在编写应用程序时，通常会创建新的widget，这些widget是无状态的StatelessWidget或者是有状态的StatefulWidget， 具体的选择取决于您的widget是否需要管理一些状态。widget的主要工作是实现一个build函数，用以构建自身。一个widget通常由一些较低级别widget组成。
 ```
 
-
+> 在编写应用程序时，通常会创建新的widget:
+>
+> - 无状态的`StatelessWidget`
+>
+> - 有状态的`StatefulWidget`
+>
+> 具体的选择取决于您的widget是否需要管理一些状态。widget的主要工作是实现一个build函数，用以构建自身。一个widget通常由一些较低级别widget组成。
 
 #### 	(1)MaterialApp
 
@@ -62,7 +66,7 @@ Flutter的wdiget里，MaterialApp 代表使用（Material Design）风格的应�
 - `onLocaleChanged` ： 当系统修改语言的时候，会触发å这个回调
 - `navigatorObservers` ： 应用 Navigator 的监听器
 - `debugShowMaterialGrid` ： 是否显示 纸墨设计 基础布局网格，用来调试 UI 的工具
-- `showPerformanceOverlay` ： 显示性能标签，[https://flutter.io/debugging/#performanceoverlay](https://links.jianshu.com/go?to=https%3A%2F%2Fflutter.io%2Fdebugging%2F%23performanceoverlay)
+- `showPerformanceOverlay` ： [显示性能标签](https://links.jianshu.com/go?to=https%3A%2F%2Fflutter.io%2Fdebugging%2F%23performanceoverlay)
 - `checkerboardRasterCacheImages 、showSemanticsDebugger、debugShowCheckedModeBanner(关闭右上角debug图标)` 各种调试开关
 
 **常见字段及其属性**
@@ -77,57 +81,57 @@ Flutter有一套丰富、强大的基础widget，其中以下是很常用的：
 
 - [`Text`](https://docs.flutter.io/flutter/widgets/Text-class.html)：该 widget 可让创建一个带格式的文本。
 - [`Row`](https://docs.flutter.io/flutter/widgets/Row-class.html)、 [`Column`](https://docs.flutter.io/flutter/widgets/Column-class.html)： 这些具有弹性空间的布局类Widget可让您在水平（Row）和垂直（Column）方向上创建灵活的布局。其设计是基于web开发中的Flexbox布局模型。
-- [`Stack`](https://docs.flutter.io/flutter/widgets/Stack-class.html)： **取代线性布局** (译者语：和Android中的LinearLayout相似)，[`Stack`](https://docs.flutter.io/flutter/widgets/Stack-class.html)允许子 widget 堆叠， 你可以使用 [`Positioned`](https://docs.flutter.io/flutter/widgets/Positioned-class.html) 来定位他们相对于`Stack`的上下左右四条边的位置。Stacks是基于Web开发中的绝度定位（absolute positioning )布局模型设计的。
+- [`Stack`](https://docs.flutter.io/flutter/widgets/Stack-class.html)： **取代线性布局** (译者语：和Android中的LinearLayout相似)，[`Stack`](https://docs.flutter.io/flutter/widgets/Stack-class.html)允许子 widget 堆叠， 可以使用 [`Positioned`](https://docs.flutter.io/flutter/widgets/Positioned-class.html) 来定位他们相对于`Stack`的上下左右四条边的位置。Stacks是基于Web开发中的绝度定位（absolute positioning )布局模型设计的。
 - [`Container`](https://docs.flutter.io/flutter/widgets/Container-class.html)： [`Container`](https://docs.flutter.io/flutter/widgets/Container-class.html) 可让您创建矩形视觉元素。container 可以装饰为一个[`BoxDecoration`](https://docs.flutter.io/flutter/painting/BoxDecoration-class.html), 如 background、一个边框、或者一个阴影。 [`Container`](https://docs.flutter.io/flutter/widgets/Container-class.html) 也可以具有边距（margins）、填充(padding)和应用于其大小的约束(constraints)。另外， [`Container`](https://docs.flutter.io/flutter/widgets/Container-class.html)可以使用矩阵在三维空间中对其进行变换。
 
 
 
 #### (3)Scaffold：脚手架
 
-​		**简介**：`Scaffold` 实现了基本的 `Material` 布局。只要是在 `Material` 中定义了的单个界面显示的布局控件元素，都可以使用 `Scaffold` 来绘制。我们可以**将 Scaffold 理解为一个布局的容器**。可以在这个容器中绘制我们的用户界面。
+**简介**：`Scaffold` 实现了基本的 `Material` 布局。只要是在 `Material` 中定义了的单个界面显示的布局控件元素，都可以使用 `Scaffold` 来绘制。可以**将 Scaffold 理解为一个布局的容器**。可以在这个容器中绘制我们的用户界面。
 
-一般来说，**总是定义一个 Scaffold 当作实参传入到 MaterialApp 的 home 属性**。换句话说，一个 MaterialApp 总是绑定一个 Scaffold。
+一般来说，**总是定义一个 Scaffold 当作实参传入到 `MaterialApp` 的 home 属性**。换句话说，一个 MaterialApp 总是绑定一个 Scaffold。
 
 **Scaffold定义了一个 UI 框架**，这个框架包含： 头部导航栏，body，右下角浮动按钮，底部导航栏等。
 
-​		**主要属性**：
+**主要属性**：
 
 ```dart
 class Scaffold extends StatefulWidget {
-  /// Creates a visual scaffold for material design widgets.
-  const Scaffold({
-    Key key,
-    this.appBar, //横向水平布局，通常显示在顶部（*）
-    this.body, // 内容（*）
-    this.floatingActionButton, //悬浮按钮，就是上图右下角按钮（*）
-    this.floatingActionButtonLocation, //悬浮按钮位置
-    //悬浮按钮在[floatingActionButtonLocation]出现/消失动画
-    this.floatingActionButtonAnimator, 
-    //在底部呈现一组button，显示于[bottomNavigationBar]之上，[body]之下
-    this.persistentFooterButtons,
-    //一个垂直面板，显示于左侧，初始处于隐藏状态（*）
-    this.drawer,
-    this.endDrawer,
-    //出现于底部的一系列水平按钮（*）
-    this.bottomNavigationBar,
-    //底部持久化提示框
-    this.bottomSheet,
-    //内容背景颜色
-    this.backgroundColor,
-    //弃用，使用[resizeToAvoidBottomInset]
-    this.resizeToAvoidBottomPadding,
-    //重新计算布局空间大小
-    this.resizeToAvoidBottomInset,
-    //是否显示到底部，默认为true将显示到顶部状态栏
-    this.primary = true,
-    //
-    this.drawerDragStartBehavior = DragStartBehavior.down,
-  }) : assert(primary != null),
-       assert(drawerDragStartBehavior != null),
-       super(key: key);
+    /// Creates a visual scaffold for material design widgets.
+    const Scaffold({
+        Key key,
+        this.appBar, //横向水平布局，通常显示在顶部（*）
+        this.body, // 内容（*）
+        this.floatingActionButton, //悬浮按钮，就是上图右下角按钮（*）
+        this.floatingActionButtonLocation, //悬浮按钮位置
+        //悬浮按钮在[floatingActionButtonLocation]出现/消失动画
+        this.floatingActionButtonAnimator, 
+        //在底部呈现一组button，显示于[bottomNavigationBar]之上，[body]之下
+        this.persistentFooterButtons,
+        //一个垂直面板，显示于左侧，初始处于隐藏状态（*）
+        this.drawer,
+        this.endDrawer,
+        //出现于底部的一系列水平按钮（*）
+        this.bottomNavigationBar,
+        //底部持久化提示框
+        this.bottomSheet,
+        //内容背景颜色
+        this.backgroundColor,
+        //弃用，使用[resizeToAvoidBottomInset]
+        this.resizeToAvoidBottomPadding,
+        //重新计算布局空间大小
+        this.resizeToAvoidBottomInset,
+        //是否显示到底部，默认为true将显示到顶部状态栏
+        this.primary = true,
+        //
+        this.drawerDragStartBehavior = DragStartBehavior.down,
+    }) : assert(primary != null),
+    assert(drawerDragStartBehavior != null),
+    super(key: key);
 ```
 
-下面举例一些常用的scaffold属性
+**下面举例一些常用的scaffold属性**
 
 ##### ①bottomNavigationBar(底部导航栏)
 
@@ -135,47 +139,48 @@ class Scaffold extends StatefulWidget {
 
 ```dart
 class ContentY extends StatefulWidget {
-  @override
-  _ContentYState createState() => _ContentYState();
+    @override
+    _ContentYState createState() => _ContentYState();
 }
 
 //由于需要动态渲染，所以自定义为stateful组件
 class _ContentYState extends State<ContentY> {
-  int _index = 0;
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('大家好吗'),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: this._index,//默认显示点亮的图标
-        /*底部导航栏的图标*/
-        items: [
-          BottomNavigationBarItem(
-              icon: Icon(Icons.home_sharp),
-              label: '主页键'
-          ),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.category),
-              label: '分类'
-          ),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.add_a_photo),
-              label: 'camera'
-          )
-        ],
-        onTap: (int index){
-          setState(() {
-            this._index = index;//点击按钮后点亮显示图标
-          });
-        },
-      ),
-    );
-  }
+    int _index = 0;
+    @override
+    Widget build(BuildContext context) {
+        return Scaffold(
+            appBar: AppBar(
+                title: Text('大家好吗'),
+            ),
+            bottomNavigationBar: BottomNavigationBar(
+                currentIndex: this._index,//默认显示点亮的图标
+                /*底部导航栏的图标*/
+                items: [
+                    BottomNavigationBarItem(
+                        icon: Icon(Icons.home_sharp),
+                        label: '主页键'
+                    ),
+                    BottomNavigationBarItem(
+                        icon: Icon(Icons.category),
+                        label: '分类'
+                    ),
+                    BottomNavigationBarItem(
+                        icon: Icon(Icons.add_a_photo),
+                        label: 'camera'
+                    )
+                ],
+                onTap: (int index){
+                    setState(() {
+                        this._index = index;//点击按钮后点亮显示图标
+                    });
+                },
+            ),
+        );
+    }
 }
-//当图标数量超过四个的时候，需要设置type:BottomNavigationBarType.fix
 ```
+
+> 当图标数量超过四个的时候，需要设置type:BottomNavigationBarType.fix
 
 <img src="https://gitee.com/kevinyong/kevin-gallery/raw/master/image-20210613154039072.png" alt="image-20210613154039072" style="zoom:67%;" />
 
@@ -328,21 +333,19 @@ appBar:AppBar(
 
 ```dart
 return DefaultTabController(//外层要嵌套一个controller
-        length: 2,
-        child: Scaffold(
+    length: 2,
+    child: Scaffold(
         appBar: AppBar(
-          title: Text('Main Screen'),
-          bottom: TabBar(//声明TabBar
-            tabs: <Widget>[
-              Tab(text:'首页'),
-              Tab(text: '个人信息',)
-            ]
-          )
+            title: Text('Main Screen'),
+            bottom: TabBar(//声明TabBar
+                tabs: <Widget>[
+                    Tab(text:'首页'),
+                    Tab(text: '个人信息',)
+                ]
+            )
         )
-      )
-    );
-  }
-}
+    )
+);
 ```
 
 
@@ -353,36 +356,36 @@ return DefaultTabController(//外层要嵌套一个controller
 
 ```dart
 body: TabBarView(
-          children: <Widget>[//点击第一个tab就显示list第一个元素
-            ListView(
-              children: <Widget>[
+    children: <Widget>[//点击第一个tab就显示list第一个元素
+        ListView(
+            children: <Widget>[
                 Text('首页 1'),
                 Text('首页 2'),
                 Text('首页 3')
-              ],
-            ),
-            ListView(//点击第二个tab显示第二个元素
-              children: <Widget>[
+            ],
+        ),
+        ListView(//点击第二个tab显示第二个元素
+            children: <Widget>[
                 Text('个人 1'),
                 Text('个人 2'),
                 Text('个人 3')
-              ],
-            )
-              
-  //也可以在前边onTap定义点击事件
-  TabBar(
-      tabs: <Widget>[
-          Tab(child: Text('yht')),
-          Tab(child: Text('hty'))
-      ],
-      onTap: (index){
-          if(index==1){
-              print('1');
-          }else{
-              print('0');
-          }
-      },
-  ),
+            ],
+        )
+
+        //也可以在前边onTap定义点击事件
+        TabBar(
+            tabs: <Widget>[
+                Tab(child: Text('yht')),
+                Tab(child: Text('hty'))
+            ],
+            onTap: (index){
+                if(index==1){
+                    print('1');
+                }else{
+                    print('0');
+                }
+            },
+        ),
 ```
 
 **如果顶部嵌套太多的scaffold则会导致有多个appbar，这时候可以把tabbar定义在title属性里面**
@@ -539,8 +542,8 @@ drawer:Drawer(
 
 #### (4)Stateless widgets 和  Stateful widgets
 
-- State*less* widgets 是不可变的, 这意味着它们的属性不能改变 - 所有的值都是最终的.
-- State*ful* widgets 持有的状态可能在widget生命周期中发生变化. 实现一个 stateful widget 至少需要两个类:
+- `Stateless widgets` 是不可变的, 这意味着它们的属性不能改变 - 所有的值都是最终的.
+- `State*ful* widgets` 持有的状态可能在widget生命周期中发生变化. 实现一个 stateful widget 至少需要两个类:
   1. 一个 StatefulWidget类。
   2. 一个 State类。 StatefulWidget类本身是不变的，但是 State类在widget生命周期中始终存在.
 
@@ -1564,11 +1567,11 @@ ElevatedButton(
 **传值，可以通过构造函数进行传值**
 
 ```dart
- Navigator.of(context).push(//通过Navigator组件
-            MaterialPageRoute(
-                builder: (context)=>NavigatorPage('hello')
-            )
-        );
+Navigator.of(context).push(//通过Navigator组件
+    MaterialPageRoute(
+        builder: (context)=>NavigatorPage('hello')
+    )
+);
 ```
 
 由于跳转到新的页面之后，flutter自动提供了顶部appbar的返回按键，但如果需要自己定义，则可以通过
@@ -1586,7 +1589,7 @@ MaterialApp里面的属性——routes，可以进行路由的命名
 
 ```dart
 return MaterialApp(
-	home:Tabs(),
+    home:Tabs(),
     routes:{
         '/form':(context)=>Form(),//对路由进行命名，采用键值对的方式
         '/search':(context)=>Search()
@@ -1947,35 +1950,35 @@ styleFrom({
 
 ```dart
 final ButtonStyle style =
-        ElevatedButton.styleFrom(textStyle: const TextStyle(fontSize: 20));
+    ElevatedButton.styleFrom(textStyle: const TextStyle(fontSize: 20));
 
 ElevatedButton(
-            style: style,//调用样式
-            onPressed: null,
-            child: const Text('Disabled'),
-          ),
+    style: style,//调用样式
+    onPressed: null,
+    child: const Text('Disabled'),
+),
 ```
 
 可以通过style里的background属性来设置点击以后透明度
 
 ```dart
 style: ButtonStyle(
-              alignment: Alignment.center,
-              backgroundColor: MaterialStateProperty.resolveWith<Color>(//监听点击事件，然后切换不透明度
-                    (Set<MaterialState> states) {
-                  if (states.contains(MaterialState.pressed))
-                    return Colors.pink.withOpacity(0.5);
-                  return Colors.pink; // Use the component's default.
-                },
-              )
-            ),
+    alignment: Alignment.center,
+    backgroundColor: MaterialStateProperty.resolveWith<Color>(//监听点击事件，然后切换不透明度
+        (Set<MaterialState> states) {
+            if (states.contains(MaterialState.pressed))
+                return Colors.pink.withOpacity(0.5);
+            return Colors.pink; // Use the component's default.
+        },
+    )
+),
 
 
-如果只想设置颜色，则
+//如果只想设置颜色，则
     ElevatedButton(
-              style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(Colors.pink)
-              ))
+    style: ButtonStyle(
+        backgroundColor: MaterialStateProperty.all(Colors.pink)
+    ))
 ```
 
 ### 3.ButtonBar
@@ -2692,11 +2695,11 @@ print(await http.read('https://example.com/foobar.txt'));
 ```dart
 var client = http.Client();
 try {
-  var uriResponse = await client.post(Uri.parse('https://example.com/whatsit/create'),//post请求
-      body: {'name': 'doodle', 'color': 'blue'});
-  print(await client.get(uriResponse.bodyFields['uri']));//get请求
+    var uriResponse = await client.post(Uri.parse('https://example.com/whatsit/create'),//post请求
+                                        body: {'name': 'doodle', 'color': 'blue'});
+    print(await client.get(uriResponse.bodyFields['uri']));//get请求
 } finally {
-  client.close();
+    client.close();
 }
 ```
 
@@ -3045,72 +3048,72 @@ dio.interceptors.add(InterceptorsWrapper(
 
 ```dart
 class HttpUtil {
-  static HttpUtil instance;
-  Dio dio;
-  BaseOptions options;
+    static HttpUtil instance;
+    Dio dio;
+    BaseOptions options;
 
-  CancelToken cancelToken = new CancelToken();
+    CancelToken cancelToken = new CancelToken();
 
-  static HttpUtil getInstance() {
-    if (null == instance) instance = new HttpUtil();
-    return instance;
-  }
-    
-    
-   /*
+    static HttpUtil getInstance() {
+        if (null == instance) instance = new HttpUtil();
+        return instance;
+    }
+
+
+    /*
    * config it and create
    */
-  HttpUtil() {
-    //BaseOptions、Options、RequestOptions 都可以配置参数，优先级别依次递增，且可以根据优先级别覆盖参数
-    options = new BaseOptions(
-      //请求基地址,可以包含子路径
-      baseUrl: "http://www.google.com",
-      //连接服务器超时时间，单位是毫秒.
-      connectTimeout: 10000,
-      //响应流上前后两次接受到数据的间隔，单位为毫秒。
-      receiveTimeout: 5000,
-      //Http请求头.
-      headers: {
-        //do something
-        "version": "1.0.0"
-      },
-      //请求的Content-Type，默认值是"application/json; charset=utf-8",Headers.formUrlEncodedContentType会自动编码请求体.
-      contentType: Headers.formUrlEncodedContentType,
-      //表示期望以那种格式(方式)接受响应数据。接受4种类型 `json`, `stream`, `plain`, `bytes`. 默认值是 `json`,
-      responseType: ResponseType.json,
-    );
+    HttpUtil() {
+        //BaseOptions、Options、RequestOptions 都可以配置参数，优先级别依次递增，且可以根据优先级别覆盖参数
+        options = new BaseOptions(
+            //请求基地址,可以包含子路径
+            baseUrl: "http://www.google.com",
+            //连接服务器超时时间，单位是毫秒.
+            connectTimeout: 10000,
+            //响应流上前后两次接受到数据的间隔，单位为毫秒。
+            receiveTimeout: 5000,
+            //Http请求头.
+            headers: {
+                //do something
+                "version": "1.0.0"
+            },
+            //请求的Content-Type，默认值是"application/json; charset=utf-8",Headers.formUrlEncodedContentType会自动编码请求体.
+            contentType: Headers.formUrlEncodedContentType,
+            //表示期望以那种格式(方式)接受响应数据。接受4种类型 `json`, `stream`, `plain`, `bytes`. 默认值是 `json`,
+            responseType: ResponseType.json,
+        );
 
-    dio = new Dio(options);
-  }
+        dio = new Dio(options);
+    }
 
-    
+
 }
 ```
 
 **get请求**
 
 ```dart
-  /*
+/*
    * get请求
    */
-  get(url, {data, options, cancelToken}) async {
+get(url, {data, options, cancelToken}) async {
     Response response;
     try {
-      response = await dio.get(url, queryParameters: data, options: options, cancelToken: cancelToken);
-      print('get success---------${response.statusCode}');
-      print('get success---------${response.data}');
+        response = await dio.get(url, queryParameters: data, options: options, cancelToken: cancelToken);
+        print('get success---------${response.statusCode}');
+        print('get success---------${response.data}');
 
-//      response.data; 响应体
-//      response.headers; 响应头
-//      response.request; 请求体
-//      response.statusCode; 状态码
+        //      response.data; 响应体
+        //      response.headers; 响应头
+        //      response.request; 请求体
+        //      response.statusCode; 状态码
 
     } on DioError catch (e) {
-      print('get error---------$e');
-      formatError(e);
+        print('get error---------$e');
+        formatError(e);
     }
     return response.data;
-  }
+}
 ```
 
 ```dart

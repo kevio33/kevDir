@@ -1576,7 +1576,7 @@ object RepositoryManager{
 
 #### (2)伴生对象（Companion object）
 
-在Kotlin中是**没有static关键字**的，也就是意味着没有了静态方法和静态成员。那么在kotlin中如果要想表示这种概念，取而代之的是`包级别函数（package-level function）`和这里提到的`伴生对象`。
+在Kotlin中是**没有static关键字**的，也就是意味着没有了`静态方法`和`静态成员`。那么在kotlin中如果要想表示这种概念，取而代之的是`包级别函数（package-level function）`和这里提到的`伴生对象`。
 
 ```kotlin
 class A{
@@ -1590,12 +1590,12 @@ class A{
 >
 > ```kotlin
 > class ObjectTest {
->     companion object MyObjec{
->         val a = 20
->         fun method() {
->             println("I'm in companion object")
->         }
->     }
+>        companion object MyObjec{
+>            val a = 20
+>            fun method() {
+>                println("I'm in companion object")
+>            }
+>        }
 > }
 > ```
 >
@@ -1603,13 +1603,13 @@ class A{
 >
 > ```kotlin
 > fun main(args: Array<String>) {
->     //方式一
->     ObjectTest.MyObject.method()
->     println(ObjectTest.MyObject.a)
+>        //方式一
+>        ObjectTest.MyObject.method()
+>        println(ObjectTest.MyObject.a)
 > 
->     //方式二（推荐方式）
->     ObjectTest.method()
->     println(ObjectTest.a)
+>        //方式二（推荐方式）
+>        ObjectTest.method()
+>        println(ObjectTest.a)
 > }
 > ```
 >
