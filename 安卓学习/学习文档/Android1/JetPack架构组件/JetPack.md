@@ -14,52 +14,9 @@ def lifecycle_version = "2.3.1"
 implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
 ```
 
-### 2.实现
 
-通过继承ViewModel类，并结合LiveData实现对数据保存，因为ViewModel有自己的生命周期，所以LiveData和ViewModel绑定就不会受Activity的影响，在***应用配置更改期间viewmodel对象不会销毁，所以可以为Activity和Fragment恢复数据***。
 
-**例如：要在程序中保存用户列表信息**
-
-```java
-public class MyViewModel extends ViewModel {
-    private MutableLiveData<List<User>> users;
-    public LiveData<List<User>> getUsers() {
-        if (users == null) {
-            users = new MutableLiveData<List<User>>();
-            loadUsers();
-        }
-        return users;
-    }
-
-    private void loadUsers() {
-        // Do an asynchronous operation to fetch users.
-    }
-}
-```
-
-然后可以在Activity访问该列表
-
-```java
-public class MyActivity extends AppCompatActivity {
-    public void onCreate(Bundle savedInstanceState) {
-        // 当onCreate执行时，第一次创建viewmodel
-        //再次调用onCreate方法创建Activity时，获取的实例和第一次创建的实例是相同的
-
-        //必须通过ViewModelProvider来获取viewmodel实例
-        MyViewModel model = new ViewModelProvider(this).get(MyViewModel.class);
-        model.getUsers().observe(this, users -> { 
-            // update UI
-        });
-    }
-}
-```
-
-> **observe用于观察LiveData的更新**
->
-> - 第一个参数owner，是为了感知这个参数的生命周期。
-> - 第二个参数是回调，内部会帮你切换到主线程。
-
-### 3.生命周期
+### 2.生命周期
 
 ViewModel会***一直存在在内存中***直到限定其存在范围的Lifecycle永久消失：
 
@@ -70,7 +27,7 @@ ViewModel会***一直存在在内存中***直到限定其存在范围的Lifecycl
 
 ![说明 ViewModel 随着 Activity 状态的改变而经历的生命周期。](JetPack.assets/viewmodel-lifecycle.png)
 
-### 4.实现加载器
+### 3.实现加载器
 
 **通过ViewModel和Room以及LiveData来实现加载器的功能**
 
@@ -84,7 +41,82 @@ ViewModel会***一直存在在内存中***直到限定其存在范围的Lifecycl
 
 
 
-### 5.实现MVVM
+### 4.ViewModel简单使用
+
+通过继承ViewModel类，并结合LiveData实现对数据保存，因为ViewModel有自己的生命周期，所以LiveData和ViewModel绑定就不会受Activity的影响，在***应用配置更改期间viewmodel对象不会销毁，所以可以为Activity和Fragment恢复数据***。
+
+**例如：要在程序中保存用户列表信息**
+
+```java
+public class UserModel extends ViewModel {
+
+    public final MutableLiveData<User> mUserLiveData = new MutableLiveData<>();
+
+    public UserModel() {
+        //模拟从网络加载用户信息
+        mUserLiveData.postValue(new User(1, "name1"));
+    }
+
+    //模拟 进行一些数据骚操作
+    public void doSomething() {
+        User user = mUserLiveData.getValue();
+        if (user != null) {
+            user.age = 15;
+            user.name = "name15";
+            mUserLiveData.setValue(user);
+        }
+    }
+}
+```
+
+然后可以在Activity访问该列表
+
+```java
+import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
+
+public class MainActivity extends FragmentActivity {
+
+    private TextView mContentTv;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        mContentTv = findViewById(R.id.tv_content);
+
+        //构建ViewModel实例
+        final UserModel userModel = ViewModelProviders.of(this).get(UserModel.class);
+
+        //让TextView观察ViewModel中数据的变化,并实时展示
+        userModel.mUserLiveData.observe(this, new Observer<User>() {
+            @Override
+            public void onChanged(User user) {
+                mContentTv.setText(user.toString());
+            }
+        });
+
+        findViewById(R.id.btn_test).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //点击按钮  更新User数据  观察TextView变化
+                userModel.doSomething();
+            }
+        });
+    }
+}
+```
+
+> **observe用于观察LiveData的更新**
+>
+> - 第一个参数owner，是为了感知这个参数的生命周期。
+> - 第二个参数是回调，内部会帮你切换到主线程。
+
+
+
+### 4.实现MVVM
 
 viewmodel的设计出现就是为了能够实现MVVM架构，因为ViewModel一直存在内存中，方便对数据恢复，同时实现与数据绑定，起到了view和model的桥梁。
 
