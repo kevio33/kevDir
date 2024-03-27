@@ -1,10 +1,14 @@
 # 一、系统进程启动流程分析
 
 > [gityuan](https://gityuan.com/)
+>
+> [framework学习路线和方法](https://juejin.cn/post/7171648372086931486)
+>
+> [Android Framework学习路线指南](https://juejin.cn/post/7222901994839900215)
 
-Android平台架构组件如下：
+Android系统架构组件如下：
 
- ![Android 软件堆栈](framework.assets/android-stack_2x.png) 
+![Android 软件堆栈](framework.assets/android-stack_2x.png) 
 
 > **①Linux内核**
 >
@@ -49,7 +53,7 @@ Android平台架构组件如下：
 > > 从 Android 5.0 (Lollipop) 开始，ART 成为了 Android 系统的默认虚拟机。
 > > ```
 >
-> **④原生C/C++库**
+> **④ Native层 /Android运行环境**
 >
 > 许多核心 Android 系统组件和服务（例如 ART 和 HAL）构建自原生代码，需要以 C 和 C++ 编写的原生库。Android 平台提供 Java 框架 API 以向应用显示其中部分原生库的功能。例如，您可以通过 Android 框架的 Java OpenGL API 访问 OpenGL ES，以支持在应用中绘制和操作 2D 和 3D 图形。
 >
@@ -76,6 +80,14 @@ Android平台架构组件如下：
 > Android 随附一套用于电子邮件、短信、日历、互联网浏览和联系人等的核心应用。平台随附的应用与用户可以选择安装的应用一样，没有特殊状态。因此第三方应用可成为用户的默认网络浏览器、短信 Messenger 甚至默认键盘（有一些例外，例如系统的“设置”应用）。
 >
 > 系统应用可用作用户的应用，以及提供开发者可从其自己的应用访问的主要功能。例如，如果您的应用要发短信，您无需自己构建该功能，可以改为调用已安装的短信应用向您指定的接收者发送消息。
+
+
+
+
+
+**大家常说的Android Framework开发其实大多数指的是中间三层的开发，即框架层、Native层、HAL层，可想而知，framework开发的内容是非常多的，那么什么场景下需要framework开发呢，或者说framework开发能做些什么呢 **
+
+
 
 ## 1.Android系统启动流程
 

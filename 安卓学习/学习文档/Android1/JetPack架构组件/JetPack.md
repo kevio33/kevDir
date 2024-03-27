@@ -6,7 +6,7 @@
 
 ### 1.概述
 
-ViewModel类旨在以注重生命周期的方式存储和管理界面相关的数据。`ViewModel`类***让数据可在发生屏幕旋转等配置更改后继续留存，为Activity和Fragment保留数据***
+ViewModel是一个用于存储和管理与UI相关的数据的类。它可以帮助开发者在配置更改（如屏幕旋转）时保留数据，从而避免数据丢失。 `ViewModel`类不依赖于Activity或Fragment的生命周期，因此**让数据可在发生配置更改(屏幕旋转)后继续留存，为Activity和Fragment保留数据**
 
 ```groovy
 // ViewModel依赖
@@ -56,16 +56,17 @@ public class MyActivity extends AppCompatActivity {
 
 > **observe用于观察LiveData的更新**
 >
-> 传入的第一个参数owner，是为了感知这个参数的生命周期。第二个参数是回调，内部会帮你切换到主线程。
+> - 第一个参数owner，是为了感知这个参数的生命周期。
+> - 第二个参数是回调，内部会帮你切换到主线程。
 
 ### 3.生命周期
 
 ViewModel会***一直存在在内存中***直到限定其存在范围的Lifecycle永久消失：
 
-- 对于 Activity，是在 Activity 完成时；
+- 对于 Activity，是在Activity完成时；
 - 而对于 Fragment，是在 Fragment 分离时。
 
-图 1 说明了 Activity 经历屏幕旋转而后结束时所处的各种生命周期状态。该图Activity 生命周期的旁边显示了 ViewModel的生命周期。此图表说明了 Activity 的各种状态。这些基本状态同样适用于 Fragment 的生命周期。
+图 1 说明了 Activity 经历屏幕旋转一直到结束时所处的各种生命周期状态。该图Activity 生命周期的旁边显示了 ViewModel的生命周期。此图表说明了 Activity 的各种状态。这些基本状态同样适用于 Fragment 的生命周期。
 
 ![说明 ViewModel 随着 Activity 状态的改变而经历的生命周期。](JetPack.assets/viewmodel-lifecycle.png)
 
@@ -73,28 +74,166 @@ ViewModel会***一直存在在内存中***直到限定其存在范围的Lifecycl
 
 **通过ViewModel和Room以及LiveData来实现加载器的功能**
 
-在以前，可以使用CursorLoader加载器来观察数据库的内容，当数据库中的值发生更改时，加载器会自动触发数据的重新加载并更新界面。下图为加载器加载：
+> 在以前，可以使用`CursorLoader`加载器来观察数据库的内容，当数据库中的值发生更改时，加载器会自动触发数据的重新加载并更新界面。下图为加载器加载：
+>
+> ![img](JetPack.assets/viewmodel-loader.png)
 
-![img](JetPack.assets/viewmodel-loader.png)
-
-`ViewModel`与 [Room]和 [LiveData]一起使用可替换加载器。[`ViewModel`]确保数据在设备配置更改后仍然存在。[Room]在数据库发生更改时通知 [`LiveData`]，[LiveData]进而使用修订后的数据更新界面。
+`ViewModel`与`Room`和 `LiveData`一起使用可替换加载器。`ViewModel`确保数据在设备配置更改后仍然存在。`Room`在数据库发生更改时通知 `LiveData`，`LiveData`进而使用修订后的数据更新界面。
 
 ![img](JetPack.assets/viewmodel-replace-loader.png)
+
+
+
+### 5.实现MVVM
+
+viewmodel的设计出现就是为了能够实现MVVM架构，因为ViewModel一直存在内存中，方便对数据恢复，同时实现与数据绑定，起到了view和model的桥梁。
+
+**下面用ViewModel、LiveData、DataBinding例子来实现登录功能：**
+
+Model 层主要需要实现两个功能：一是通过网络请求实现登录，登录成功后会得到 UID；二是将登录账号保存到 SQLite，实现登录账号的缓存功能。(为了简便，我们不编写完整代码，就只用伪代码简单模拟一下实现流程)： 
+
+```java
+public class LoginRepository {
+    ...
+        public String login(String userName, String password) {
+        // 调用网络请求
+        String uid = apiService.login(userName, password);
+        // 将userName缓存到本地数据库
+        cache.save("userName", userName);
+
+        return uid;
+    }
+    // 从缓存中获取登录账号
+    public String getUserNameFromCache() {
+        return cache.get("userName");
+    }
+}
+
+```
+
+**下面实现ViewModel代码**
+
+```java
+public class LoginViewModel extends ViewModel {
+    public MutableLiveData<String> userName;
+    public MutableLiveData<String> password;
+    public MutableLiveData<String> uid;
+
+    private LoginRepository repository;
+
+    public LoginViewModel() {
+        repository = new LoginRepository();
+        userName.postValue(repository.getUserNameFromCache());
+        password = new MutableLiveData<>("");
+        uid = new MutableLiveData<>("0");
+    }
+
+    public void login() {
+        String userId = repository.login(userName.getValue(), password.getValue());
+        uid.postValue(userId);
+    }
+}
+```
+
+> LoginViewModel 并没有 Activity 或 Fragment 的引用，也没有像 MVP 所定义的 LoginView 的接口实例的引用。即是说，ViewModel 并不依赖于 View 层，所以，ViewModel 自然也更便于测试和复用。
+>
+> 将 **userName、password、uid** 三个变量声明为 **MutableLiveData** 类型，就可以实现自动将数据变化通知给界面。因此，上面代码中，数据变化后我们并没有再添加代码去通知界面更新 UI，其背后的机制已经自动帮我们完成了通知。 
+
+**然后实现View层**
+
+```java
+public class LoginActivity extends AppCompatActivity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        // 初始化viewModel
+        LoginViewModel viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
+        // 与布局文件进行绑定，这里通过databinding
+        ActivityLoginBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_login);
+        binding.setLifecycleOwner(this);
+        binding.setViewmodel(viewModel);
+    }
+}
+
+```
+
+**布局文件**
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <data>
+        <variable
+            name="vm"
+            type="com.example.mvvm.LoginViewModel" />
+    </data>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <EditText
+            android:id="@+id/userName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@={vm.userName}"
+            app:layout_constraintBottom_toTopOf="@+id/password"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+        <EditText
+            android:id="@+id/password"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"
+            android:text="@={vm.password}"
+            app:layout_constraintBottom_toTopOf="@+id/login"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/userName" />
+        <Button
+            android:id="@+id/login"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="@{() -> vm.login()}"
+            android:text="Login"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/password" />
+        <TextView
+            android:id="@+id/uid"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{vm.uid}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/login" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
+```
+
+> data 内的 variable 标签定义的就是我们的 LoginViewModel，我将其命名为 vm，然后就可以在下面的控件中引用它。 
+>
+> 代码中分别设置为了 **@={vm.userName}、@={vm.password}、@{vm.uid}**
+>
+> - 如果**@后面不加等号，那就只是单向绑定**，只能由 ViewModel 将数据变化通知到界面。
+> - 加了等号，才是双向绑定
+
+
 
 ## 二、LiveData
 
 ### 1.概述
 
-> - LiveData是一种类，持有可被观察的数据。
->  - LiveData是一种可感知生命周期的组件，如Activity、Fragment、Service，仅仅在Activity、Fragment、Service等组件都处于活跃的生命周期状态的时候，才去更新app组件。
-
-> 如果观察者（由 [**`Observer`**] 类表示）的生命周期处于 [**`STARTED`**] 或 [**`RESUMED`**]状态，则 LiveData 会认为该观察者处于活跃状态。LiveData 只会将更新通知给活跃的观察者。为观察 [**`LiveData`**] 对象而注册的非活跃观察者不会收到更改通知。
+> - LiveData是一个可观察的数据持有器类 ，持有可被观察的数据。
+>  - LiveData是一种**可感知生命周期的组件**，仅仅在Activity、Fragment、Service等组件都处于活跃的生命周期状态的时候，才去更新app组件。
+>  - 当LiveData的数据发生变化时，它会自动通知所有活动的观察者，从而更新UI 
 
 ### 2.优势
 
 - **确保界面符合数据状态**
 
-LiveData 遵循观察者模式。当底层数据发生变化时，LiveData 会通知 [`Observer`] 对象。您可以整合代码以在这些 `Observer` 对象中更新界面。这样一来，您无需在每次应用数据发生变化时更新界面，因为观察者会替您完成更新。
+LiveData 遵循观察者模式。当底层数据发生变化时，LiveData 会通知 [`Observer`] 对象，可以在`Observer` 对象中更新界面。（类似于数据绑定？）
 
 - **不会发生内存泄漏**
 
@@ -141,8 +280,8 @@ LiveData 遵循观察者模式。当底层数据发生变化时，LiveData 会�
 ```java
 public class NameViewModel extends ViewModel {
 
-// Create a LiveData with a String
-private MutableLiveData<String> currentName;
+    // Create a LiveData with a String
+    private MutableLiveData<String> currentName;
 
     public MutableLiveData<String> getCurrentName() {
         if (currentName == null) {
@@ -151,11 +290,11 @@ private MutableLiveData<String> currentName;
         return currentName;
     }
 
-// Rest of the ViewModel...
+    // Rest of the ViewModel...
 }
 ```
 
-### 4.观察Livedata
+#### 观察Livedata
 
 在大多数情况下，应该从 `onCreate()` 方法开始观察 [`LiveData`]对象，原因如下：
 
@@ -203,7 +342,7 @@ public class NameActivity extends AppCompatActivity {
 >
 > 传入的第一个参数owner，是为了感知这个参数的生命周期。第二个参数是回调，内部会帮你切换到主线程。
 
-### 5.更新LiveData
+#### 更新LiveData
 
 > LiveData没有公开可用的方法来更新存储的数据，但是***MutableLiveData类公开了setValue(T)、postValue(T)方法来修改存储在LiveData对象中的值***
 
@@ -221,7 +360,7 @@ button.setOnClickListener(new OnClickListener() {
 
 > 必须调用 [`setValue(T)`]方法以从**主线程更新 `LiveData` 对象**。如果在工作器线程中执行代码，您可以改用 [`postValue(T)`]方法来更新 `LiveData` 对象。在所有情况下，调用 `setValue()` 或 `postValue()` 都会触发观察者并更新界面。
 
-### 6.拓展LiveData
+#### 拓展LiveData
 
 ```java
 public class StockLiveData extends LiveData<BigDecimal> {
@@ -285,7 +424,7 @@ public class MyFragment extends Fragment {
 > - 如果 `Lifecycle` 对象未处于活跃状态，那么即使值发生更改，也不会调用观察者。
 > - 销毁 `Lifecycle` 对象后，会自动移除观察者。
 
-### 7.转换LiveData
+#### 转换LiveData
 
 您可能希望在将 [`LiveData`]对象分派给观察者之前对存储在其中的值进行更改，或者您可能需要根据另一个实例的值返回不同的 `LiveData` 实例。
 
@@ -317,11 +456,11 @@ LiveData<User> user = Transformations.switchMap(userId, id -> getUser(id) );
 
 
 
-### 8.Kotlin协程与LiveData
+### Kotlin协程与LiveData
 
 > 参考——https://blog.csdn.net/jzlhll123/article/details/119728380
 
-### 1.概述
+#### 1.概述
 
 > 持久性库在 SQLite 的基础上提供了一个抽象层，让用户能够在充分利用 SQLite 的强大功能的同时，获享更强健的数据库访问机制。
 >
@@ -348,10 +487,6 @@ dependencies {
     testImplementation "androidx.room:room-testing:$room_version"
 }
 ```
-
-
-
-### 2.结合LiveData
 
 
 

@@ -186,11 +186,11 @@ private ResultProfileBinding binding;
 
 ```groovy
 android {
-        ...
+    ...
         dataBinding {
             enabled = true
         }
-    }
+}
 ```
 
 
@@ -217,11 +217,36 @@ android {
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@{user.name}" />
+        <EditText
+            android:id="@+id/password"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"
+            android:text="@={user.password}"
+            app:layout_constraintBottom_toTopOf="@+id/login"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/userName" />
+        <Button
+            android:id="@+id/login"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="@{() -> user.login()}"
+            android:text="Login"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/password" />
     </LinearLayout>
     
     
 </layout>
 ```
+
+> 如果**@后面不加等号，那就只是单向绑定**，只能由 ViewModel 将数据变化通知到界面。
+>
+> **@加了等号，才是双向绑定**，即界面上的数据改变才能传递给到 ViewModel。 
+>
+> Button的`android:onClick`属性值，设置为了**@{() -> user.login()}**，这就是将该按钮的点击事件绑定到User的`login()`方法  
 
 ```java
 // 在 Activity 中使用 DataBinding
