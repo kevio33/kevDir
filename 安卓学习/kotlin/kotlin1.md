@@ -103,8 +103,6 @@ list.add("Pear")
 list.add("Grape")
 ```
 
-
-
 **使用listOf创建不可变集合**
 
 ```kotlin
@@ -575,8 +573,6 @@ interface Study {
     }
 }
 ```
-
-
 
 
 

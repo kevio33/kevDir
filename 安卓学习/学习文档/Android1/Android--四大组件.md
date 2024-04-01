@@ -1287,9 +1287,9 @@ Android应用中可以创建两种不同类型的链接：
 
 创建流程
 
-##### ①创建Service类
+**①创建Service类**
 
-##### ②`manifest.xml`中声明
+**②`manifest.xml`中声明**
 
 ```xml
 <manifest ... >
@@ -1336,7 +1336,7 @@ Android应用中可以创建两种不同类型的链接：
 
 
 
-##### ③service需要继承重写的方法
+**③service需要继承重写的方法**
 
 ```java
 public class SimpleService extends Service {
@@ -1383,7 +1383,7 @@ public class SimpleService extends Service {
 }
 ```
 
-##### ④创建Activity进行测试
+**④创建Activity进行测试**
 
 ```java
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -1419,7 +1419,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
-##### ⑤销毁service
+**⑤销毁service**
 
 使用`startService`方法启动的服务，在服务外部必须使用`stopService()`方法停止，在内部调用`stopSelf()`方法停止当前服务
 
@@ -1907,9 +1907,13 @@ public void sayHello(View v) {
 >
 > 从 Android 8.0（API 级别 26）开始，后台应用程序的一些限制可能会影响 Service 的行为。例如，后台应用程序不再允许启动前台 Service。 
 
-**`前台服务被认为是用户主动意识到的一种服务，因此在内存不足时，系统也不会考虑将其终止。`** **前台服务必须为状态栏提供通知，状态栏位于“正在进行”标题下方，这意味着除非服务停止或从前台删除，否则不能清除通知。**例如将从服务播放音乐的音乐播放器设置为在前台运行，这是因为用户明确意识到其操作。 状态栏中的通知可能表示正在播放的歌曲，并允许用户启动 Activity 来与音乐播放器进行交互。
+- **前台服务被认为是用户主动意识到的一种服务，因此在内存不足时，系统也不会考虑将其终止。** 
 
-如果需要设置服务运行于前台， 该如何实现？Android官方给我们提供了两个方法:
+- **前台服务必须为状态栏提供通知，状态栏位于“正在进行”标题下方，这意味着除非服务停止或从前台删除，否则不能清除通知。**例如将从服务播放音乐的音乐播放器设置为在前台运行，这是因为用户明确意识到其操作。 状态栏中的通知可能表示正在播放的歌曲，并允许用户启动 Activity 来与音乐播放器进行交互。
+
+
+
+设置服务运行于前台:
 
 - **`startForeground(int id, Notification notification)`** 
   该方法的作用是把当前服务设置为前台服务，其中id参数代表唯一标识通知的整型数，需要注意的是提供给 startForeground() 的整型 ID 不得为 0，而notification是一个状态栏的通知。
@@ -2036,6 +2040,15 @@ public class ForegroundActivity extends Activity {
 
 ![这里写图片描述](https://gitee.com/kevinyong/kevin-pic-gall2/raw/master/20161004113551060)
 
+##### 前台服务与后台服务区别
+
+1. 优先级：前台服务的优先级比后台服务高，系统在分配资源时会优先考虑前台服务。这意味着，当系统资源紧张时，后台服务可能会被系统杀死，以释放资源给前台服务使用。
+2. 用户可见性：前台服务通常与用户交互，例如播放音乐、记录音频、导航等。这些任务需要用户的交互，并且需要在屏幕关闭或应用程序退到后台时继续运行。后台服务通常不与用户交互，例如下载文件、上传数据等。这些任务不需要用户的交互，但是需要在后台长期运行。
+3. 通知：前台服务需要显示一个通知，告知用户正在运行一个前台服务。这个通知不能被用户关闭，除非停止前台服务。后台服务不需要显示通知。
+4. 生命周期：前台服务的生命周期比后台服务更长。当用户关闭应用程序时，后台服务可能会被系统杀死，而前台服务会继续运行，直到用户手动停止它或者系统资源紧张时才会被杀死。
+
+
+
 
 
 #### 服务与线程：
@@ -2066,6 +2079,13 @@ public class ForegroundActivity extends Activity {
 ![这里写图片描述](https://gitee.com/kevinyong/kevin-pic-gall2/raw/master/20161004164521384)
 
 
+
+#### service应用
+
+1. 后台任务：Service可以用于执行长期运行的后台任务，例如下载文件、播放音乐、上传数据等。这些任务不需要用户的交互，但是需要在后台长期运行。
+2. 前台服务：Service也可以用于实现前台服务，例如播放音乐、记录音频、导航等。这些任务需要用户的交互，并且需要在屏幕关闭或应用程序退到后台时继续运行。
+3. 跨进程通信：Service可以用于实现跨进程通信，例如实现远程服务，将一个应用程序中的Service暴露给其他应用程序使用。
+4. 绑定服务：Service可以用于实现绑定服务，例如实现客户端-服务器模型，将一个应用程序中的Service绑定到另一个应用程序中，以实现两个应用程序之间的通信。
 
 ### 三、ContentProvider
 
@@ -2544,6 +2564,19 @@ CP端定义权限
 
 > 之后实现读写数据进存储都应该用`FileProvider`
 
+
+
+#### (6)content provider应用
+
+1. 数据共享：ContentProvider可以用于在不同的应用程序之间共享数据。例如，一个应用程序可以将联系人数据存储在ContentProvider中，其他应用程序可以通过ContentProvider访问这些数据。
+2. 数据存储：ContentProvider可以用于在应用程序中存储数据。ContentProvider提供了一种标准化的接口，用于在应用程序中执行数据库操作，例如插入、查询、更新和删除数据。
+3. 数据同步：ContentProvider可以用于在设备和云端之间同步数据。例如，一个应用程序可以将数据存储在ContentProvider中，然后通过ContentProvider与云端进行同步。
+4. 权限控制：ContentProvider可以用于控制对数据的访问权限。ContentProvider可以根据调用方的身份和权限来授予或拒绝对数据的访问。
+
+
+
+
+
 ### 四、Broadcast
 
 Android广播机制是在Binder进程间通信机制的基础上实现的，内部基于消息发布和订阅的事件驱动模型，广播发送者负责发送消息，广播接收者需要先订阅消息，然后才能收到消息。 
@@ -2552,7 +2585,7 @@ Android广播机制是在Binder进程间通信机制的基础上实现的，内�
 
 ##### 按照发送方式分类：
 
-- 标准广播
+- 标准广播（无序广播）
 
   > 是一种完全**异步执行的广播**，广播发出后，所以的广播接收器几乎会在同一时刻接收到这条广播消息。但是意味着他无法被截断
   >
@@ -2568,11 +2601,11 @@ Android广播机制是在Binder进程间通信机制的基础上实现的，内�
 
 - 动态注册广播
 
-  > 顾名思义，就是在代码中注册的。
+  > 顾名思义，就是在代码中注册的。要求程序必须在运行时才能进行，有一定的局限性。
 
 - 静态注册广播
 
-  > 动态注册要求程序必须在运行时才能进行，有一定的局限性，如果我们需要在程序还没启动的时候就可以接收到注册的广播，就需要静态注册了。主要是在AndroidManifest中进行注册。
+  > 如果需要在程序还没启动的时候就可以接收到注册的广播，就需要静态注册了。主要是在AndroidManifest中进行注册。
 
 ##### 按定义类型分：
 
@@ -2800,8 +2833,8 @@ protected void onDestroy(){
 > private LocalBroadcastManager localBroadcastManager;
 > 
 > public void onCreate(Bundle savedInstanceState){
->     //获取实例
->     localBroadcastManager = LocalBroadcastManager.getInstance(this);
+>        //获取实例
+>        localBroadcastManager = LocalBroadcastManager.getInstance(this);
 >    
 >        //发送广播
 >        Intent intent = new Intent("com.example.broadcasttest.MY_BROADCAST");
@@ -2820,7 +2853,7 @@ protected void onDestroy(){
 > localBroadcastManager.registerReceiver(localReceiver,intentFilter);
 > ```
 > 
-> > 实质上就是通过一个LocalBroadcastManager进行管理，其他本质不同；
+> > 实质上就是通过一个LocalBroadcastManager进行管理，其他本质相同；
 > >
 > > <font color="red">本地广播无法通过静态注册方式进行接收</font>
 
@@ -2830,5 +2863,8 @@ protected void onDestroy(){
 
 用于强制下线
 
-
+1. 系统事件通知：系统会向应用程序广播一些系统事件，例如电池电量变化、设备启动完成、网络连接状态变化等。应用程序可以通过注册广播接收器，接收这些系统事件的通知，并做出相应的响应。
+2. 应用程序间通信：广播机制可以用于应用程序之间的通信。一个应用程序可以发送一个广播，其他应用程序可以接收到这个广播，并做出相应的响应。例如，一个应用程序可以发送一个广播通知其他应用程序更新数据，或者一个应用程序可以发送一个广播通知其他应用程序开启某个功能。
+3. 组件间通信：广播机制也可以用于应用程序内部的组件之间的通信。例如，一个活动可以发送一个广播通知一个服务开始执行某个任务，或者一个服务可以发送一个广播通知一个活动更新界面。
+4. 后台任务调度：广播机制可以用于后台任务的调度。例如，一个应用程序可以注册一个广播接收器，用于接收系统广播的网络连接状态变化事件，一旦接收到网络连接可用的广播，就可以开始执行一些后台任务，例如下载更新数据等。
 
