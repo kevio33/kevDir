@@ -1018,4 +1018,232 @@ RuntimeException 是一个**非检查型异常(不需要try-catch)**，RuntimeEx
 9. SecurityException：当违反安全规则时抛出。
 10. UnsupportedOperationException：当调用不支持的操作时抛出。
 
-## 
+
+
+# 拓展
+
+## 一、深拷贝、浅拷贝
+
+> 参考——https://blog.csdn.net/riemann_/article/details/87217229
+
+### 1.两种引用
+
+**引用拷贝**和**对象拷贝**
+
+**引用拷贝：**
+
+```java
+Teacher teacher = new Teacher("riemann", 28);
+Teacher otherTeacher = teacher;//otherTeacher指向teacher，两者地址相同
+System.out.println(teacher);
+System.out.println(otherTeacher);
+
+//输出
+com.test.Teacher@28a418fc
+com.test.Teacher@28a418fc
+```
+
+**对象拷贝：**
+
+```java
+public class ObjectCopy {
+    public static void main(String[] args) throws CloneNotSupportedException {
+        Teacher teacher = new Teacher("riemann", 28);
+        Teacher otherTeacher = (Teacher) teacher.clone();
+        System.out.println(teacher);
+        System.out.println(otherTeacher);
+    }
+}
+
+class Teacher implements Cloneable {
+    private String name;
+    private int age;
+
+    public Teacher(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public Object clone() throws CloneNotSupportedException {
+        Object object = super.clone();
+        return object;
+    }
+}
+
+
+//输出
+com.test.Teacher@28a418fc
+com.test.Teacher@5305068a
+```
+
+
+
+**一个重要结论：**
+
+> 深拷贝和浅拷贝都是**对象引用**
+
+
+
+### 2.浅拷贝
+
+对象的浅拷贝会对“主”对象进行拷贝，但不会复制主对象里面的对象。”里面的对象“会在原来的对象和它的副本之间共享。
+
+> 简而言之**，浅拷贝仅仅复制所考虑的对象，而不复制它所引用的对象。**
+
+ ![在这里插入图片描述](JAVA基础.assets/20200830152336282.png) 
+
+```java
+public class ShallowCopy {
+    public static void main(String[] args) throws CloneNotSupportedException {
+        Teacher teacher = new Teacher();
+        teacher.setName("riemann");
+        teacher.setAge(28);
+
+        Student student1 = new Student();
+        student1.setName("edgar");
+        student1.setAge(18);
+        student1.setTeacher(teacher);
+
+        Student student2 = (Student) student1.clone();
+        System.out.println("-------------拷贝后-------------");
+        System.out.println(student2.getName());
+        System.out.println(student2.getAge());
+        System.out.println(student2.getTeacher().getName());
+        System.out.println(student2.getTeacher().getAge());
+
+        System.out.println("-------------修改老师的信息后-------------");
+        // 修改老师的信息
+        teacher.setName("jack");
+        System.out.println("student1的teacher为： " + student1.getTeacher().getName());
+        System.out.println("student2的teacher为： " + student2.getTeacher().getName());
+
+    }
+}
+
+class Teacher implements Cloneable {
+    private String name;
+    private int age;
+
+    .......
+}
+
+class Student implements Cloneable {
+    private String name;
+    private int age;
+    private Teacher teacher;
+
+    .......
+
+    public Object clone() throws CloneNotSupportedException {
+        Object object = super.clone();
+        return object;
+    }
+}
+```
+
+
+
+### 3.深拷贝
+
+深拷贝会拷贝所有的属性,并拷贝属性指向的动态分配的内存。当对象和它所引用的对象一起拷贝时即发生深拷贝。深拷贝相比于浅拷贝速度较慢并且花销较大。 
+
+简而言之，`深拷贝把要复制的对象所引用的对象都复制了一遍。` 
+
+```java
+public class DeepCopy {
+    public static void main(String[] args) throws CloneNotSupportedException {
+        Teacher teacher = new Teacher();
+        teacher.setName("riemann");
+        teacher.setAge(28);
+
+        Student student1 = new Student();
+        student1.setName("edgar");
+        student1.setAge(18);
+        student1.setTeacher(teacher);
+
+        Student student2 = (Student) student1.clone();
+        System.out.println("-------------拷贝后-------------");
+        System.out.println(student2.getName());
+        System.out.println(student2.getAge());
+        System.out.println(student2.getTeacher().getName());
+        System.out.println(student2.getTeacher().getAge());
+
+        System.out.println("-------------修改老师的信息后-------------");
+        // 修改老师的信息
+        teacher.setName("jack");
+        System.out.println("student1的teacher为： " + student1.getTeacher().getName());
+        System.out.println("student2的teacher为： " + student2.getTeacher().getName());
+    }
+}
+
+class Teacher implements Cloneable {
+    private String name;
+    private int age;
+
+    ......
+
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+}
+
+class Student implements Cloneable {
+    private String name;
+    private int age;
+    private Teacher teacher;
+
+    ......
+
+    public Object clone() throws CloneNotSupportedException {
+        // 浅复制时：
+        // Object object = super.clone();
+        // return object;
+
+        // 改为深复制：
+        Student student = (Student) super.clone();
+        // 本来是浅复制，现在将Teacher对象复制一份并重新set进来
+        student.setTeacher((Teacher) student.getTeacher().clone());
+        return student;
+
+    }
+}
+```
+
+
+
+#### 实现深拷贝的方法
+
+**重写 `clone()` 方法**：Java 中的 `Object` 类提供了一个 `clone()` 方法，用于创建对象的副本。但是，默认情况下，`clone()` 方法执行的是浅拷贝。为了实现深拷贝，需要重写 `clone()` 方法，并在其中对对象的属性进行递归拷贝。
+
+**使用序列化和反序列化**：Java 中的序列化和反序列化可以实现对象的深拷贝。通过将对象写入字节流，然后再从字节流中读取出来，就可以创建一个新的对象，而不是简单地复制引用。这种方式要求被复制的类及其所有被引用的类都必须实现 `Serializable` 接口。
+
+**使用第三方库**：有些第三方库提供了深拷贝的功能，比如 Apache Commons Lang 和 Gson。这些库通常提供了更灵活和强大的深拷贝实现，可以处理更复杂的对象结构和关系。
+
+
+
+## 二、序列化与反序列化
+
+> https://cloud.tencent.com/developer/article/1798815
+
+
+
+## 三、GC
+
+> https://juejin.cn/post/7123853933801373733
+
