@@ -131,6 +131,12 @@ public class Test {
 
 
 
+### 4.String/StringBuilder/StringBuffer
+
+> https://www.cnblogs.com/h--d/p/14008508.html
+
+
+
 
 
 ## 二、Java堆栈
@@ -1246,4 +1252,15 @@ class Student implements Cloneable {
 ## 三、GC
 
 > https://juejin.cn/post/7123853933801373733
+>
+> [finalize()](https://juejin.cn/post/6844903880086536199)
 
+
+
+## 四、JVM内存结构
+
+> https://pdai.tech/md/java/jvm/java-jvm-struct.html
+
+## 五、JMM
+
+> https://javaguide.cn/java/concurrent/jmm.html

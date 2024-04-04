@@ -2798,6 +2798,12 @@ while not workQueue.empty():
 
 
 
+### 5.切片
+
+> https://zhuanlan.zhihu.com/p/79541418
+
+
+
 ## 三、问题
 
 ### 1.pip速度慢
