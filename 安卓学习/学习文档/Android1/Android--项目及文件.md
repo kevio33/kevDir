@@ -95,6 +95,8 @@
 
 ## 3.3 build.gradle
 
+> [两个gradle文件区别](https://www.cnblogs.com/skynight/p/17616912.html)
+
 ### 3.3.1 app的build.gradle
 
 ```groovy
@@ -127,17 +129,37 @@ google仓库中包含的主要是Google自家的扩展依赖库，而jcenter仓�
 
 classpath声明了两个插件：一个Gradle插件和一个Kotlin插件。
 
-- **因为Gradle并不是专门为构建Android项目而开发的**，Java、C++等很多种项目也可以使用Gradle来构建，因此如果要想使用它来构建Android项目，则需要声明`com.android.tools.build:gradle:版本号`这个插件。
+- **因为Gradle并不是专门为构建Android项目而开发的**，Java、C++等很多种项目也可以使用Gradle来构建，因此如果要想使用它来构建Android项目，则需要声明`com.android.tools.build:gradle:版本号`这个android使用gradle的插件。
 - 另外一个Kotlin插件则表示当前项目是使用Kotlin进行开发的，如果是Java版的Android项目，则不需要声明这个插件
 
-> ***Gradle7.5开始build.gradle文件已经有变化***
+> ***Gradle7.5开始build.gradle文件已经有变化，原本的内容迁移到setting.gradle文件里面了***
 >
 > ```groovy
-> // Top-level build file where you can add configuration options common to all sub-projects/modules.
 > plugins {
 >  id 'com.android.application' version '8.2.0' apply false
 > }
+> 
+> //定义了一个名为com.android.application的插件，版本号为8.2.0，但是不会立即应用到项目中。可以在构建脚本的其他地方使用apply plugin: 'com.android.application'语句来手动应用该插件。
+> //com.android.application就是Android Gradle Plugin
 > ```
+>
+> 然后在其他地方手动应用该插件
+>
+> 例如在module的build.gradle文件
+>
+> ```groovy
+> plugins {
+>     id 'com.android.application'
+> }
+> 
+> android {
+>     ....
+> }
+> ```
+
+> [plugins和apply plugin区别](https://huangxshuo.github.io/2021/03/04/apply%20plugin%E5%92%8Cplugins%E4%B8%A4%E7%A7%8D%E5%BA%94%E7%94%A8gradle%E6%8F%92%E4%BB%B6%E7%9A%84%E5%8C%BA%E5%88%AB/)
+
+
 
 
 
@@ -178,7 +200,7 @@ dependencies {
 }
 ```
 
-下面逐行开始解析
+**下面逐行开始解析：**
 
 ```groovy
 apply plugin: 'com.android.application'
@@ -192,7 +214,7 @@ apply plugin: 'com.android.application'
 >
 > ```groovy
 > plugins {
->  id 'com.android.application'
+>      id 'com.android.application'
 > }
 > ```
 

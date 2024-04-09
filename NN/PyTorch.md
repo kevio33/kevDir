@@ -36,12 +36,18 @@
 ## 1.conda命令
 
 >  [conda创建、查看、删除虚拟环境（anaconda命令集](https://blog.csdn.net/miracleoa/article/details/106115730) 
+>
+>  [出现：DEBUG:urllib3.connectionpool](https://blog.csdn.net/weixin_64546620/article/details/132274964)
 
 ### pip安装镜像
 
 > ```shell
 > pip install -i https://pypi.tuna.tsinghua.edu.cn/simple [包名]
 > ```
+
+**配置代理：**
+
+> https://zhuanlan.zhihu.com/p/371953325
 
 ## 2.问题
 
@@ -102,7 +108,7 @@ conda install python==3.7.2 -n 要更新环境的名字，这里环境名是pyto
 
 ##### 1)dataset
 
- `torch.utils.data.datasets` 是一个通用的数据集加载模块，可以用于加载任何类型的数据集。 （如果处理图片数据，可以用`torchvision里面的datasets`，里面已经有很多可以使用的图片数据集供下载使用）
+`torch.utils.data.datasets` 是一个通用的数据集加载模块，可以用于加载任何类型的数据集。 （如果处理图片数据，可以用`torchvision里面的datasets`，里面已经有很多可以使用的图片数据集供下载使用）
 
 **exp:**
 
@@ -119,7 +125,7 @@ conda install python==3.7.2 -n 要更新环境的名字，这里环境名是pyto
 >         self.path = os.path.join(self.root_dir, self.label_dir)  # 将根路径和标签路径结合
 >         self.img_path_lis = os.listdir(self.path)  # 将这个路径下的文件列出
 > 	
->     # 重写获取方法
+>     # 重写getter方法
 >     def __getitem__(self, idx):
 >         img_name = self.img_path_lis[idx]
 >         img_item_path = os.path.join(self.path, img_name)
@@ -151,7 +157,7 @@ conda install python==3.7.2 -n 要更新环境的名字，这里环境名是pyto
 
 ##### 2)dataloader
 
- `Dataset`负责生产数据，`torch.utils.data.DataLoader`负责数据的分批（batch_size）、采样(sampler)、传输 
+ `Dataset`负责生产数据，`torch.utils.data.DataLoader`负责数据的`分批（batch_size）`、`采样(sampler)`、`传输 `
 
 ```python
 DataLoader(dataset, batch_size=1, shuffle=False, sampler=None,

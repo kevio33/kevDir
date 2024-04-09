@@ -1587,7 +1587,101 @@ button3.setOnClickListener(new View.OnClickListener() {
 
 > [Android之viewpager](https://cloud.tencent.com/developer/article/2108418)
 
-#### (2)问题
+### (1)介绍使用
+
+> [viewpager详解](https://juejin.cn/post/6844903544093409293)
+
+viewpager是实现轮播图、引导页、图片画廊的常用工具，允许滑动屏幕，并且每个页面是不同的fragment
+
+#### **常用的方法：**
+
+> `setAdapter(PagerAdapter adapter)` 设置适配器
+>
+> `setOffscreenPageLimit(int limit)` 设置缓存的页面个数,默认是 1
+>
+> `setCurrentItem(int item)` 跳转到特定的页面
+>
+> `setOnPageChangeListener(..)` 设置页面滑动时的监听器（现在API中建议使用 `addOnPageChangeListener(..)`）
+>
+> `setPageTransformer(..PageTransformer)` 设置页面切换时的动画效果
+>
+> `setPageMargin(int marginPixels)` 设置不同页面之间的间隔
+>
+> `setPageMarginDrawable(..)` 设置不同页面间隔之间的装饰图也就是 divide ，要想显示设置的图片，需要同时设置 `setPageMargin()
+
+
+
+#### **PagerAdapter**
+
+ViewPager有两个适配器（`FragmentStatePagerAdapter`和`FragmentPagerAdapter`），均继承自PagerAdapter。如果要实现子类，需要继承并实现方法
+
+> **两者区别：**
+>
+> - **FragmentStatePagerAdapter不可以缓存**： 会销毁不再需要的 fragment，当当前事务提交以后，会彻底的将 fragmeng 从当前 Activity 的FragmentManager 中移除，state 标明，销毁时，会将其 `onSaveInstanceState(Bundle outState)` 中的 bundle 信息保存下来，当用户切换回来，可以通过该 bundle 恢复生成新的 fragment，也就是说，你可以在 `onSaveInstanceState(Bundle outState)` 方法中保存一些数据，在 onCreate 中进行恢复创建。
+>
+> - **FragmentPagerAdapter可以缓存** ： 对于不再需要的 fragment，选择调用 onDetach() 方法，仅销毁视图，并不会销毁 fragment 实例。
+>
+> > 使用 FragmentStatePagerAdapter 更省内存，但是销毁后新建也是需要时间的。
+> >
+> > 一般情况下，如果你是制作主页面，就 3、4 个 Tab，那么可以选择使用 FragmentPagerAdapter，如果是用 ViewPager 展示数量特别多的条目时，那么建议使用 FragmentStatePagerAdapter。
+
+- `getCount();` 是获取当前窗体界面数，也就是数据的个数。
+
+- `isViewFromObject(View view, Object object);` 这个方法用于判断是否由对象生成界面，官方建议直接返回 `return view == object;`。
+
+- `instantiateItem(View container, int position);` 要显示的页面或需要缓存的页面，会调用这个方法进行布局的初始化。
+
+- `destroyItem(ViewGroup container, int position, Object object);` 如果页面不是当前显示的页面也不是要缓存的页面，会调用这个方法，将页面销毁。
+- `public Fragment getItem(int position)` 返回的是对应的 Fragment 实例，一般我们在使用时，会通过构造传入一个要显示的 Fragment 的集合，我们只要在这里把对应的 Fragment 返回就行了。
+
+两个adapter都将每个页面表示为一个Fragment，并且每个Fragment都保存到[FragmentManager](#fragmentmanager)中
+
+
+
+#### 结合TabLayout+Fragment使用
+
+- 初始化 TabLayout 和 ViewPager 后只要通过调用 TabLayout 的 `tabLayout.setupWithViewPager(viewPager)` 方法就将两者绑定在一起了。
+- 重写 PagerAdapter 的 `public CharSequence getPageTitle(int position)` 方法，而 TabLayout 也正是通过 `setupWithViewPager()` 方法底部会调用 PagerAdapter 中的`getPageTitle()` 方法来实现联动的。
+
+
+
+
+
+### (2)viewpager2
+
+> https://blog.csdn.net/YoungOne2333/article/details/130140166
+
+
+
+**适配器**
+
+ViewPager2的适配器可以使用**`FragmentStateAdapter`或`RecyclerView.Adapter`** 
+
+
+
+**绑定Tablayout**
+
+```java
+new TabLayoutMediator(activityMainBinding.tabLayout, activityMainBinding.viewPager, (tab, position) -> {
+    tab.setText("tab"+position);//设置tab的名字
+}).attach();
+```
+
+
+
+
+
+### (3)viewpager1和viewpager2
+
+> https://blog.csdn.net/qq_40840459/article/details/132402056
+>
+> https://www.jianshu.com/p/924046eae137
+
+
+
+
+
+### (4)问题
 
 **①滑动问题**
 
@@ -1625,4 +1719,17 @@ public class MyViewPager extends ViewPager {
 - **减少内存消耗**。当页面数量较多时，ViewPager可以销毁超出限制的页面，从而减少内存占用。
 
 
+
+# 二、拓展
+
+## 1.<a name=fragmentmanager>FragmentManager</a>
+
+FragmentManager是Android中的一个类，用于管理Activity中的Fragment。Fragment是一个可重用的组件，它可以独立于Activity存在，并且可以被添加、删除、替换和隐藏。
+
+它可以将Fragment添加到Activity的界面中，并且可以在Activity的生命周期中管理Fragment的状态。
+
+FragmentManager有两个版本：
+
+- 一个是支持Fragment回退栈的版本：回退栈允许用户通过按下后退按钮来回退到之前的Fragment状态。
+- 另一个是不支持回退栈的版本。
 
