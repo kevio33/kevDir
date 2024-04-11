@@ -4,17 +4,17 @@
 
 ### 1.概述
 
->  Fragment表示应用界面中可重复使用的一部分。Fragment 定义和管理自己的布局，具有自己的生命周期，并且可以处理自己的输入事件。**Fragment 不能独立存在，而是必须由 Activity 或另一个 Fragment 托管**。Fragment 的视图层次结构会成为宿主的视图层次结构的一部分，或附加到宿主的视图层次结构。
+>  **Fragment表示应用界面中可重复使用的一部分**。Fragment可以定义和管理自己的布局，具有自己的生命周期，并且可以处理自己的输入事件。
+>
+>  **Fragment 不能独立存在，而是必须由 Activity 或另一个 Fragment 托管**。
+>
+>  Fragment 的视图层次结构会成为宿主的视图层次结构的一部分，或附加到宿主的视图层次结构。
 
 ### 2.模块化
 
 > Fragment 允许您将界面划分为离散的区块，从而将模块化和可重用性引入 Activity 的界面。Activity 是围绕应用的界面放置全局元素（如抽屉式导航栏）的理想位置。相反，Fragment 更适合定义和管理单个屏幕或部分屏幕的界面。
 
-例如：
 
-假设有一个响应各种屏幕尺寸的应用。在较大的屏幕上，该应用应显示一个静态抽屉式导航栏和一个采用网格布局的列表。在较小的屏幕上，该应用应显示一个底部导航栏和一个采用线性布局的列表。在 Activity 中管理所有这些变化因素可能会很麻烦。将导航元素与内容分离可使此过程更易于管理。然后，Activity 负责显示正确的导航界面，而 Fragment 采用适当的布局显示列表。
-
-<img src="Android--其他组件.assets/fragment-screen-sizes.png" alt="同一屏幕的采用不同屏幕尺寸的两个版本。" style="zoom:67%;" />
 
 ### 3.创建Fragment
 
@@ -81,7 +81,7 @@ class ExampleFragment extends Fragment {
 
 #### 将Fragment添加到Activity
 
-> 您可以通过在活动的布局文件中定义片段或在活动的布局文件中定义片段容器，然后以编程方式从活动中添加片段，将片段添加到活动的视图层次结构中。在任何一种情况下，您都需要添加一个 [`FragmentContainerView`](https://developer.android.google.cn/reference/androidx/fragment/app/FragmentContainerView) 定义片段应放置在活动视图层次结构中的位置。强烈建议始终使用 a `FragmentContainerView`作为片段的容器，因为 `FragmentContainerView`包括其他视图组`FrameLayout`不提供的特定于片段的修复程序。
+> 您可以通过在活动的布局文件中定义片段或在活动的布局文件中定义片段容器，然后以编程方式从活动中添加片段，将片段添加到活动的视图层次结构中。在任何一种情况下，您都需要添加一个 `FragmentContainerView`定义片段应放置在活动视图层次结构中的位置。强烈建议始终使用 a `FragmentContainerView`作为片段的容器，因为 `FragmentContainerView`包括其他视图组`FrameLayout`不提供的特定于片段的修复程序。
 
 ##### (1)通过XML文件添加
 
@@ -108,7 +108,7 @@ class ExampleFragment extends Fragment {
     android:layout_height="match_parent" />
 ```
 
-在`FragmentActivity`中可以获得 FragmentManager的实例，该实例 [`FragmentManager`](https://developer.android.google.cn/reference/androidx/fragment/app/FragmentManager)可用于创建`FragmentTransaction`. 然后，可以在`onCreate()`使用[`FragmentTransaction.add()`](https://developer.android.google.cn/reference/androidx/fragment/app/FragmentTransaction#add(int, java.lang.Class, android.os.Bundle))，在活动的方法中实例化片段，`ViewGroup`在布局中传递容器的ID 和要添加的片段类，然后提交事务，如以下示例所示：
+在`FragmentActivity`中可以获得 FragmentManager的实例，该实例 [`FragmentManager`](https://developer.android.google.cn/reference/androidx/fragment/app/FragmentManager)可用于创建`FragmentTransaction`. 然后，可以在`onCreate()`使用[`FragmentTransaction.add()`](https://developer.android.google.cn/reference/androidx/fragment/app/FragmentTransaction#add(int, java.lang.Class, android.os.Bundle))，在活动的方法中实例化片段，`ViewGroup`在布局中传递容器的ID和要添加的fragment，然后提交事务，如以下示例所示：
 
 ```java
 public class ExampleActivity extends AppCompatActivity {
@@ -128,7 +128,7 @@ public class ExampleActivity extends AppCompatActivity {
 }
 ```
 
- **传递参数**
+ **如果需要传递参数**
 
 ```java
 public class ExampleActivity extends AppCompatActivity {
@@ -171,35 +171,33 @@ class ExampleFragment extends Fragment {
 
 #### (1)概述
 
-> FragmentManager类负责对应用的 Fragment 执行一些操作，如添加、移除或替换它们，以及将它们添加到返回堆栈。`FragmentManager` 管理 Fragment 返回堆栈。在运行时，`FragmentManager` 可以执行添加或移除 Fragment 等返回堆栈操作来响应用户互动。每一组更改作为一个单元（称为 [`FragmentTransaction`](https://developer.android.google.cn/reference/androidx/fragment/app/FragmentTransaction)）一起提交。
+> FragmentManager类负责管理 Fragment，如添加、移除或替换它们，以及将它们添加到返回堆栈。`FragmentManager` 管理 Fragment 返回堆栈。在运行时，`FragmentManager` 可以执行添加或移除 Fragment 等返回堆栈操作来响应用户互动。每一组更改作为一个单元（称为 [`FragmentTransaction`](https://developer.android.google.cn/reference/androidx/fragment/app/FragmentTransaction)）一起提交。
 
-**在 Activity 中访问**
+**在 Activity 中访问manager**
 
-每个 FragmentActivity及其子类（如 [AppCompatActivity]都可以通过[getSupportFragmentManager()] 方法访问 FragmentManager。
+每个 FragmentActivity及其子类（如AppCompatActivity）都可以通过`getSupportFragmentManager()`方法访问 FragmentManager。
 
-**在 Fragment 中访问**
+**在 Fragment 中访问manager**
 
-Fragment 也能够托管一个或多个子 Fragment。在 Fragment 内，您可以通过 [`getChildFragmentManager()`]获取对管理 Fragment 子级的 `FragmentManager` 的引用。如果您需要访问其宿主 `FragmentManager`，可以使用 [`getParentFragmentManager()`]。
+Fragment 也能够托管一个或多个子 Fragment。在 Fragment 内，您可以通过 `getChildFragmentManager()`获取对管理 Fragment 子级的 `FragmentManager` 的引用。如果需要访问其宿主 `FragmentManager`，可以使用 `getParentFragmentManager()`。
 
 下面是各个宿主之间FragmentManager之间的关系
-
-![每个宿主都有与其关联的 FragmentManager，用于管理其子 Fragment](Android--其他组件.assets/manager-mappings.png)
 
 > 每个宿主都有与其关联的 `FragmentManager`，用于管理其子 Fragment。
 
 #### (2)返回堆栈
 
-**FragmentManager管理 Fragment 返回堆栈**。在运行时，FragmentManager可以执行添加或移除 Fragment 等返回堆栈操作来响应用户互动。每一组更改作为一个单元（称为 FragmentTransactio）一起提交。
+**FragmentManager管理 Fragment 返回堆栈**。在运行时，FragmentManager可以执行添加或移除 Fragment 等返回堆栈操作来响应用户互动。每一组更改作为一个单元（称为 FragmentTransaction）一起提交。
 
 当用户按设备上的“返回”按钮时，或者当您调用 FragmentManager.popBackStack()时，最上面的 Fragment 事务会从堆栈中弹出。换句话说，**事务是反转的。如果堆栈上没有更多 Fragment 事务，并且您没有使用子 Fragment，则返回事件会向上传递到 Activity。**
 
-当您对事务调用 addToBackStack()时，请注意，事务可以包括任意数量的操作，如添加多个 Fragment、替换多个容器中的 Fragment，等等。**弹出返回堆栈时，所有这些操作会作为一项原子化操作反转**。如果您在调用 `popBackStack()` 之前提交了其他事务，并且您没有对事务使用 addToBackStack()，则这些操作不会反转。因此，在一个 FragmentTransaction中，应避免让影响返回堆栈的事务与不影响返回堆栈的事务交织在一起。
-
-如果您在执行移除 Fragment 的事务时未调用 addToBackStack()，则提交事务时会销毁已移除的 Fragment，用户无法返回到该 Fragment。**如果您在移除某个 Fragment 时调用了 addToBackStack()，则该 Fragment 只会 STOPPED，稍后当用户返回时它会 RESUMED**。请注意，在这种情况下，其视图会被销毁。
+> 当您对事务调用 addToBackStack()时，请注意，事务可以包括任意数量的操作，如添加多个 Fragment、替换多个容器中的 Fragment，等等。**弹出返回堆栈时，所有这些操作会作为一项原子化操作反转**。如果您在调用 `popBackStack()` 之前提交了其他事务，并且您没有对事务使用 addToBackStack()，则这些操作不会反转。因此，在一个 FragmentTransaction中，应避免让影响返回堆栈的事务与不影响返回堆栈的事务交织在一起。
+>
+> 如果您在执行移除 Fragment 的事务时未调用 addToBackStack()，则提交事务时会销毁已移除的 Fragment，用户无法返回到该 Fragment。**如果您在移除某个 Fragment 时调用了 addToBackStack()，则该 Fragment 只会 STOPPED，稍后当用户返回时它会 RESUMED**。请注意，在这种情况下，其视图会被销毁。
 
 #### (3)执行事务
 
-如需在布局容器中显示 Fragment，请使用 `FragmentManager` 创建 `FragmentTransaction`。在事务中，您随后可以对容器执行 [`add()`](https://developer.android.google.cn/reference/androidx/fragment/app/FragmentTransaction#add(int, java.lang.Class, android.os.Bundle)) 或 [`replace()`](https://developer.android.google.cn/reference/androidx/fragment/app/FragmentTransaction#replace(int, java.lang.Class, android.os.Bundle)) 操作。
+如需在布局容器中显示 Fragment，请使用 `FragmentManager` 创建 `FragmentTransaction`。在事务中，可以对容器执行 [`add()`](https://developer.android.google.cn/reference/androidx/fragment/app/FragmentTransaction#add(int, java.lang.Class, android.os.Bundle)) 或 [`replace()`](https://developer.android.google.cn/reference/androidx/fragment/app/FragmentTransaction#replace(int, java.lang.Class, android.os.Bundle)) 操作。
 
 例如，一个简单的 `FragmentTransaction` 可能如下所示：
 
@@ -212,13 +210,15 @@ fragmentManager.beginTransaction()
     .commit();
 ```
 
-> setReorderingAllowed(true)--可优化事务中涉及的 Fragment 的状态变化，以使动画和过渡正常运行。
+> `setReorderingAllowed(true)`可优化事务中涉及的 Fragment 的状态变化，以使动画和过渡正常运行。
 >
-> 调用 `addToBackStack()`会将事务提交到返回堆栈。用户稍后可以通过按“返回”按钮反转事务并恢复上一个 Fragment。如果您在一个事务中添加或移除了多个 Fragment，弹出返回堆栈时，所有这些操作都会撤消。在 `addToBackStack()` 调用中提供的可选名称使您能够使用 [`popBackStack()`]弹回到该特定事务。
+> `addToBackStack()`会将事务提交到返回堆栈。用户稍后可以通过按“返回”按钮反转事务并恢复上一个 Fragment。
+>
+> 使用 `popBackStack()`弹回到该特定事务。
 
 #### (4)查找现有Fragment
 
-①您可以使用 findFragmentById()获取对布局容器中当前 Fragment 的引用。
+①可以使用 `findFragmentById()`获取对布局容器中当前 Fragment 的引用。
 
 ```java
 FragmentManager fragmentManager = getSupportFragmentManager();
@@ -234,7 +234,7 @@ ExampleFragment fragment =
         (ExampleFragment) fragmentManager.findFragmentById(R.id.fragment_container);
 ```
 
-②或者，您也可以为 Fragment 分配一个唯一的标记，并使用 findFragmentByTag()获取引用。您可以在布局中定义的 Fragment 上使用 `android:tag` XML 属性来分配标记，也可以在 `FragmentTransaction` 中的 `add()` 或 `replace()` 操作期间分配标记。
+②或者，也可以为 Fragment 分配一个唯一的标记，并使用 findFragmentByTag()获取引用。可以在布局中定义的 Fragment 上使用 `android:tag` XML 属性来分配标记，也可以在 `FragmentTransaction` 中的 `add()` 或 `replace()` 操作期间分配标记。
 
 ```java
 FragmentManager fragmentManager = getSupportFragmentManager();
@@ -252,8 +252,6 @@ ExampleFragment fragment = (ExampleFragment) fragmentManager.findFragmentByTag("
 #### (5)支持多个返回堆栈
 
 在某些情况下，您的应用可能需要支持多个返回堆栈。一个常见示例是，您的应用使用底部导航栏。`FragmentManager` 可让您通过 `saveBackStack()` 和 `restoreBackStack()` 方法支持多个返回堆栈。这两种方法使您可以通过保存一个返回堆栈并恢复另一个返回堆栈来在返回堆栈之间进行交换。
-
-
 
 > `saveBackStack()` 的工作方式类似于使用可选 `name` 参数调用 `popBackStack()`：弹出指定事务以及堆栈上在此之后的所有事务。不同之处在于 `saveBackStack()` [会保存弹出事务中所有 fragment 的状态](https://developer.android.google.cn/guide/fragments/saving-state)。
 
@@ -306,7 +304,7 @@ fragmentManager.beginTransaction()
 
 ### 5.FragmentTransaction
 
-> 在运行时，a [`FragmentManager`](https://developer.android.google.cn/reference/androidx/fragment/app/FragmentManager) 可以添加、删除、替换和使用片段执行其他操作以响应用户交互。您提交的每组片段更改都称为一个*事务*，您可以使用[`FragmentTransaction`](https://developer.android.google.cn/reference/androidx/fragment/app/FragmentTransaction) 该类提供的 API 指定要在事务内部执行的操作 。您可以将多个操作组合到一个事务中——例如，一个事务可以添加或替换多个片段。当您在同一屏幕上显示多个同级片段时，此分组非常有用，例如拆分视图。
+> Fragment 的事务（Fragment Transaction）是指对 Fragment 执行的一系列操作，包括添加、删除、替换和显示/隐藏等操作。这些操作可以通过 FragmentManager 的 beginTransaction() 方法获取一个 FragmentTransaction 对象来执行。 
 
 一个简单的事务，并且提交
 
@@ -329,9 +327,9 @@ fragmentTransaction.commit();//提交
 
 #### (2)commit
 
-提交事务是异步的，他会放在UI主线程执行，如果你需要立即执行，可以调用**commitNow();**
+**提交事务是异步**的，他会放在UI主线程执行，如果你需要立即执行，可以调用**commitNow();**
 
-但是commitNow()方法与addToBackStack方法并不兼容，这时候你可以使用executePendingTransactions()来执行以及commit但还未执行的事务。
+> 但是`commitNow()`方法与`addToBackStack`方法并不兼容，这时候你可以使用executePendingTransactions()来执行以及commit但还未执行的事务。
 
 对于大多数项目，commit已经足够。
 
@@ -486,18 +484,18 @@ public class FragmentB extends Fragment {
 
 生命周期以及回调(包含Fragment的回调和view的回调)
 
-![片段生命周期状态及其关系片段的生命周期回调和片段的视图生命周期](Android--四大组件、存储.assets/fragment-view-lifecycle.png)
+ <img src="Android--其他组件.assets/fragment-view-lifecycle.png" alt="Fragment 生命周期状态，以及它们与 Fragment 的生命周期回调和 Fragment 的视图生命周期之间的关系" style="zoom:80%;" /> 
 
 > 当用户准备离开fragment且这时候fragment还可见，调用onPause回调
 >
 > 当用户已经离开fragment且这时候fragment不可见，调用onStop()回调
 
-![img](Android--四大组件、存储.assets/145991-dc5d005d99c94464.png)
 
-#### onAttach()和onDetach
 
-- onAttach回调在被添加至FragmentManager后被调用，此时FragmentManager已经开始管理Fragment，这是可以通过findFragmentById()获取该fragment
-- onDetach方法在fragment被remove之后调用，这时候不能通过findFragmentById()获取该fragment
+#### onAttach和onDetach
+
+- `onAttach`回调在被添加至FragmentManager后被调用，此时FragmentManager已经开始管理Fragment，这是可以通过findFragmentById()获取该fragment
+- `onDetach`方法在fragment被remove之后调用，这时候不能通过findFragmentById()获取该fragment
 
 ### 8.保存Fragment相关状态
 
@@ -538,7 +536,7 @@ public void onCreate(@Nullable Bundle savedInstanceState) {
 }
 ```
 
-#### (2)NonConfig
+#### (2)ViewModel
 
 应将 NonConfig 数据放置在 Fragment 之外，如在 [`ViewModel`](https://developer.android.google.cn/reference/androidx/lifecycle/ViewModel) 中。在前面的示例中，`seed`（NonConfig 状态）是在 `ViewModel` 中生成的。维护其状态的逻辑由 `ViewModel` 拥有。
 
@@ -557,7 +555,7 @@ public class RandomGoodDeedViewModel extends ViewModel {
 
 当出现如下情况时：
 
-![img](Android--四大组件、存储.assets/145991-1808ce5c8e7bcb2c.jpeg)
+
 
 根据上面的生命周期图你将会看到Fragment从后退栈中返回时，会回调 onDestroyview 方法和 onCreateview 方法。不管怎样，显然在这种情况 onSaveInstanceState 方法没有被调用。结果就是 UI 里的所有都没有了，然后默认按照 Layout XML 文件中定义的来重新创建。
 
@@ -628,25 +626,29 @@ private Bundle saveState() {
 > 参见--https://developer.android.google.cn/guide/fragments/communicate
 >
 > [Fragment的四种跳转](https://www.jianshu.com/p/ab1cb7ddf91f)
+>
+> [Fragment通信方式](https://juejin.cn/post/6977241599344377863#heading-13)
 
-- **1.从同一个Activiy的一个Fragment跳转到另外一个Fragment**
+#### (1)基于Activity或父亲Fragment通信
+
+- **从同一个Activiy的一个Fragment跳转到另外一个Fragment**
 
   > ```java
   > getActivity().getSupportFragmentManager() 
-  >     .beginTransaction()
-  >     .replace(R.id.xx, new XxxFragment(), null) 
-  >     .addToBackStack(null)
-  >     .commit();
+  >        .beginTransaction()
+  >        .replace(R.id.xx, new XxxFragment(), null) 
+  >        .addToBackStack(null)
+  >        .commit();
   > ```
 
-- **2.从一个Activity的Fragment跳转到另外一个Activity**
+- **从一个Activity的Fragment跳转到另外一个Activity**
 
   > ```java
   > Intent intent = new Intent(getActivity(),OtherActivity.class); 
   > startActivity(intent);
   > ```
 
-- **3.从一个Activity跳转到另外一个Activity的Fragment上**
+- **从一个Activity跳转到另外一个Activity的Fragment上**
 
   > ```java
   > //Activity1
@@ -665,12 +667,222 @@ private Bundle saveState() {
   > }
   > ```
 
-- **4.从一个Activity的Fragment跳转到另外一个Activity的Fragment上**
+- **从一个Activity的Fragment跳转到另外一个Activity的Fragment上**
 
   > ```java
   > Intent intent = new Intent(getActivity(), MainActivity.class);
   > ```
   >
-  > 
 
-## 三、Navigation
+
+
+#### (2)使用viewmodel通信
+
+**和宿主activity通信**
+
+```java
+public class ItemViewModel extends ViewModel {
+    private final MutableLiveData<Item> selectedItem = new MutableLiveData<Item>();
+    public void selectItem(Item item) {
+        selectedItem.setValue(item);
+    }
+    public LiveData<Item> getSelectedItem() {
+        return selectedItem;
+    }
+}
+```
+
+```java
+public class MainActivity extends AppCompatActivity {
+    private ItemViewModel viewModel;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        viewModel = new ViewModelProvider(this).get(ItemViewModel.class);
+        viewModel.getSelectedItem().observe(this, item -> {
+            // Perform an action with the latest item data.
+        });
+    }
+}
+
+public class ListFragment extends Fragment {
+    private ItemViewModel viewModel;
+
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        viewModel = new ViewModelProvider(requireActivity()).get(ItemViewModel.class);
+        ...
+        items.setOnClickListener(item -> {
+            // Set a new item.
+            viewModel.select(item);
+        });
+    }
+}
+```
+
+
+
+**fragment之间通信**
+
+这两个 fragment 可以使用其 activity 范围共享 `ViewModel` 来处理这种通信。通过以这种方式共享 `ViewModel`，fragment 不需要相互了解，activity 也不需要执行任何操作来促进通信。 
+
+```java
+public class ListViewModel extends ViewModel {
+    private final MutableLiveData<Set<Filter>> filters = new MutableLiveData<>();
+
+    private final LiveData<List<Item>> originalList = ...;
+    private final LiveData<List<Item>> filteredList = ...;
+
+    public LiveData<List<Item>> getFilteredList() {
+        return filteredList;
+    }
+
+    public LiveData<Set<Filter>> getFilters() {
+        return filters;
+    }
+
+    public void addFilter(Filter filter) { ... }
+
+    public void removeFilter(Filter filter) { ... }
+}
+
+public class ListFragment extends Fragment {
+    private ListViewModel viewModel;
+
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        viewModel = new ViewModelProvider(requireActivity()).get(ListViewModel.class);
+        viewModel.getFilteredList().observe(getViewLifecycleOwner(), list -> {
+            // Update the list UI.
+        });
+    }
+}
+
+public class FilterFragment extends Fragment {
+    private ListViewModel viewModel;
+
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        viewModel = new ViewModelProvider(requireActivity()).get(ListViewModel.class);
+        viewModel.getFilters().observe(getViewLifecycleOwner(), set -> {
+            // Update the selected filters UI.
+        });
+    }
+
+    public void onFilterSelected(Filter filter) {
+        viewModel.addFilter(filter);
+    }
+
+    public void onFilterDeselected(Filter filter) {
+        viewModel.removeFilter(filter);
+    }
+}
+```
+
+
+
+#### (3)使用Result API获取结果
+
+在 fragment 版本 1.3.0 及更高版本中，每个 [`FragmentManager`]都实现了 [`FragmentResultOwner`]。这意味着，`FragmentManager` 可以充当 fragment 结果的集中存储区。此更改通过设置 fragment 结果并监听这些结果，而不要求组件直接相互引用，让这些组件能够相互通信。 
+
+> 这个的难点主要是获取的fragmentManager要正确
+
+**fragments之间传递结果**
+
+fragA设置监听器，监听名为requestKey的返回结果
+
+```java
+@Override
+public void onCreate(@Nullable Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    getParentFragmentManager().setFragmentResultListener("requestKey", this, new FragmentResultListener() {
+        @Override
+        public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
+            // We use a String here, but any type that can be put in a Bundle is supported.
+            String result = bundle.getString("bundleKey");
+            // Do something with the result.
+        }
+    });
+}
+```
+
+fragB负责发送消息
+
+```java
+button.setOnClickListener(new View.OnClickListener() {
+    @Override
+    public void onClick(View v) {
+        Bundle result = new Bundle();
+        result.putString("bundleKey", "result");
+        getParentFragmentManager().setFragmentResult("requestKey", result);
+    }
+});
+```
+
+
+
+**在父frag与子之间传递结果**
+
+ 将结果从子 fragment 传递给父 fragment，请在调用 `setFragmentResultListener()` 时使用父 fragment 中的 `getChildFragmentManager()` 而不是 `getParentFragmentManager()`。 
+
+ ![子 fragment 可以使用 FragmentManager 将结果发送到其父 fragment](Android--其他组件.assets/pass-parent-child.png) 
+
+```java
+@Override
+public void onCreate(@Nullable Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    // Set the listener on the child fragmentManager.
+    getChildFragmentManager()
+        .setFragmentResultListener("requestKey", this, new FragmentResultListener() {
+            @Override
+            public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
+                String result = bundle.getString("bundleKey");
+                // Do something with the result.
+            }
+        });
+}
+```
+
+子frag需要在其fragmentmanager设置结果
+
+```java
+button.setOnClickListener(new View.OnClickListener() {
+    @Override
+    public void onClick(View v) {
+        Bundle result = new Bundle();
+        result.putString("bundleKey", "result");
+        // The child fragment needs to still set the result on its parent fragment manager.
+        getParentFragmentManager().setFragmentResult("requestKey", result);
+    }
+});
+```
+
+
+
+**宿主Activity接收子fragment结果**
+
+```java
+class MainActivity extends AppCompatActivity {
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        getSupportFragmentManager().setFragmentResultListener("requestKey", this, new FragmentResultListener() {
+            @Override
+            public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
+                // We use a String here, but any type that can be put in a Bundle is supported.
+                String result = bundle.getString("bundleKey");
+                // Do something with the result.
+            }
+        });
+    }
+}
+```
+
+
+
+
+
+## Navigation

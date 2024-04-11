@@ -618,13 +618,15 @@ class _ContentYState extends State<ContentY> {//继承State
 
 ![image-20210613151530155](https://gitee.com/kevinyong/kevin-gallery/raw/master/image-20210613151530155.png)
 
-**重点**
-
-```dart
-setState(){}
-```
 
 
+###### `setState(){}`
+
+`setState` 方法会触发当前 `State` 对象关联的 `StatefulWidget` 以及它的子树中所有依赖于此状态的 widget 进行重建，因此可以认为是局部刷新。 
+
+> **注意**
+>
+> 如果 `StatefulWidget` 的子树很大，或者有很多依赖于此状态的 widget，那么调用 `setState` 方法可能会导致大量的 widget 重建，从而影响应用程序的性能。因此，在使用 `setState` 方法时，需要尽可能地减少依赖于此状态的 widget 的数量，以提高应用程序的性能。 
 
 
 
@@ -1564,17 +1566,17 @@ ElevatedButton(
     child: Text('路由跳转'))
 ```
 
-**传值，可以通过构造函数进行传值**
+> **传值，可以通过构造函数进行传值**
+>
+> ```dart
+> Navigator.of(context).push(//通过Navigator组件
+>     MaterialPageRoute(
+>         builder: (context)=>NavigatorPage('hello')
+>     )
+> );
+> ```
 
-```dart
-Navigator.of(context).push(//通过Navigator组件
-    MaterialPageRoute(
-        builder: (context)=>NavigatorPage('hello')
-    )
-);
-```
-
-由于跳转到新的页面之后，flutter自动提供了顶部appbar的返回按键，但如果需要自己定义，则可以通过
+跳转到新的页面之后，可以通过顶部appbar的返回按键，或者通过自定义返回
 
 ```dart
 Navigator.of(context).pop();
@@ -1597,7 +1599,7 @@ return MaterialApp(
 );
 ```
 
-进行路由的调用
+通过指定名称进行跳转
 
 ```dart
 Navigator.pushNamed(context,'/form');
@@ -1622,23 +1624,23 @@ class ScreenArguments {
 
 ```dart
 class ExtractArgumentsScreen extends StatelessWidget {
-  static const routeName = '/extractArguments';
+    static const routeName = '/extractArguments';
 
-  @override
-  Widget build(BuildContext context) {
-    // Extract the arguments from the current ModalRoute
-    // settings and cast them as ScreenArguments.
-    final args = ModalRoute.of(context)!.settings.arguments as ScreenArguments;//提取参数，并且与实体类配对
+    @override
+    Widget build(BuildContext context) {
+        // Extract the arguments from the current ModalRoute
+        // settings and cast them as ScreenArguments.
+        final args = ModalRoute.of(context)!.settings.arguments as ScreenArguments;//提取参数，并且与实体类配对
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(args.title),
-      ),
-      body: Center(
-        child: Text(args.message),
-      ),
-    );
-  }
+        return Scaffold(
+            appBar: AppBar(
+                title: Text(args.title),
+            ),
+            body: Center(
+                child: Text(args.message),
+            ),
+        );
+    }
 }
 ```
 
@@ -3246,3 +3248,10 @@ dio.interceptors.add(CookieManager(cj));
 ...
 ```
 
+
+
+
+
+## 十一、状态管理
+
+### GETX

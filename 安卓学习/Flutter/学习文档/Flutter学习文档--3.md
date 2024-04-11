@@ -1271,7 +1271,7 @@ import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 #### (1)通过IndexedStack实现
 
-IndexedStack作用是显示第第index个child,其它child在页面上是不可见的，但所有child状态都被保持：
+`IndexedStack`作用是显示第`i`个`child`,其它child在页面上是不可见的，但所有child状态都被保持：
 
 ```dart
 /// home.dart
@@ -1346,24 +1346,24 @@ class _MyHomePageState extends State<MyHomePage> {
 
 ```dart
 class RecommendPage extends StatefulWidget {
-  @override
-  _RecommendPageState createState() => _RecommendPageState();
+    @override
+    _RecommendPageState createState() => _RecommendPageState();
 }
 
 class _RecommendPageState extends State<RecommendPage>
     with AutomaticKeepAliveClientMixin {
-  int count = 0;
+    int count = 0;
 
-  void add() {
-    setState(() {
-      count++;
-    });
-  }
+    void add() {
+        setState(() {
+            count++;
+        });
+    }
 
-  @override
-  bool get wantKeepAlive => true;
-    
-  ......
+    @override
+    bool get wantKeepAlive => true;
+
+    ......
 ```
 
 ##### 实现底部导航栏
@@ -1693,7 +1693,7 @@ Expanded(
 
 什么是key
 
-> 您可以使用key来控制框架将在widget重建时与哪些其他widget匹配。默认情况下，框架根据它们的runtimeType和它们的显示顺序来匹配。**使用key时，框架要求两个widget具有相同的key和runtimeType。**
+> 可以使用key来控制框架将在widget重建时与哪些其他widget匹配。默认情况下，框架根据它们的runtimeType和它们的显示顺序来匹配。**使用key时，框架要求两个widget具有相同的key和runtimeType。**
 
 > **Widget 只是一个配置且无法修改，而 Element 才是真正被使用的对象**，并可以修改。当新的 Widget 到来时将会调用 canUpdate 方法，来确定这个 Element是否需要更新。返回true时可以更新对element索引
 > canUpdate 对两个（新老） Widget 的 runtimeType 和 key 进行比较，从而判断出当前的 Element 是否需要更新
@@ -1756,7 +1756,7 @@ GlobalKey 使用了一个静态常量 Map 来保存它对应的 Element。
 
 **ValueKey**
 
-如果您有一个 Todo List 应用程序，它将会记录你需要完成的事情。我们假设每个 Todo 事情都各不相同，而你想要对每个 Todo 进行滑动删除操作。
+如果有一个 Todo List 应用程序，它将会记录你需要完成的事情。假设每个 Todo 事情都各不相同，而你想要对每个 Todo 进行滑动删除操作。
 
 这时候就需要使用 ValueKey！
 

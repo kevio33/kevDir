@@ -1587,7 +1587,9 @@ button3.setOnClickListener(new View.OnClickListener() {
 
 > [Android之viewpager](https://cloud.tencent.com/developer/article/2108418)
 
-### (1)介绍使用
+### (1)viewpager1
+
+#### 介绍使用
 
 > [viewpager详解](https://juejin.cn/post/6844903544093409293)
 
@@ -1617,7 +1619,7 @@ ViewPager有两个适配器（`FragmentStatePagerAdapter`和`FragmentPagerAdapte
 
 > **两者区别：**
 >
-> - **FragmentStatePagerAdapter不可以缓存**： 会销毁不再需要的 fragment，当当前事务提交以后，会彻底的将 fragmeng 从当前 Activity 的FragmentManager 中移除，state 标明，销毁时，会将其 `onSaveInstanceState(Bundle outState)` 中的 bundle 信息保存下来，当用户切换回来，可以通过该 bundle 恢复生成新的 fragment，也就是说，你可以在 `onSaveInstanceState(Bundle outState)` 方法中保存一些数据，在 onCreate 中进行恢复创建。
+> - **FragmentStatePagerAdapter不可以缓存**： 会销毁不再需要的 fragment，当前事务提交以后，会彻底的将 fragmeng 从当前 Activity 的FragmentManager 中移除。state 标明，销毁时，会将其 `onSaveInstanceState(Bundle outState)` 中的 bundle 信息保存下来，当用户切换回来，可以通过该 bundle 恢复生成新的 fragment，也就是说，你可以在 `onSaveInstanceState(Bundle outState)` 方法中保存一些数据，在 onCreate 中进行恢复创建。
 >
 > - **FragmentPagerAdapter可以缓存** ： 对于不再需要的 fragment，选择调用 onDetach() 方法，仅销毁视图，并不会销毁 fragment 实例。
 >
@@ -1638,14 +1640,18 @@ ViewPager有两个适配器（`FragmentStatePagerAdapter`和`FragmentPagerAdapte
 
 
 
-#### 结合TabLayout+Fragment使用
+#### 结合TabLayout+Fragment
 
 - 初始化 TabLayout 和 ViewPager 后只要通过调用 TabLayout 的 `tabLayout.setupWithViewPager(viewPager)` 方法就将两者绑定在一起了。
 - 重写 PagerAdapter 的 `public CharSequence getPageTitle(int position)` 方法，而 TabLayout 也正是通过 `setupWithViewPager()` 方法底部会调用 PagerAdapter 中的`getPageTitle()` 方法来实现联动的。
 
 
 
+#### 懒加载
 
+viewpager1默认没有实现懒加载，需要自定义
+
+> [懒加载](#lazyload)
 
 ### (2)viewpager2
 
@@ -1653,16 +1659,39 @@ ViewPager有两个适配器（`FragmentStatePagerAdapter`和`FragmentPagerAdapte
 
 
 
-**适配器**
+#### **适配器**
 
 ViewPager2的适配器可以使用**`FragmentStateAdapter`或`RecyclerView.Adapter`** 
 
+```java
+public class MyPagerAdapter extends FragmentStateAdapter{
+
+    private List<Fragment> fragmentList;
+
+    public MyPagerAdapter(@NonNull FragmentManager fragmentManager, @NonNull Lifecycle lifecycle, List<Fragment> list) {
+        super(fragmentManager, lifecycle);
+        fragmentList = list;
+    }
+
+    @NonNull
+    @Override
+    public Fragment createFragment(int position) {
+        return fragmentList.get(position);
+    }
+
+    @Override
+    public int getItemCount() {
+        return fragmentList.size();
+    }
+}
+```
 
 
-**绑定Tablayout**
+
+#### **绑定Tablayout**
 
 ```java
-new TabLayoutMediator(activityMainBinding.tabLayout, activityMainBinding.viewPager, (tab, position) -> {
+new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
     tab.setText("tab"+position);//设置tab的名字
 }).attach();
 ```
@@ -1677,15 +1706,30 @@ new TabLayoutMediator(activityMainBinding.tabLayout, activityMainBinding.viewPag
 >
 > https://www.jianshu.com/p/924046eae137
 
+- **实现方式**
+  ViewPager2的内部实现是`RecyclerView`，而ViewPager是通过继承自`ViewGroup`实现的。因此，ViewPager2的性能更高。
+
+- **滑动方向**
+  ①ViewPager2支持横向和竖向滑动，而ViewPager只能横向滑动。
+
+  ②Adapter：ViewPager2只有一个适配器：`FragmentStateAdapter`(继承自RecyclerView.Adapter)。而ViewPager有两个适配器：`FragmentStatePagerAdapter`和`FragmentPagerAdapter`，均继承自`PagerAdapter`。FragmentStatePagerAdapter不可以缓存，而FragmentPagerAdapter可以缓存。
+
+- **懒加载**
+  ViewPager2内部实现了懒加载，默认不进行预加载，通过Lifecycle对Fragment的生命周期进行管理。而ViewPager需要自己实现懒加载。
+
+  > 通过打印日志发现，viewpager2只有在滑动到某个fragment时候才会调用onCreate和onresume等方法
+
+- **功能支持**
+  ViewPager2提供了一些新的功能，如从`右到左（RTL）的布局`支持和`停用用户输入（setUserInputEnabled、isUserInputEnabled）`的功能。
 
 
 
 
 ### (4)问题
 
-**①滑动问题**
+#### **滑动问题**
 
-假设底部有三个`tablayout`，如果当前在第一个tab，若直接点击第三个tab，那么页面会从**页面1滑动到页面2，再滑动到页面3**，为了优化这一过程，通常采用自定义viewPager，取消滑动动画
+**取消滑动动画**，通常在点击tablayout的tab时候，实现无动画滑动到对应页面
 
 ```java
 public class MyViewPager extends ViewPager {
@@ -1699,24 +1743,231 @@ public class MyViewPager extends ViewPager {
 
     @Override
     public void setCurrentItem(int item) {
-        super.setCurrentItem(item,false);//禁止滑动
+        super.setCurrentItem(item,false);//禁止滑动动画
     }
 }
 ```
 
 
 
-**②页面缓存问题**
+#### **页面缓存、预加载、懒加载**
 
-**当viewpager包含多个fragment的时候，如果闲置时刻，没有显示的frag会被销毁，因此可能会造成划回去闪退。**
+##### **预加载**
 
-`viewPager.setOffscreenPageLimit(int size)`方法用于设置ViewPager在闲置状态下保留在当前页面两侧的页面数。超过此限制的页面将在需要时从适配器中重新创建。 
+为了让用户在切换过程中不卡顿，安卓官方默认创建当前item时，会创建第二个item，确保用户滑动时第二个item已经被创建，保持viewpager的平滑移动的效果。所以实现了预加载。 
 
-该方法有以下作用：
+**ViewPager 在默认情况下会预加载左右两侧的页面，也就是viewPager.setOffscreenPageLimit(1)默认值为1**
 
-- **提高页面切换的流畅度。**当用户快速滑动页面时，ViewPager可以提前加载相邻页面，从而避免页面切换时出现卡顿现象。
+> `viewPager.setOffscreenPageLimit(int size)`方法用于设置ViewPager在闲置状态下**保留在当前页面两侧的页面数**。例如设置为2的话，会在左右两侧各缓存2个页面。
+>
+> 超过此限制的页面将在需要时从适配器中重新创建。 
+>
+> 该方法有以下作用：
+>
+> - **提高页面切换的流畅度。**当用户快速滑动页面时，ViewPager可以提前加载相邻页面，从而避免页面切换时出现卡顿现象。
+>
+> - **减少内存消耗**。当页面数量较多时，ViewPager可以销毁超出限制的页面，从而减少内存占用。
 
-- **减少内存消耗**。当页面数量较多时，ViewPager可以销毁超出限制的页面，从而减少内存占用。
+ ![image](Android--控件.assets/16c21b4c94d65f5d_tplv-t2oaga2asx-jj-mark_3024_0_0_0_q75.png) 
+
+
+
+
+
+##### <a name=lazyload>懒加载</a>
+
+> https://blog.csdn.net/yxf0448/article/details/110001314
+>
+> https://juejin.cn/post/6844903895790157838#heading-6
+
+如果预加载多个页面的时，由于预加载的原因，多个页面同时会对网络进行请求，造成流量浪费，卡顿等问题，**懒加载解决的问题就是让页面上一些信息进行延迟加载，不至于同时进行太多并发的请求等** 
+
+> **viewpager1需要自定义实现懒加载，而viewpager2默认是实现了懒加载**
+
+###### **两种实现方式**
+
+**①利用fragment的`setUserVisibleHint`**
+
+- Fragment中有一个`setUserVisibleHint(boolean isVisibleToUser)`方法，这个方法就是告诉用户，UI对用户是否可见，可以做懒加载初始化操作。 
+- 因为预加载已经将fragment的生命周期执行完毕，所有可以使用一个占位视图 ViewStub，当真正跳转到该页时，执行ViewStub.inflate()方法，加载真正的数据视图和请求数据。 
+- 当某一页超出可视范围和预加载范围，那么它将会被销毁，FragmentStatePagerAdapter销毁整个Fragment, 我们可以自己保存该Fragment,或使用FragmentPagerAdapter让FragmentTransition来保留Fragment的引用。虽然这样，但是它的周期方法已经走完，那么我们只能手动的保存Fragment根View的引用，当再次重新进入新的声明周期方法时，返回原来的View
+
+**实现要点：**
+
+- 因为 `setUserVisibleHint()`，此方法会在`onCreateView()`之前执行，当fragment 从可见到不见，或者从不可见切换到可见，都会调用此方法，所以可以用它来判断是否可以加载数据
+
+- 需要在`onActivityCreated()`及`setUserVisibleHint()`方法中都调了一次`lazyLoad()`方法。如果仅仅在`setUserVisibleHint()`调用`lazyLoad()`，当默认首页首先加载时会导致viewPager的首页第一次展示时没有数据显示，切换一下才会有数据。因为首页fragment的setUserVisible()在onActivityCreated() 之前调用，此时isPrepared为false 导致首页fragment 没能调用onLazyLoad()方法加载数据。
+
+```java
+/**
+ * <pre>
+ *     @author yangchong
+ *     blog  : https://github.com/yangchong211
+ *     time  : 2017/7/22
+ *     desc  : 懒加载
+ *     revise: 懒加载时机：onCreateView()方法执行完毕 + setUserVisibleHint()方法返回true
+ * </pre>
+ */
+public abstract class BaseLazyFragment extends BaseFragment {
+
+    /*
+     * 预加载页面回调的生命周期流程：
+     * setUserVisibleHint() -->onAttach() --> onCreate()-->onCreateView()-->
+     *              onActivityCreate() --> onStart() --> onResume()
+     */
+
+    /**
+     * 是否懒加载过
+     */
+    protected boolean isLazyLoaded = false;
+    /**
+     * Fragment的View加载完毕的标记
+     */
+    private boolean isPrepared = false;
+
+    /**
+     * 第一步,改变isPrepared标记
+     * 当onViewCreated()方法执行时,表明View已经加载完毕,此时改变isPrepared标记为true,并调用lazyLoad()方法
+     */
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        isPrepared = true;
+        //只有Fragment onCreateView好了
+        //另外这里调用一次lazyLoad(）
+        lazyLoad();
+    }
+
+
+    /**
+     * 第二步
+     * 此方法会在onCreateView(）之前执行
+     * 当viewPager中fragment改变可见状态时也会调用
+     * 当fragment 从可见到不见，或者从不可见切换到可见，都会调用此方法
+     * true表示当前页面可见，false表示不可见
+     */
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        LogUtil.d("setUserVisibleHint---"+isVisibleToUser);
+        //只有当fragment可见时，才进行加载数据
+        if (isVisibleToUser){
+            lazyLoad();
+        }
+    }
+
+    /**
+     * 调用懒加载
+     * 第三步:在lazyLoad()方法中进行双重标记判断,通过后即可进行数据加载
+     */
+    private void lazyLoad() {
+        if (getUserVisibleHint() && isPrepared && !isLazyLoaded) {
+            showFirstLoading();
+            onLazyLoad();
+            isLazyLoaded = true;
+        } else {
+            //当视图已经对用户不可见并且加载过数据，如果需要在切换到其他页面时停止加载数据，可以覆写此方法
+            if (isLazyLoaded) {
+                stopLoad();
+            }
+        }
+    }
+
+    /**
+     * 视图销毁的时候讲Fragment是否初始化的状态变为false
+     */
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        isLazyLoaded = false;
+        isPrepared = false;
+    }
+
+    /**
+     * 第一次可见时，操作该方法，可以用于showLoading操作，注意这个是全局加载loading
+     */
+    protected void showFirstLoading() {
+        LogUtil.i("第一次可见时show全局loading");
+    }
+
+    /**
+     * 停止加载
+     * 当视图已经对用户不可见并且加载过数据，但是没有加载完，而只是加载loading。
+     * 如果需要在切换到其他页面时停止加载数据，可以覆写此方法。
+     * 存在问题，如何停止加载网络
+     */
+    protected void stopLoad(){
+
+    }
+
+    /**
+     * 第四步:定义抽象方法onLazyLoad(),具体加载数据的工作,交给子类去完成
+     */
+    @UiThread
+    protected abstract void onLazyLoad();
+}
+```
+
+
+
+**②AndroidX利用Lifecycle**
+
+给 `FragmentStatePagerAdapter` 添加了一个 `@Behavior int behavior` 的参数，调用的时候使用
+
+其本质就是内部帮你处理和切换MaxLifecycle：
+
+> mCurTransaction.setMaxLifecycle(fragment, Lifecycle.State.STARTED); 走到started生命周期
+> mCurTransaction.setMaxLifecycle(fragment, Lifecycle.State.RESUMED)；走到resumed生命周期
+
+```kotlin
+mBinding.viewPager.bindFragment(
+    supportFragmentManager,
+    listOf(LazyLoad1Fragment.obtainFragment(), LazyLoad2Fragment.obtainFragment(), LazyLoad3Fragment.obtainFragment()),
+    listOf("Demo1", "Demo2", "Demo3"),
+    behavior = 1 //添加behavior参数
+)
+```
+
+之后再fragment的`onResume`回调加载数据即可，不用单独实现懒加载fragment
+
+```kotlin
+class LazyLoad3Fragment : BaseVDBLoadingFragment<EmptyViewModel, FragmentDemo2Binding>() {
+
+    var isLoaded = false
+
+    companion object {
+        fun obtainFragment(): LazyLoad3Fragment {
+            return LazyLoad3Fragment()
+        }
+    }
+    override fun startObserve() {
+    }
+
+    override fun init() {
+        YYLogUtils.w("LazyLoad3Fragment - init")
+    }
+
+    private fun initData() {
+        YYLogUtils.w("LazyLoad3Fragment - initData")
+        //模拟的Loading的情况
+        showStateLoading()
+
+        CommUtils.getHandler().postDelayed({
+
+            showStateSuccess()
+
+        }, 2500)
+
+        isLoaded = true
+    }
+
+    override fun onResume() {
+        super.onResume()
+        YYLogUtils.w("LazyLoad3Fragment - onResume")
+        if (!isLoaded) initData()//加载数据
+    }
+}
+```
 
 
 

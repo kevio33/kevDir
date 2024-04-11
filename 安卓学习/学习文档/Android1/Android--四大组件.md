@@ -131,43 +131,7 @@ Activity提供了六个核心回调
 
  ![img](Android--四大组件.assets/activity_lifecycle.png) 
 
-```java
-//几个常用的生命周期方法，可以通过log打印这些方法调用过程和时间，在实际操作中也可以在对应方法下进行操作，比如玩游戏途中接电话，则可以在pause方法中暂停游戏
-public class TextViewActivity extends AppCompatActivity {
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_text_view);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-    }
-
-    //恢复数据
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
-}
-```
 
 ##### onCreate()
 
@@ -242,7 +206,7 @@ public void onSaveInstanceState(Bundle outState) {
 
 ##### onPause()
 
-当Activity被部分遮挡或 Activity 不再位于前台。使用 `onPause()` 方法暂停或调整当 `Activity`处于“已暂停”状态时不应继续（或应有节制地继续）的操作，以及您希望很快恢复的操作。
+当Activity被**部分遮挡**或 Activity **不再位于前台**。使用 `onPause()` 方法暂停或调整当 `Activity`处于“已暂停”状态时不应继续（或应有节制地继续）的操作，以及您希望很快恢复的操作。
 
 **Activity 进入此状态的原因**有很多。例如：
 
@@ -252,13 +216,13 @@ public void onSaveInstanceState(Bundle outState) {
 
 **该回调应该处理内容：**
 
-> 应该暂停任何与用户交互相关的进程，例如停止接收用户输入或停止音乐播放。 
+> 应该**暂停任何与用户交互相关的进程**，例如停止接收用户输入或停止音乐播放。 
 >
 > 还可以使用 `onPause()`方法释放系统资源、传感器（例如 GPS）手柄，或当您的 Activity 暂停且用户不需要它们时仍然可能影响电池续航时间的任何资源。
 
 > **注意：**
 >
-> onPause()执行非常简单，速度很快，所以不应该使用onPause()来保存应用或用户数据等耗时操作，因为在该方法完成之前，此类工作可能无法完成。
+> onPause()执行非常简单，速度很快，所以**不应该**使用onPause()来保存应用或用户数据等**耗时操作**，因为在该方法完成之前，此类工作可能无法完成。
 
 
 
@@ -272,7 +236,9 @@ public void onSaveInstanceState(Bundle outState) {
 >
 > 例如，应用可以暂停动画效果，或从精确位置更新切换到粗略位置更新。
 >
-> 还应使用 **`onStop()` 执行 CPU 相对密集的关闭操作**：例如，可以在 `onStop()` 期间将信息保存到数据库。将草稿笔记内容保存到持久性存储空间中
+> 还应使用 **`onStop()` 执行 CPU 相对密集的关闭操作**：
+>
+> 例如，可**以在 `onStop()` 期间将信息保存到数据库。将草稿笔记内容保存到持久性存储空间中**
 
 
 
@@ -2660,8 +2626,8 @@ Android内置很多系统级别的广播，比如手机开机完成后会发送�
          是否接受其他应用发出或系统的广播，如果false则只接受本应用的广播
          android:exported="true"/"false"
 
-         创建的接收器的名称
-         android:name=".mBroadcastReceiver"
+         广播接收器的名称
+         android:name=".MyBroadcastReceiver"
 
          具有相应权限的广播发送者发送的广播才能被此BroadcastReceiver所接收；
          android:permission="string"

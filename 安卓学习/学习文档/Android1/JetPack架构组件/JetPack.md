@@ -14,7 +14,10 @@ def lifecycle_version = "2.3.1"
 implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
 ```
 
-
+> ### ViewModel和静态类的区别：
+>
+> 问：既然ViewModel不受acitivity生命周期影响，那用静态类也可以实现，两者有什么区别？
+> 答：一般一个Activity / Fragment 对应着一个ViewModel，这样有利于模块化，当Activity finish 或 Fragment detached 才会失效，退出时会自动回调onClear方法清理内存，而static静态类是一个全局对象，所有类都可以共用，退出时需要手动管理对象内存
 
 ### 2.生命周期
 
