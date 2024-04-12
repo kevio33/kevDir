@@ -3255,3 +3255,13 @@ dio.interceptors.add(CookieManager(cj));
 ## 十一、状态管理
 
 ### GETX
+
+> https://juejin.cn/post/7020598013986865182
+
+
+
+
+
+## Flutter与原生通信
+
+> https://juejin.cn/post/7020598013986865182
