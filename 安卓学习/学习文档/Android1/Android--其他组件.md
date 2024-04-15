@@ -482,13 +482,65 @@ public class FragmentB extends Fragment {
 - [`RESUMED`]
 - [`DESTROYED`]
 
-生命周期以及回调(包含Fragment的回调和view的回调)
+**fragment的生命周期：**
 
- <img src="Android--其他组件.assets/fragment-view-lifecycle.png" alt="Fragment 生命周期状态，以及它们与 Fragment 的生命周期回调和 Fragment 的视图生命周期之间的关系" style="zoom:80%;" /> 
+ ![img](Android--其他组件.assets/dcd6130676734d65bb2367b57778db2d_tplv-k3u1fbpfcp-jj-mark_3024_0_0_0_q75.awebp) 
 
-> 当用户准备离开fragment且这时候fragment还可见，调用onPause回调
+> - onAttach() ：当Fragment与Activity发生关联时调用。
 >
-> 当用户已经离开fragment且这时候fragment不可见，调用onStop()回调
+> - onCreate()：创建Fragment时被回调。
+>
+> - onCreateView()：每次创建、绘制该Fragment的View组件时回调该方法，Fragment将会显示该方法返回的View 组件。
+>
+> - onActivityCreated()： 当与Fragment关联的Activity的onCreate()方法执行完毕时调用，可以在该方法中进行与Activity交互的操作。 
+>
+> - onStart()： 当Fragment可见时调用，可以在该方法中开始执行一些异步操作或者注册监听器。 
+>
+> - onResume()： 当Fragment获取焦点并可与用户交互时调用，可以在该方法中开始更新UI或者注册广播接收器。 
+>
+> - onPause()：暂停 Fragment 时被回调，失去焦点时回调。
+>
+> - onStop()：停止 Fragment 时被回调，Fragment不可见时回调。
+>
+> - onDestroyView()：销毁与Fragment有关的视图，但未与Activity解除绑定。
+>
+> - onDestroy()：销毁 Fragment 时被回调。
+>
+> - onDetach()： 与onAttach相对应，当Fragment与Activity关联被取消时调用。 
+
+**不同时机，生命函数的调用**
+
+> 1）创建Fragment
+>
+> onAttach() —> onCreate() —> onCreateView() —> onActivityCreated() —> onStart() —> onResume()
+>
+> 2）按下Home键回到桌面 / 锁屏
+>
+> onPause() —> onStop()
+>
+> 3）从桌面回到Fragment / 解锁
+>
+> onStart() —> onResume()
+>
+> 4）切换到其他Fragment
+>
+> onPause() —> onStop() —> onDestroyView()
+>
+> 5）切换回本身的Fragment
+>
+> onCreateView() —> onActivityCreated() —> onStart() —> onResume()
+>
+> 6） 按下Back键退出
+>
+> onPause() —> onStop() —> onDestroyView() —> onDestroy() —> onDetach()
+
+
+
+> Activity的生命周期以及回调(包含Fragment的回调和view的回调)
+>
+> <img src="Android--其他组件.assets/fragment-view-lifecycle.png" alt="Fragment 生命周期状态，以及它们与 Fragment 的生命周期回调和 Fragment 的视图生命周期之间的关系" style="zoom:80%;" />
+
+
 
 
 
