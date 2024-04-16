@@ -1583,7 +1583,7 @@ button3.setOnClickListener(new View.OnClickListener() {
 
 ![1607850043302](Android--控件.assets/1607850043302.png)
 
-## 14.viewpager
+## 14.Viewpager
 
 > [Android之viewpager](https://cloud.tencent.com/developer/article/2108418)
 
@@ -1991,7 +1991,17 @@ ListView的setAdapter方法可以传入一个ListAdapter对象，实现了ListAd
 
 
 
-#### ListView子项的缓存原理
+#### ListView子项的缓存机制
+
+ListView的缓存有两级，ListView里面有一个内部类 RecycleBin，RecycleBin有两个对象Active View和Scrap View来管理缓存，Active View是第一级，Scrap View是第二级。
+
+- **Active View**：是缓存在屏幕内的ItemView，当列表数据发生变化时，屏幕内的数据可以直接拿来复用，无须进行数据绑定。
+
+- **Scrap view**：缓存屏幕外的ItemView，这里所有的缓存的数据都是"脏的"，也就是数据需要重新绑定，也就是说屏幕外的所有数据在进入屏幕的时候都要走一遍`getView()`方法。
+ ![img](Android--控件.assets/2477378-e4406d2c3ed6cce6.webp)
+> 当Active View和Scrap View中都没有缓存的时候就会直接create view。
+
+##### 复用
 
 如果屏幕只能显示5个Item，那么ListView会创建`5+1`个Item视图；当第1个item完全离开屏幕后才会回收至缓存从而复用，用于显示第7个Item
 
@@ -2944,6 +2954,8 @@ private SparseArray<String> mTextCache = new SparseArray<>();
 #### 6）recyclerview缓存
 
 > https://blog.csdn.net/m0_51276753/article/details/125667231
+>
+> https://segmentfault.com/a/1190000040421118
 
 recyclerview用于四级缓存
 
@@ -2952,7 +2964,7 @@ recyclerview用于四级缓存
 | 层级 | 缓存变量                      | 缓存名     | 用途                                                   |
 | ---- | ----------------------------- | ---------- | ------------------------------------------------------ |
 | 1    | mChangeScrap与 mAttachedScrap | 可见缓存   | 用于布局过程中屏幕可见表项的回收和复用                 |
-| 2    | mCachedViews                  | 缓存列表   | 用于移出屏幕表项的回收和复用，不会清空数据             |
+| 2    | mCachedViews                  | 缓存列表   | 用于移出屏幕表项的回收和复用，**不会清空数据**         |
 | 3    | mViewCacheExtension           | 自定义缓存 | 自定义一个缓存，我们一般用不到                         |
 | 4    | RecycledViewPool              | 缓存池     | 用于移出屏幕表项的回收和复用，会将ViewHolder的数据重置 |
 
@@ -3000,6 +3012,32 @@ void scrapView(View view) {
 > itemC，itemD位置变化，所以存进mChangedScrap。
 
 
+
+###### ②二级缓存
+
+`CacheView`用于RecyclerView列表位置产生变动时，通常称为`离屏缓存`，对刚刚移出屏幕的view进行回收。它的默认容量是2（可以修改）。 
+
+ ![在这里插入图片描述](Android--控件.assets/01311bed9ff14912a061a972e1fe52b7.png) 
+
+
+
+###### ③三级缓存
+
+三级缓存ViewCacheExtension是用户自定义的缓存 ,
+
+```java
+if (holder == null && mViewCacheExtension != null) {
+	// We are NOT sending the offsetPosition because LayoutManager does not know it.
+	final View view = mViewCacheExtension.getViewForPositionAndType(this, position, type);
+	......
+}
+```
+
+> 如果自定义了一个缓存并且前面的一二级缓存没有找到ViewHolder，系统就会从自定义的这个缓存里去找ViewHolder。 
+
+
+
+###### ④四级缓存
 
 
 
@@ -3213,6 +3251,8 @@ public static int growSize(int currentSize) {
 ### ListView与RecyclerView比较
 
 > https://blog.csdn.net/augfun/article/details/114456710
+>
+> https://www.jianshu.com/p/3e9aa4bdaefd
 
 #### 布局效果
 
@@ -3230,7 +3270,7 @@ public static int growSize(int currentSize) {
 
   > 如果要在ListView实现局部刷新，依然是可以实现的，当一个item数据刷新时，可以在Adapter中，实现一个notifyItemChanged()方法，在方法里面通过这个 item 的 position，刷新这个item的数据
 
-- RecyclerView中可以实现局部刷新，例如：notifyItemChanged()；
+- RecyclerView中可以实现局部刷新，例如：`notifyItemChanged()`；
   
 
 #### 动画效果
