@@ -11,6 +11,8 @@
 >  [添加清华镜像源](https://www.cnblogs.com/canneddream/p/17012219.html)
 >
 >  [添加阿里镜像源](https://developer.aliyun.com/mirror/anaconda/)
+>
+>  [anaconda的pkgs目录以及清除](https://www.jb51.net/article/266999.htm)
 
 ## VSCode环境
 
@@ -80,6 +82,25 @@ conda install python==3.7.2 -n 要更新环境的名字，这里环境名是pyto
 ![1688466205231](PyTorch.assets/1688466205231.png)
 
 **③然后再次安装pylance，重启vscode即可**
+
+
+
+### （3）打包环境
+
+```shell
+pip install conda-pack
+
+conda pack -n my_env
+
+#如果是prefix
+conda pack -p my_env
+```
+
+
+
+## 3.pycharm配置jupyter
+
+> https://blog.csdn.net/Julse/article/details/102543897
 
 # 二、Base
 
