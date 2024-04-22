@@ -2,13 +2,29 @@
 
 `Application`是应用程序的**全局上下文**。Application 组件在应用程序启动时被创建，并在整个应用程序生命周期中保持存在。 
 
-**Application 组件在 Android 应用程序中是单例的**，即在整个应用程序中只有一个 Application 实例。因此，它可以用于在不同组件之间共享数据和状态。
+**Application 组件在 Android 应用程序中是单例的**，即在整个应用程序中只有一个 Application 实例。因此，它**可以用于在不同组件之间共享数据和状态。**
 
-### 作用 
+### (1)作用 
 
 Application 组件主要用于存储和管理应用程序的全局状态和数据，例如用户信息、应用程序配置信息、数据库连接等。 
 
 往往通过继承Application类实现自己的Application
+
+### (2)Application、activity、context
+
+> [activity、service、application与context区别](https://blog.csdn.net/qq475703980/article/details/88430891)
+>
+> [context](https://blog.csdn.net/guolin_blog/article/details/47028975)
+
+ ![在这里插入图片描述](Android--四大组件.assets/20190531205848781.jpg) 
+
+> `Context`:是一个接口类，主要提供通用接口
+>
+> `ContextImpl`:Context接口的具体实现类
+>
+> `ContextWrapper`：Context的包装类，内部持有一个ContextImpl的实例对象mBase,对Context的操作最终都进入ContextImpl类
+>
+> `ContextThemeWrappe`r：该类内部包含了主题(Theme)相关的接口，即android:theme属性指定的。Service不需要主题，所以Service直接继承于ContextWrapper类。而Activity继承此类。
 
 
 
