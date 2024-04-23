@@ -504,7 +504,6 @@ Flutter通过把UI转换为RenderObject，那如何进行渲染的呢？
 >
 > GPU线程通过skia向GPU硬件绘制一帧的数据，GPU将帧信息保存到FrameBuffer里面，然后视频控制器会根据VSync信号从FrameBuffer取帧数据传递给显示器，从而显示出最终的画面。
 >
-> **8. Platform Channels**
 
 如果再细致一点，就可以是：
 
