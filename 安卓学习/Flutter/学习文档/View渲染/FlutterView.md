@@ -229,7 +229,7 @@ class _StateProgressRing extends State<ProgressRing>
 
 
 
-## 2.Flutter渲染
+## 2.Flutter跨平台架构
 
 ### (1)跨平台技术
 
@@ -325,6 +325,8 @@ Flutter不用Android/iOS的本地语言技术开发，Dart编写完的代码如�
 
 ### (5)Flutter引擎启动
 
+> Flutter启动源码分析可以参考——https://gityuan.com/2019/06/22/flutter_booting/
+
  Flutter这台引擎如何发动的，怎么跟Native衔接呢？ 
 
  ![img](https://ucc.alicdn.com/images/user-upload-01/img_convert/db79f0295591e87766e0531c5aacf0da.png) 
@@ -376,13 +378,178 @@ Flutter引擎启动过程，会创建UI/GPU/IO这3个线程，会为这些线程
 
 #### Dart VM
 
+Flutter引擎启动会创建**Dart虚拟机**以及**Root Isolate**。DartVM自身也拥有自己的Isolate，完全由虚拟机自己管理的，Flutter引擎也无法直接访问。
+
+Dart的UI相关操作，是由Root Isolate通过Dart的C++调用，或者是发送消息通知的方式，将UI渲染相关的任务提交到`UI Task Runner`执行，这样就可以跟Flutter引擎相关模块进行交互。 
+
+
+
+##### Isolate
+
+从字面上理解是“隔离”，isolate之间是逻辑隔离的。Isolate中的代码也是按顺序执行，因为Dart没有共享内存的并发，没有竞争的可能性，故不需要加锁，也没有死锁风险。对于Dart程序的并发则需要依赖多个isolate来实现。 
+
+> 更多参考`dart.md`
 
 
 
 
 
+### (6)Flutter渲染机制
 
-> 具体源码分析可以参考——https://gityuan.com/2019/06/22/flutter_booting/
+#### Widget架构
+
+> [Widget、Element、RenderObject 关系结构解析](https://juejin.cn/post/7007685728133971999)
+>
+> [Flutter渲染](https://blog.csdn.net/jdsjlzx/article/details/123578755)
+
+三棵树
+
+ ![img](FlutterView.assets/284d5bdcee9f24ac4d559464c92483f1.png) 
+
+- **Widget** 树负责**配置信息**，我们平时写代码写的就是这棵树。
+- **RenderObject** 树是渲染树，**负责真正的渲染工作**，负责计算布局，绘制，Flutter 引擎就是根据这棵树来进行渲染的。
+- **Element** 树作为中间者，管理着将 Widget 生成 RenderObject和一些更新操作。Widget树非常不稳定，非常频繁的执行build方法，一旦调用build意味着Widget以来的所有其他Widget会重建，如果直接解析Widget树转换为RenderObject树渲染，会非常耗性能。因此Element树将Widget树变化做了抽象，只将真正需要修改的部分同步到真实的RenderObject树中，提高渲染效率，而不是销毁整个渲染视图树重建。
+
+ 三者对应关系如下图：![image.png](FlutterView.assets/92118ec19df64c06a0c113a793c059b4_tplv-k3u1fbpfcp-zoom-in-crop-mark_1512_0_0_0.webp) 
+
+从上图可以看出：
+
+​	①widget 树和 Element 树节点是一一对应关系，每一个 Widget 都会有其对应的 Element
+
+​	②但是RenderObject树则不然，只有需要渲染的 Widget 才会有对应的节点。 比如Container、Row本身不显示在屏	  幕，它们只是作为一个存放其他组件的容器
+
+​	③ 当 Widget 不断变化的时候，将新 Widget 拿到 Element 来进行对比，看一下和之前保留的 Widget 类型和 Key 是否相同，如果都一样，那完全没有必要重新创建 Element 和 RenderObject，只需要更新里面的一些属性即可，这样可以以最小的开销更新 RenderObject，引擎在解析 RenderObject 的时候，发现只有属性修改了，那么也可以以最小的开销来做渲染。 
+
+
+
+##### Widget树
+
+widget 从渲染的角度进行分类，分为 `可渲染Widget` 与 `不可渲染Widget`。像我们常用的 `statelessWidget` 与 `statefulWidget` 就属于不可渲染的Widget。 
+
+ ![image.png](FlutterView.assets/ad549b6ba6174844b0b9d641d2a32e14_tplv-k3u1fbpfcp-zoom-in-crop-mark_1512_0_0_0.webp) 
+
+**Widget内部结构**
+
+ ![image.png](FlutterView.assets/64331779c2604731b434fdcd9cad5d79_tplv-k3u1fbpfcp-zoom-in-crop-mark_1512_0_0_0.webp) 
+
+> 1. 每个widget都提供`createElement`方法，每个widget最终都会转化成`Element`；
+> 2. widget被触发`build`方法的时机特别频繁，`canUpdate`方法维护`Element复用机制`。当返回true时，复用旧的Element；
+> 3. 只有可渲染的widget（子类`RenderObjectWidget`）提供生成`RenderObject`的方法
+
+
+
+
+
+##### Element树
+
+与`widget`的分类相对应，`element`也区分是否可渲染，继承关系如下： 
+
+ ![image.png](FlutterView.assets/265de40c69a842ada99ab97e1bc7c40b_tplv-k3u1fbpfcp-zoom-in-crop-mark_1512_0_0_0.webp) 
+
+StatefulElement 在其构造方法中调用了 `widget.createState` 方法，并赋值 _state 其 widget 对象。`这就是 statefuleWidget createState 方法被调用的时机`。 
+
+ ![image.png](FlutterView.assets/37bc3178b80b47748bd9bbad991856c2_tplv-k3u1fbpfcp-zoom-in-crop-mark_1512_0_0_0.webp) 
+
+- Element 持有外部 Widget 对象。
+- Element 提供获取 RenderObject 的方法`(get renderObject)`。[从自己开始往子节点遍历，直到找出 `RenderObjectElement`，RenderObjectElement 提供生成RenderObject 的能力]
+- RenderObjectElement 通过调用 `widget.createRenderObject(this)`生成`RenderObject`
+- 核心方法 mount()
+
+##### RenderObject树
+
+ RenderObject的结构![image.png](FlutterView.assets/958da2fb4bb84ea8a8479409546240fe_tplv-k3u1fbpfcp-zoom-in-crop-mark_1512_0_0_0.webp) 
+
+- `parentData`: 由父节点赋值，父RenderObj会将子RenderObj的相关数据存储在子元素的parentData中。如在 Stack 布局中，RenderStack就会将子元素的偏移数据存储在子元素的parentData中（具体可以查看`Positioned`实现）。
+- `layout()方法`: 接收两个参数，`constrains`为父节点对子节点的大小限制；`parentUsesSize`标识本节点布局发生变化时父节点是否同步发生重布局操作。
+- `_relayoutBoundry`: 在layout（）方法中进行赋值，当parentUsesSize等于false时，_relayoutBoundry = this（当前RenderObject对象），表示它的大小变化不会影响到parent的大小。否则，_relayoutBoundry = = (parent! as RenderObject)._relayoutBoundary;
+- `markNeedsLayout()`: 当一个Element标记为 dirty 时便会重新 ReBuild，这时RenderObject便会重新布局，我们是通过调用 markNeedsBuild() 来标记Element为 dirty 的。
+
+
+
+> **setState()做了什么**
+>
+> - `第一步`： State.setState()
+> - `第二步`： _element.markNeedBuild()
+> - `第三步`： 标记 dirty=true
+> - `第四步`： readerObject.markNeedLayout()
+>
+> Flutter的setState()方法是用于更新widget状态的。在Flutter中，widget通常被描述为不可变的对象，**当widget的状态发生改变时，Flutter会创建一个新的widget，并将其与之前的widget进行比较，然后进行重建**。因此，使用setState()方法可以告诉Flutter重新构建当前widget的子树（**只会重建与setState直接或间接相关的部分子树**）。
+
+
+
+#### 渲染
+
+> <a name=Flutter渲染流程>https://developer.aliyun.com/article/770384</a>
+
+Flutter通过把UI转换为RenderObject，那如何进行渲染的呢？
+
+**简单来说就是**： 
+
+- UI线程完成布局、绘制操作，生成Layer Tree；
+- GPU线程执行合成并光栅化后交给GPU来处理 ![img](FlutterView.assets/d300de2c8bf3864f5f8656d4927d7b3d.png) 
+
+> **其中几个关键步骤：**
+>
+> Animate: 遍历_transientCallbacks，执行动画回调方法；
+>
+> Build: 对于dirty的元素会执行build构造，没有dirty元素则不会执行，对应于buildScope()
+>
+> Layout: 计算渲染对象的大小和位置，对应于flushLayout()，这个过程可能会嵌套再调用build操作；
+>
+> Compositing bits: 更新具有脏合成位的任何渲染对象， 对应于flushCompositingBits()；
+>
+> Paint: 将绘制命令记录到Layer， 对应于flushPaint()；
+>
+> Compositing: 将Compositing bits发送给GPU， 对应于compositeFrame()；
+>
+> GPU线程通过skia向GPU硬件绘制一帧的数据，GPU将帧信息保存到FrameBuffer里面，然后视频控制器会根据VSync信号从FrameBuffer取帧数据传递给显示器，从而显示出最终的画面。
+>
+> **8. Platform Channels**
+
+如果再细致一点，就可以是：
+
+ ![image.png](FlutterView.assets/592009c400a440e99591d86db61c0eed.png) 
+
+**1）UI Thread**
+
+对应图中1-5，执行Dart VM中的Dart代码（包含应用程序和Flutter框架代码），主要负责Widget Tree、Element Tree、RenderObject Tree的构建，布局、以及绘制生成绘制指令，生成Layer Tree（保存绘制指令）等工作。
+
+**2）GPU Thread**
+
+对应图中6-7，执行Flutter引擎中图形相关代码（Skia），这个线程通过与GPU通信，获取Layer Tree并执行栅格化以及合成上屏等操作，将Layer Tree显示在屏幕上。
+
+> 详情参考——[Flutter渲染流程](#Flutter渲染流程)
+
+
+
+### (7)与Native交互
+
+> [platformchannel](https://blog.csdn.net/u011106915/article/details/124062205)
+>
+> [Flutter与Native通信详细流程](https://juejin.cn/post/7110565492393246756#heading-3)
+
+Flutter框架提供了UI的控件支持，对于APP除了UI还有其他依赖于Native平台的支持，比如调用Camera的功能，该怎么办呢？为此，Flutter通过提供Platform Channel的功能，使得Dart代码具备与Native交互的能力。 
+
+ ![img](FlutterView.assets/91b0fc2a7c277c70d1dc8ce35c740233.png) 
+
+Platform Channel用于Flutter与Native之间的消息传递，整个过程的消息与响应是异步执行，不会阻塞用户界面。Flutter引擎框架已完成桥接的通道，这样开发者只需在Native层编写定制的Android/iOS代码，即可在Dart代码中直接调用，这也就是Flutter Plugin插件的一种形式。 
+
+
+
+**有三种Platform可以用来dart和原生通信**
+
+**BasicMessageChannel**：用于传递字符串和半结构化的信息（双向有返回值）
+**MethodChannel**：用于传递方法调用（method invocation）（双向有返回值）
+**EventChannel**: 用于数据流（event streams）的通信（仅支持数据单向传递，无返回值）
+
+> **每种Channel均有三个重要成员变量：**
+>
+> **name**: String类型，代表Channel的名字，也是其唯一标识符。
+> **messager**：BinaryMessenger类型，代表消息信使，是消息的发送与接收的工具。
+> **codec**: MessageCodec类型或MethodCodec类型，代表消息的编解码器。
+>
+
+
 
 
 
