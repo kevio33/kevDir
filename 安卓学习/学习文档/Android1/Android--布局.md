@@ -1573,6 +1573,93 @@ View importPanel = ((ViewStub) findViewById(R.id.stub_import)).inflate();
 > https://zhuanlan.zhihu.com/p/539384119
 >
 > [理解DecorView](https://www.jianshu.com/p/ee7e3b08c23c)
+>
+> [view树形结构，如何获取没有ID的根视图](https://juejin.cn/post/6844904180138639373)
+>
+> [setContentView背后机制](https://juejin.cn/post/6844903511390420999)
+>
+> [View绘制流程](https://juejin.cn/post/6904192359253147661)
+
+#### View的树形结构
+
+ View 的测量、绘制和事件分发都是**从树的根部**逐级遍历分发下去的，下面就是树形结构图：
+
+![img](Android--布局.assets/1519399-dfd06585fd0bdf3c.webp) 
+
+- Activity就是最顶层，负责管理window
+- **Window**：window是Activity里的一个实例，是接口，其唯一的实现类就是PhoneWindow，**一个Activity中至少存在一个Window与之绑定（如果弹出Dialog，也会持有一个phonewindow）**，Window负责处理一些用户事件和系统事件。Window本身无法显示View，因此**可以理解为显示界面的显示屏**。
+- **DecorView**：Activity中真正显示内容的是View，而Window中的根视图就是`DecorView`。**DecorView是一个FrameLayout**，**Activity布局文件就是添加到了这个DecorView中** 
+
+
+
+**先说结论：**
+
+ View的绘制流程是：![img](Android--布局.assets/2f7889b118af47b0b7f24a399d485145_tplv-k3u1fbpfcp-zoom-in-crop-mark_1512_0_0_0.awebp) 
+
+**View真正开始绘制是在onResume之后;**
+
+- ActivityThread通过调用`activity`中 `windowmanager`的`addView `方法，将 `decorView `传入到 `ViewRootImpl `的 `setView `方法中，通过 `setView `来完成 `View `的绘制。 
+
+- `ViewRootImpl`的`setView`做了三件事：
+
+  ① 检查绘制的线程是不是创建 View 的线程。
+
+  ② 通过内存屏障保证绘制 View 的任务是最优先的
+
+  ③ 调用 `performTraversals` 完成 measure，layout，draw 的绘制
+
+**后续也是通过`performTraversals` 对viewTree逐步绘制，就如下图所示：**
+
+![1713851944309](Android--布局.assets/1713851944309.png)
+
+整个View绘制流程如上面所说
+
+
+
+
+
+#### DecorView
+
+DecorView的结构
+
+ ![DecorView的结构](Android--布局.assets/1727a4c0c25b177b_tplv-t2oaga2asx-jj-mark_3024_0_0_0_q75.png) 
+
+- DecorView自身是一个FrameLayout
+
+- FrameLayout里又是一个LinearLayout，分上下部分，上部分是ActionBar，**下部分是FrameLayout，这个FrameLayout带有ID：android.R.content**
+- Activity的布局文件就加载进content里面（这也是为什么加载视图的方法叫`setContentView`）
+
+
+
+
+
+
+
+#### ViewRootImpl
+
+`ViewRootImpl` 是连接 `WindowManager` 和 `DecorView` 的纽带，测量、放置和绘制三大流程都是通过 ViewRootImpl 实现的。 
+
+![img](Android--布局.assets/2f7889b118af47b0b7f24a399d485145_tplv-k3u1fbpfcp-zoom-in-crop-mark_1512_0_0_0.awebp)
+
+①在 `ActivityThread` 的 handleResumeActivity() 方法中，会调用 WindowManager 的 `addView()` 方法，而具体添加 DecorView 的操作是在 `WindowManagerGlobal` 中。
+
+②在 WindowManagerGlobal 的 `addView()` 方法中，会把 DecorView 添加到 Window 中，同时会创建 ViewRootImpl ，并调用 ViewRootImpl 的 setView() 方法 把 ViewRootImpl 和 DecorView 关联起来。
+
+③View 的绘制流程是从 ViewRootImpl 的 `performTraversals()` 方法开始的，它经过`测量（measure）、放置（layout）和绘制（draw）`三个过程才能把一个 View 绘制出来，measure() 方法用于测量 View 的宽高，layout() 用于确定 View 在父容器中的放置位置，draw() 负责做具体的绘制操作。
+
+**针对 performTraversals 的大致流程，可用下图表示：**
+
+ ![img](Android--布局.assets/0ba56d52432b4f7ebbf8984400e335ff_tplv-k3u1fbpfcp-zoom-in-crop-mark_1512_0_0_0.awebp)  
+
+> View 绘制主要的三个方法就是 `onMeasure()`、 `onLayout()`、`onDraw()`，这三个方法要解决的问题就是`画多大`、`在哪画`、`画什么`。
+>
+> ViewRootImpl 的 performTraversal() 方法会依次调用 `performMeasure()`、`performLayout()` 和 `performDraw()` 三个方法，这三个方法分别完成 DecorView 的测量、放置和绘制三大流程。
+>
+> performMeasure() 方法会调用 DecorView 的 measure() 方法，在 measure() 方法中又会调用自己的 onMeasure() 方法。
+>
+> DecorView 的 onMeasure() 方法会调用父类 FrameLayout 的 onMeasure() 方法，在 FrameLayout 的 onMeasure() 方法中，会调用子元素的 onMeasure() 方法测量子元素的宽高，接着子元素会重复父容器的 measure 过程，如此反复完成整个 View 树的遍历。
+>
+> 而 performLayout() 和 performDraw() 的执行流程与 performMeasure() 是类似的。
 
 View的绘制基本由`measure()`、`layout()`、`draw()`这个三个函数完成
 
@@ -1605,7 +1692,7 @@ View的绘制基本由`measure()`、`layout()`、`draw()`这个三个函数完�
 
 ##### **Measure()**
 
-①MeasureSpec
+**①MeasureSpec**
 
 `MeasureSpec`是View的内部类，它封装了一个View的尺寸，在`onMeasure()`当中会根据这个`MeasureSpec`的值来确定View的宽高。
 
@@ -1619,18 +1706,18 @@ View的绘制基本由`measure()`、`layout()`、`draw()`这个三个函数完�
 
 ```java
 // 获取测量模式（Mode）
-    int specMode = MeasureSpec.getMode(measureSpec)
+int specMode = MeasureSpec.getMode(measureSpec);
 
-    // 获取测量大小（Size）
-    int specSize = MeasureSpec.getSize(measureSpec)
+// 获取测量大小（Size）
+int specSize = MeasureSpec.getSize(measureSpec);
 
-    // 通过Mode 和 Size 生成新的SpecMode
-    int measureSpec=MeasureSpec.makeMeasureSpec(size, mode);
+// 通过Mode 和 Size 生成新的SpecMode
+int measureSpec=MeasureSpec.makeMeasureSpec(size, mode);
 ```
 
 
 
-②onMeasure()
+**②onMeasure()**
 
 能够进行view的宽高测量：
 
@@ -1639,9 +1726,9 @@ View的绘制基本由`measure()`、`layout()`、`draw()`这个三个函数完�
 ```java
 protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 
-        setMeasuredDimension(getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec),
-                getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec));
-    }
+    setMeasuredDimension(getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec),
+                         getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec));
+}
 
 //setMeasuredDimension(int measuredWidth, int measuredHeight) ：该方法用来设置View的宽高，在我们自定义View时也会经常用到。
 //getDefaultSize(int size, int measureSpec)：该方法用来获取View默认的宽高，结合源码来看。
