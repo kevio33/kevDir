@@ -1690,7 +1690,7 @@ View的绘制基本由`measure()`、`layout()`、`draw()`这个三个函数完�
 
 
 
-##### **Measure()**
+##### **Measure**
 
 **①MeasureSpec**
 
@@ -1737,7 +1737,7 @@ protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 
 
 
-##### **Layout()**
+##### **Layout**
 
 layout过程，对于`View`来说用来计算`View`的位置参数,对于`ViewGroup`来说，除了要测量自身位置，还需要测量子`View`的位置。
 
@@ -1774,7 +1774,7 @@ public void layout(int l, int t, int r, int b) {
 
 
 
-##### **Draw()**
+##### **Draw**
 
 draw流程就是View绘制到屏幕上的过程，流程入口在draw方法中；
 

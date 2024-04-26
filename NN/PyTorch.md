@@ -85,7 +85,7 @@ conda install python==3.7.2 -n 要更新环境的名字，这里环境名是pyto
 
 
 
-### （3）打包环境
+### (3)打包环境
 
 ```shell
 pip install conda-pack

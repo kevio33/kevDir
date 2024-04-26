@@ -3019,7 +3019,7 @@ void scrapView(View view) {
 
  ![在这里插入图片描述](Android--控件.assets/01311bed9ff14912a061a972e1fe52b7.png) 
 
-
+>  mAttachedScrapp和mCachedViews都是需要进行索引判断，也就是说从这两个缓存中取出的ViewHolder只能复用到指定的位置。mCachedViews只能缓存屏幕外它容量大小的ViewHolder，超出容量的部分会被移除，丢到缓存池中 
 
 ###### ③三级缓存
 
@@ -3039,7 +3039,12 @@ if (holder == null && mViewCacheExtension != null) {
 
 ###### ④四级缓存
 
+`RecyclerView Pool`
 
+从缓存池里取出来的ViewHolder将其重置，**复用的时候再重新绑定数据**。
+
+> 而一二级缓存无需再绑定数据，直接拿来复用，因为他们的位置和数据都没有变化。当有相同类型的表项插入列表时，不用重新创建 ViewHolder 实例（执行 onCreateViewHolder()），从缓存池中获取即可。
+> 
 
 
 
