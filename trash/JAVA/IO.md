@@ -252,12 +252,23 @@ try {
 }
 ```
 
-### scanner和bufferedreader区别
+
+
+## next和nextLine
+
+> https://worktile.com/kb/p/37904
+
+ next() 和 nextLine() 读取的结果都是 String 类型，返回 string 类型 
+
+- `next() `**不会读取字符前/后的空格/Tab键**，**只读取字符**（忽略空格回车等等），开始读取字符（字符前后不算）直到遇到空格/Tab键/回车截止；( 包括nextInt()、nextDouble()、nextFloat()等 )遇到了空格, 就不再录入数据了 。 
+- `nextLine()` **读取字符前后的空格/Tab键，直到回车键截止**。可以将数据完整的接收过来。读取一行，注意到如果是一行的话，空格不作为分隔符，一行一行的取，以回车（换行）结束一次取值 
+
+## scanner和bufferedreader区别
 
 - Scanner是一个可以使用正则表达式来分析基本类型和字符串的简单文本扫描器！也就是控制台应用程序最为常用的文本输入方式！Scanner取得输入数据的依据是空格符：如按下空格键，Tab键或者Enter键，Scanner就会返回下一个输入。所以说Scanner不能输入空格，如果你希望取得含有空格的字符串BufferedReader可以做到。
 - BufferedReader是字符输入流中读取文本，缓冲各个字符，从而提供字符、数组和行的高效读取！速度要比Scanner快！而且也可以设置缓冲区的大小，或者可使用默认的大小。大多数情况下，默认值就足够大了。
 
-### 综合练习:
+## 综合练习:
 
 ```java
 File f = new File("E:\\Campus\\大三上\\java\\作业\\第三次作业\\result.txt");
@@ -309,6 +320,27 @@ File f = new File("C:\\Users\\Administrator\\Pictures\\Screenshots\\屏幕截图
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+```
+
+
+
+## 问题
+
+`nextInt`和`nextLine`换行符问题
+
+> 参考——https://blog.csdn.net/ITloser_cartridge/article/details/52022979
+
+**nextInt()不会读取或识别用户输入的和遗留的换行符，但是nextLine()会识别**，所以在`nextInt`后面调用`nextLine`会使得`nextLine`读取换行符号
+
+```java
+Scanner sc = new Scanner(System.in);
+int a = sc.nextInt();
+String str = sc.nextLine();
+System.out.println(a+":"+str);
+
+//输出，str直接等于换行符了
+10
+10:
 ```
 
 
