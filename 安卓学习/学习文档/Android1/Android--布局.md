@@ -1681,7 +1681,7 @@ public void setContentView(int layoutResID) {
 >
 > 查看`mContentParent`定义：**这是放置窗口内容的视图。它要么是 mDecor 本身，要么是 mDecor 的子项，内容所在的位置。**
 
-(3)可以看到如果`mContentParent`为空， 那么`installDecor()`方法一定是初始化`mContentParent`的方法 
+<a name=installdecor>(3)</a>可以看到如果`mContentParent`为空， 那么调用`installDecor()`方法初始化`mContentParent`
 
 ```java
 //PhoneWindow.java
@@ -1735,7 +1735,7 @@ protected DecorView generateDecor(int featureId) {
 
 > 这段代码主要是创建初始化DecorView，并且选择合适的上下文，最后返回一个`DecorView`对象，第三个参数则是`PhoneWindow`本身
 
-> 因此可以得出Window和DecorView之间的关系：
+> 由此可以得出Window和DecorView之间的关系：
 >
 > **从`Window`里面获取属性来初始化`DecorView`的属性，或者根据`Window`的属性来设置`DecorView`的属性。**  顶级窗口Window（PhoneWindow）包含的状态属性，会在顶级View（DecorView）体现出来，比如窗口大小，背景等属性。（当然下面的代码也会体现出这点） 
 
@@ -1772,9 +1772,9 @@ protected ViewGroup generateLayout(DecorView decor) {
 }
 ```
 
-> 上述代码可以看出，通过`getWindowStyle`获取到window属性，返回给`TypeArray`，然后从`TypeArray`判断
+> 上述代码可以看出，通过`getWindowStyle`获取到window属性，返回给`TypeArray`，然后从`TypeArray`判断，通过不同的feature加载不同的内容
 
-获取完属性之后，根据feature的值遍历属性，然后将布局文件id赋值给`layoutResource`。之后将`layoutResource`加载到`DecorView`中去。 
+获取feature，会根据不同的 feature 来生成不同的 DecorView，比如没有设定任何 feature 时，对应的 DecorView 的布局就是 `screen_simple` ，之后将该布局加载到`DecorView`中去。 
 
 ```java
 //PhoneWindow.java
@@ -1870,6 +1870,9 @@ decorview内加载的是一个LinearLayout，可以看到里面出现了`android
 之后在`generateLayout`中，将这个`content`赋值给`mContentParent`
 
 ```java
+//PhoneWindow.java
+//generateLayout()
+
 // 找到刚刚的Content
 ViewGroup contentParent = (ViewGroup)findViewById(ID_ANDROID_CONTENT);
 if (contentParent == null) {
@@ -1880,7 +1883,7 @@ if (contentParent == null) {
 return contentParent;
 ```
 
-
+> 从这也可以看出，`mContentParent`其实就等于`DecorView`中的`FrameLayout`，也就是子项
 
 
 
@@ -1888,17 +1891,21 @@ return contentParent;
 
 - 开始初始化了`DecorView`。
 - 然后初始化`mContentParent`。
-- 在初始化`mContentParent`时，又看到：
-- 获取window的属性并赋值给`PhoneWindow`的逻辑。
-- 看到了根据window的属性加载了不同的布局，并加载到给`DecorView`的逻辑。
-- 最后通过findViewById的方法获取到了`mContentParent`并且返回。
+- 在初始化`mContentParent`时：
+
+  - 获取window的属性并赋值给`PhoneWindow`的逻辑。
+
+  - 根据window的属性加载了不同的布局，并加载到`DecorView`的逻辑。
+
+  - 最后通过findViewById的方法获取到了`mContentParent`并且返回。
 
 
 
-(4)然后初始化并且加载好`mContentParent`之后，将布局文件加载到里面
+(4)初始化好`mContentParent`之后，将自定义的布局文件加载到里面
 
 ```java
 //PhoneWindow.java
+//setContentView()
 mLayoutInflater.inflate(layoutResID, mContentParent);//将xml文件加载到mContentParent
 ```
 
@@ -1929,6 +1936,235 @@ public AppCompatDelegate getDelegate() {
 > 用来初始化`AppCompatDelegate`
 >
 > `AppCompatDelegate`解释是： **这个类表示一个代理，您可以使用它来扩展AppCompat的支持** 
+>
+> `AppCompatDelegate.create`方法创建一个继承了`AppCompatDelegate`的实现类`AppCompatDelegateImpl`
+>
+> ```java
+> public static AppCompatDelegate create(@NonNull Activity activity,
+>                                        @Nullable AppCompatCallback callback) {
+>     return new AppCompatDelegateImpl(activity, callback);
+> }
+> ```
+
+
+
+可以看到其实是调用了`AppCompatDelegateImpl`的`setContenView`
+
+```java
+@Override
+public void setContentView(int resId) {
+    ensureSubDecor();
+    ViewGroup contentParent = (ViewGroup) mSubDecor.findViewById(android.R.id.content);
+    contentParent.removeAllViews();
+    LayoutInflater.from(mContext).inflate(resId, contentParent);
+    mOriginalWindowCallback.onContentChanged();
+}
+```
+
+这里面首先调用`ensureSubDecor`初始化`subDecorView`
+
+```java
+private void ensureSubDecor() {
+    if (!mSubDecorInstalled) {
+        mSubDecor = createSubDecor();//初始化subDecor
+
+        // If a title was set before we installed the decor, propagate it now
+        CharSequence title = getTitle();
+        if (!TextUtils.isEmpty(title)) {
+            onTitleChanged(title);
+        }
+        applyFixedSizeWindow();
+        onSubDecorInstalled(mSubDecor);
+        mSubDecorInstalled = true;
+
+        // Invalidate if the panel menu hasn't been created before this.
+        // Panel menu invalidation is deferred avoiding application onCreateOptionsMenu
+        // being called in the middle of onCreate or similar.
+        // A pending invalidation will typically be resolved before the posted message
+        // would run normally in order to satisfy instance state restoration.
+        PanelFeatureState st = getPanelState(FEATURE_OPTIONS_PANEL, false);
+        if (!isDestroyed() && (st == null || st.menu == null)) {
+            invalidatePanelMenu(FEATURE_SUPPORT_ACTION_BAR);
+        }
+    }
+}
+```
+
+进入`createSubDecor`
+
+```java
+//AppCompatDelegateImpl.java
+
+private ViewGroup createSubDecor() {
+    TypedArray a = mContext.obtainStyledAttributes(R.styleable.AppCompatTheme);
+    ...
+    if (a.getBoolean(R.styleable.AppCompatTheme_windowActionModeOverlay, false)) {
+        requestWindowFeature(FEATURE_ACTION_MODE_OVERLAY);
+    }
+    mIsFloating = a.getBoolean(R.styleable.AppCompatTheme_android_windowIsFloating, false);
+    ...
+    
+    mWindow.getDecorView();//
+}
+```
+
+> 这里引申出一个问题：**？**
+>
+>  如果Activity继承自AppCompatActivity，如果没有给这个Activity设置一个AppCompat的Theme。就会崩溃。原因就在这里了。 
+>
+> ```java
+> if (!a.hasValue(R.styleable.AppCompatTheme_windowActionBar)) {
+>     a.recycle();
+>     throw new IllegalStateException(
+>         "You need to use a Theme.AppCompat theme (or descendant) with this activity.");
+> }
+> ```
+
+在初始化`subDecor`之前，初始化`DecorView`和`mContentView`
+
+```java
+// Now let's make sure that the Window has installed its decor by retrieving it
+mWindow.getDecorView();
+```
+
+```java
+@Override
+public final View getDecorView() {
+    if (mDecor == null || mForceDecorInstall) {
+        installDecor();
+    }
+    return mDecor;
+}  
+```
+
+可以看到，熟悉的[`installDecor`](#installdecor)
+
+继续看`createSubDecor`代码
+
+```java
+//AppCompatDelegateImpl.java
+
+final LayoutInflater inflater = LayoutInflater.from(mContext);
+ViewGroup subDecor = null;
+
+
+if (!mWindowNoTitle) {
+    if (mIsFloating) {
+        // If we're floating, inflate the dialog title decor
+        subDecor = (ViewGroup) inflater.inflate(
+            R.layout.abc_dialog_title_material, null);
+
+        // Floating windows can never have an action bar, reset the flags
+        mHasActionBar = mOverlayActionBar = false;
+    } else if (mHasActionBar) {
+        /**
+                 * This needs some explanation. As we can not use the android:theme attribute
+                 * pre-L, we emulate it by manually creating a LayoutInflater using a
+                 * ContextThemeWrapper pointing to actionBarTheme.
+                 */
+        TypedValue outValue = new TypedValue();
+        mContext.getTheme().resolveAttribute(R.attr.actionBarTheme, outValue, true);
+
+        Context themedContext;
+        if (outValue.resourceId != 0) {
+            themedContext = new ContextThemeWrapper(mContext, outValue.resourceId);
+        } else {
+            themedContext = mContext;
+        }
+
+        // Now inflate the view using the themed context and set it as the content view
+        subDecor = (ViewGroup) LayoutInflater.from(themedContext)
+            .inflate(R.layout.abc_screen_toolbar, null);
+
+        mDecorContentParent = (DecorContentParent) subDecor
+            .findViewById(R.id.decor_content_parent);
+        mDecorContentParent.setWindowCallback(getWindowCallback());
+
+        /**
+                 * Propagate features to DecorContentParent
+                 */
+        if (mOverlayActionBar) {
+            mDecorContentParent.initFeature(FEATURE_SUPPORT_ACTION_BAR_OVERLAY);
+        }
+        if (mFeatureProgress) {
+            mDecorContentParent.initFeature(Window.FEATURE_PROGRESS);
+        }
+        if (mFeatureIndeterminateProgress) {
+            mDecorContentParent.initFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+        }
+    }
+} else {
+    if (mOverlayActionMode) {
+        subDecor = (ViewGroup) inflater.inflate(
+            R.layout.abc_screen_simple_overlay_action_mode, null);
+    } else {
+        subDecor = (ViewGroup) inflater.inflate(R.layout.abc_screen_simple, null);
+    }
+}
+```
+
+> 上面代码就是将一个合适的xml文件加载给`subDecor`。
+>
+>  ![img](https://p1-jj.byteimg.com/tos-cn-i-t2oaga2asx/gold-user-assets/2017/11/15/15fbd92b2fa8c54a~tplv-t2oaga2asx-jj-mark:3024:0:0:0:q75.png) 
+
+继续看
+
+```java
+//AppCompatDelegateImpl.java
+//createSubDecor()
+
+final ContentFrameLayout contentView = (ContentFrameLayout) subDecor.findViewById(
+    R.id.action_bar_activity_content);//获取subdecor中的contentFrameLayout
+
+final ViewGroup windowContentView = (ViewGroup) mWindow.findViewById(android.R.id.content);
+if (windowContentView != null) {
+    // There might be Views already added to the Window's content view so we need to
+    // migrate them to our content view
+    while (windowContentView.getChildCount() > 0) {
+        final View child = windowContentView.getChildAt(0);
+        windowContentView.removeViewAt(0);
+        contentView.addView(child);
+    }
+
+    //DecorView的frameLayout的id设为NO_ID
+    windowContentView.setId(View.NO_ID);
+    //subDecor的frameLayout的id设为content
+    contentView.setId(android.R.id.content);
+
+    // The decorContent may have a foreground drawable set (windowContentOverlay).
+    // Remove this as we handle it ourselves
+    if (windowContentView instanceof FrameLayout) {
+        ((FrameLayout) windowContentView).setForeground(null);
+    }
+}
+
+// 将subView加载进decorView的framelayout
+mWindow.setContentView(subDecor);
+```
+
+上面代码体现流程是：
+
+- 首先从`subDecor`中通过`findViewById`的方法获取到`ContentFrameLayout`。 
+- 然后通过`PhoneWindow`的`findViewById`方法获取到了`DecorView`中的`LinearLayout`中的`FrameLayout`。 
+- 然后遍历`DecorView`中的`FrameLayout`将它的子View添加到`ContentFrameLayout`。 
+- 然后`decorView`中的`FrameLayout`的id变为`NO_ID`；`subDecorView`中的id变为`content`，
+- 最后将`subDecor`加载进`decorView`的`Framelayout`里面
+
+> 上述操作总结就是：**将decorview中FrameLayout的子view放到subDecor里面，然后将`subDecor`中的`framelayout`设为`android.R.id.content`，将`DecorView中的FrameLayout`的id设置为`NO_ID`，然后将`subDecoreView`放到`NO_ID`里面**
+>
+>  ![img](https://p1-jj.byteimg.com/tos-cn-i-t2oaga2asx/gold-user-assets/2017/11/15/15fbd92b53d051f7~tplv-t2oaga2asx-jj-mark:3024:0:0:0:q75.png) 
+>
+>  ![img](https://p1-jj.byteimg.com/tos-cn-i-t2oaga2asx/gold-user-assets/2017/11/15/15fbd92b596f5a3c~tplv-t2oaga2asx-jj-mark:3024:0:0:0:q75.png) 
+
+
+
+也就是说，其实继承自`AppCompatActivity`的视图要多一个步骤，就是在`decorView`的`FrameLayout`里面多放一个`subDecor`，而自定义的视图其实是加载到`subDecor`里面的
+
+![img](https://p1-jj.byteimg.com/tos-cn-i-t2oaga2asx/gold-user-assets/2017/11/15/15fbd92b5980e76b~tplv-t2oaga2asx-jj-mark:3024:0:0:0:q75.png) 
+
+
+
+
 
 
 
