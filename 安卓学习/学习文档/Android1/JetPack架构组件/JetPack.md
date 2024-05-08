@@ -4,9 +4,13 @@
 
 ## 一、ViewModel
 
+> [viewmodel作用域与数据共享]
+>
+> [viewmodel如何恢复数据](https://juejin.cn/post/6986936609522319391)
+
 ### 1.概述
 
-ViewModel是一个用于存储和管理与UI相关的数据的类。它可以帮助开发者在配置更改（如屏幕旋转）时保留数据，从而避免数据丢失。 `ViewModel`类不依赖于Activity或Fragment的生命周期，因此**让数据可在发生配置更改(屏幕旋转)后继续留存，为Activity和Fragment保留数据**
+ViewModel是一个旨在以注重生命周期的方式存储和管理与UI相关的数据的类。它可以帮助开发者在配置更改（如屏幕旋转）时保留数据，从而避免数据丢失。 `ViewModel`类不依赖于Activity或Fragment的生命周期，因此**让数据可在发生配置更改(屏幕旋转)后继续留存，为Activity和Fragment保留数据**
 
 ```groovy
 // ViewModel依赖

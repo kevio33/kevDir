@@ -20,10 +20,8 @@ AsyncTask是一个抽象的泛型类，它有3个泛型参数，分别为Params�
   AsyncTask如下：
 
 ```java
-
 public abstract class AsyncTask<Params, Progress, Result> {
 }
-
 ```
 
 ### 3.核心方法:
