@@ -4,9 +4,11 @@
 
 ## 一、ViewModel
 
-> [viewmodel作用域与数据共享]
+> [viewmodel作用域与数据共享](https://www.hnote.cc/2023/03/20/%E5%AE%89%E5%8D%93viewmodel%E4%BD%9C%E7%94%A8%E5%9F%9F%E4%B8%8E%E6%95%B0%E6%8D%AE%E5%85%B1%E4%BA%AB/)
 >
 > [viewmodel如何恢复数据](https://juejin.cn/post/6986936609522319391)
+>
+> https://github.com/jhbxyz/ArticleRecord/blob/master/articles/Jetpack/3ViewModel%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%92%8C%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90.md
 
 ### 1.概述
 
