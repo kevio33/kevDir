@@ -157,7 +157,7 @@ public class Test {
 
 super关键字是一个引用变量，用于引用直接父类对象。
 
-> 当父类存在无参数构造函数时，JVM会在子类的构造函数中自动添加隐式的 **super();** 
+> 当父类存在无参数构造函数时，JVM会在子类的构造函数中自动添加隐式的**super();** 
 >
 > 当父类中只存在有参数构造函数，必须在子类的构造函数中添加 **super(参数列表);**，且 **super()** 的参数列表必须与父类构造函数的参数列表相同。 
 
@@ -244,43 +244,43 @@ super关键字是一个引用变量，用于引用直接父类对象。
   
       public Father(String name) {//覆盖无参构造函数
           this.name = name;
-          }
+      }
   }
-   
+  
   public class Son extends Father{
-   
-  public Son(String name) {
-  	super(name);//必须调用，否则他会默认调用父类的无参构造函数，而父类的无参构造函数已经被有参的覆盖，所以找不到
-  	}
+  
+      public Son(String name) {
+          super(name);//必须调用，否则他会默认调用父类的无参构造函数，而父类的无参构造函数已经被有参的覆盖，所以找不到
+      }
   }
   ```
 
-  > 当然，构造函数的参数列表可以任意，不过如果其不包含`super()`所需的全部参数，必须在子类中初始化成员变量。格式为 **static 变量类型 变量名 = 常量；** 
+  > 当然，构造函数的参数列表可以任意，不过如果其不包含`super()`所需的全部参数，必须在子类中初始化成员变量。格式为 **`static 变量类型 变量名 = 常量；`** 
   >
   > ```java
   > class Super {
-  >     Super(String msg) {
-  >         System.out.println("Super--" + msg);
-  >     }
+  >        Super(String msg) {
+  >            System.out.println("Super--" + msg);
+  >        }
   > }
   > 
   > class Demo extends Super {
-  >     Demo(String msg) {
-  >         super(msg);
-  >         System.out.println("Demo--" + msg);
-  >     }
+  >        Demo(String msg) {
+  >            super(msg);
+  >            System.out.println("Demo--" + msg);
+  >        }
   > 
-  >     static String msg = "test2";
+  >        static String msg = "test2";
   > 
-  >     Demo(int x) {
-  >         super(msg);
-  >         System.out.println("Demo--" + x);
-  >     }
+  >        Demo(int x) {
+  >            super(msg);
+  >            System.out.println("Demo--" + x);
+  >        }
   > 
-  >     public static void main(String[] args) {
-  >         new Demo("test1");
-  >         new Demo(0);
-  >     }
+  >        public static void main(String[] args) {
+  >            new Demo("test1");
+  >            new Demo(0);
+  >        }
   > }
   > ```
   >
@@ -427,9 +427,9 @@ class Test1 {
 
 一个对象只要实现了`Serilizable接口`，它就可以被序列化。
 
-在实际开发过程中，我们常常会遇到这样的问题，一个类的有些字段需要序列化，有些字段不需要，比如说用户的一些敏感信息（如密码、银行卡号等），为了安全起见，不希望在网络操作中传输或者持久化到磁盘文件中，那这些字段就可以加上 `transient` 关键字。
+在实际开发过程中，我们常常会遇到这样的问题，一个类的有些字段需要序列化，有些字段不需要，比如说用户的一些敏感信息（如密码、银行卡号等），为了安全起见，**不希望在网络操作中传输或者持久化到磁盘文件中，不希望序列化**，那这些字段就可以加上 `transient` 关键字。
 
-> 需要注意的是，被 transient 关键字修饰的成员变量在反序列化时会被自动初始化为默认值，例如基本数据类型为 0，引用类型为 null。 
+> 需要注意的是，被`transient`关键字修饰的成员变量在反序列化时会被自动初始化为默认值，例如基本数据类型为 0，引用类型为 null。 
 
 ```java
 public class TransientTest {
@@ -512,11 +512,11 @@ password: null//密码字段为null，说明反序列化时根本没从文件中
 
 **小结：**
 
-一旦字段被 transient 修饰，成员变量将不再是对象持久化的一部分，该变量的值在序列化后无法访问。
+1)  一旦字段被 transient 修饰，成员变量将不再是对象持久化的一部分，该变量的值在序列化后无法访问。
 
-2）transient 关键字只能修饰字段，而不能修饰方法和类。
+2）transient关键字只能修饰字段，而不能修饰方法和类。
 
-3）被 transient 关键字修饰的字段不能被序列化，一个静态变量（static关键字修饰）不管是否被 transient 修饰，均不能被序列化
+3）被 transient 关键字修饰的字段不能被序列化，**一个静态变量（static关键字修饰）不管是否被 transient 修饰，均不能被序列化**
 
 
 
@@ -633,11 +633,11 @@ public class Demo extends BaseClass{
 
 class BaseClass{
     public BaseClass(){}
-    
+
     {
         System.out.println("i am BaseClass");
     }
-    
+
     static {
         System.out.println("static baseclass");
     }
@@ -961,11 +961,72 @@ java中的引用分四类：
 
 如果一个对象具备强引用，垃圾回收器绝不会回收它。当内存空间不足，JVM宁愿抛出`OutOfMemoryError`错误，使程序异常终止，也不会出现回收具有强引用的对象来解决内存不足的情况。 
 
+```java
+Client client = new Client()
+```
+
+
+
 ### 2.软引用
 
 对于软引用关联着的对象，**在JVM应用即将发生OOM之前**，将会把这些软引用关联的对象列进回收对象范围之中进行第二次回收。如果这次回收之后还是没有足够的内存，才会抛出内存溢出异常。 
 
-> 软引用对于实现缓存很有用，因为您想尽可能长时间地在内存中保留对象，但是如果内存不足，您不希望阻止垃圾收集器回收内存。 
+> 软引用对于**实现缓存**很有用，因为您想尽可能长时间地在内存中保留对象，但是如果内存不足，您不希望阻止垃圾收集器回收内存。 
+
+```java
+Object object = new Object();
+SoftReference<Object> softReference = new SoftReference<>(object)
+```
+
+
+
+**例子**
+
+ 一个典型的应用场景是图片缓存。在内存充足的情况下，可以将图片缓存在内存中以提高访问速度。但当内存不足时，这些缓存的图片可以被回收，以确保更重要的对象得到保留。 
+
+```java
+import java.lang.ref.SoftReference;
+import java.util.HashMap;
+import java.util.Map;
+
+public class SoftReferenceExample {
+
+    static class Image {
+        private final String name;
+
+        public Image(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return "Image{" + "name='" + name + '\'' + '}';
+        }
+    }
+
+    public static void main(String[] args) {
+        Map<String, SoftReference<Image>> imageCache = new HashMap<>();
+
+        Image image = new Image("example.jpg");
+        SoftReference<Image> softReference = new SoftReference<>(image);
+        imageCache.put("example.jpg", softReference);
+
+        // 模拟内存不足，触发垃圾回收
+        System.gc();
+
+        SoftReference<Image> cachedImageRef = imageCache.get("example.jpg");
+        Image cachedImage = cachedImageRef != null ? cachedImageRef.get() : null;
+
+        if (cachedImage != null) {
+            System.out.println("Image found in cache: " + cachedImage);
+        } else {
+            System.out.println("Image not found in cache, need to reload.");
+        }
+    }
+}
+```
+
+
 
 ### 3.弱引用
 
@@ -973,9 +1034,80 @@ java中的引用分四类：
 
 简言之就是：一旦发生GC必定回收被弱引用关联的对象，不管当前的内存是否足够。也就是弱引用只能活到下次GC之时。 
 
+```java
+Object object = new Object();
+WeakReference<Object> weakReference = new WeakReference<>(object);
+```
+
+
+
 ### 4.虚引用
 
-一个对象是否关联到虚引用，完全不会影响该对象的生命周期，也无法通过虚引用来获取一个对象的实例(`PhantomReference`覆盖了`Reference.get()`并且总是返回null)。为对象设置一个虚引用的唯一目的是：能在此对象被垃圾收集器回收的时候收到一个**系统通知**。
+一个对象是否关联到虚引用，完全不会影响该对象的生命周期，也无法通过虚引用来获取一个对象的实例(`PhantomReference`覆盖了`Reference.get()`并且总是返回null)。
+
+为对象设置一个虚引用的唯一目的是：能在此对象被垃圾收集器回收的时候收到一个**系统通知**。在对象被垃圾回收之前做一些清理工作，例如释放非必要资源、跟踪对象的生命周期等。由于虚引用本身不影响对象的生存时间，所以在实际开发中使用较少。 
+
+```java
+public class PhantomReference<T> extends Reference<T> {
+    /**
+     * Returns this reference object's referent.  Because the referent of a
+     * phantom reference is always inaccessible, this method always returns
+     * <code>null</code>.
+     *
+     * @return  <code>null</code>
+     */
+    public T get() {
+        return null;
+    }
+    public PhantomReference(T referent, ReferenceQueue<? super T> q) {
+        super(referent, q);
+    }
+}
+```
+
+ **虚引用必须和引用队列一起使用**，例如下面例子
+
+```java
+import java.lang.ref.PhantomReference;
+import java.lang.ref.ReferenceQueue;
+import java.util.concurrent.TimeUnit;
+
+public class PhantomReferenceExample {
+
+    static class MyObject {
+        private final String name;
+
+        public MyObject(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return "MyObject{" + "name='" + name + '\'' + '}';
+        }
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        ReferenceQueue<MyObject> referenceQueue = new ReferenceQueue<>();
+        MyObject myObject = new MyObject("Virtual Object");
+        PhantomReference<MyObject> phantomReference = new PhantomReference<>(myObject, referenceQueue);
+
+        // 断开强引用，对象可能被回收
+        myObject = null;
+        System.out.println("Waiting for the object to be garbage collected...");
+
+        // 等待一段时间，让垃圾回收器有机会运行
+        TimeUnit.SECONDS.sleep(5);
+
+        // 检查引用队列，查看是否有虚引用被加入
+        PhantomReference<MyObject> polledReference;
+        while ((polledReference = (PhantomReference<MyObject>) referenceQueue.poll()) != null) {
+            System.out.println("Object was garbage collected: " + polledReference.get());
+            // 在这里进行一些清理工作
+        }
+    }
+}
+```
 
 
 
@@ -1102,7 +1234,7 @@ com.test.Teacher@5305068a
 
 **一个重要结论：**
 
-> 深拷贝和浅拷贝都是**对象引用**
+> 深拷贝和浅拷贝都是**对象拷贝**
 
 
 
