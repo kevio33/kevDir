@@ -71,7 +71,7 @@ class ExampleFragment extends Fragment {
 }
 ```
 
-#### 专业Fragemnt基类
+#### 专业Fragment基类
 
 **DialogFragment**
 

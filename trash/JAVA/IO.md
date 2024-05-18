@@ -361,43 +361,43 @@ System.out.println(a+":"+str);
 
 ```java
 //序列化类：java.ioObjectOutputStream
- 
-//讲对象变为指定的二进制数据
- 
-class Book implements Serializable{
- 
-	private String title;
- 
-	private double price;
- 
-	public Book(String tit,double pri){
- 
-		this.title=tit;
- 
-		this.price=pri;
- 
-	}
- 
-	public String toString() {
- 
-		return "书名："+this.title+",价格："+this.price;
- 
-	}
- 
-}
- 
-public class Demo10 {
- 
-	public static void main(String[] args) throws Exception {
- 
-       //序列化到指定的文本
-       ObjectOutputStream oos=new ObjectOutputStream(new FileOutputStream(new File("e:"+File.separator+"demoA.txt")));
 
-       oos.writeObject(new Book("java开发", 45.2));
-       oos.close();
- 
-	}
- 
+//讲对象变为指定的二进制数据
+
+class Book implements Serializable{
+
+    private String title;
+
+    private double price;
+
+    public Book(String tit,double pri){
+
+        this.title=tit;
+
+        this.price=pri;
+
+    }
+
+    public String toString() {
+
+        return "书名："+this.title+",价格："+this.price;
+
+    }
+
+}
+
+public class Demo10 {
+
+    public static void main(String[] args) throws Exception {
+
+        //序列化到指定的文本
+        ObjectOutputStream oos=new ObjectOutputStream(new FileOutputStream(new File("e:"+File.separator+"demoA.txt")));
+
+        oos.writeObject(new Book("java开发", 45.2));
+        oos.close();
+
+    }
+
 }
 ```
 

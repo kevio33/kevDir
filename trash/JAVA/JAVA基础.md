@@ -1,5 +1,9 @@
 # JAVA基础
 
+> [Java面试总结](https://javaguide.cn/java/basis/java-basic-questions-01.html)
+>
+> [Java知识体系](https://pdai.tech/md/java/basic/java-basic-oop.html)
+
 ## 一、数据类型
 
 ### 基本数据类型范围：
@@ -134,6 +138,71 @@ public class Test {
 ### 4.String/StringBuilder/StringBuffer
 
 > https://www.cnblogs.com/h--d/p/14008508.html
+
+**①是否可变**
+
+String是不可变，相当于常量
+
+StringBuilder和StringBuffer都继承自 `AbstractStringBuilder` 类，使用字符数组存放数据
+
+**②线程安全**
+
+String不可变，相当于常量，线程安全
+
+StringBuffer对方法加了同步锁，所以是线程安全的
+
+StringBuilder没有对方法添加同步锁，非安全。
+
+**③性能**
+
+每次改变String类型，都生成一个新的String对象，并将指针指向新的String对象。
+
+相同情况下，StringBuilder相比StringBuffer仅提升10%~15%性能。
+
+
+
+**使用场景**
+
+- 操作少量数据：String
+- 单线程下操作大量数据：StringBuilder
+- 多线程下操作大量数据：StringBuffer
+
+
+
+**String创建字符对象问题：**
+
+```java
+String s1 = new String("abc");//这句话创建了几个字符串对象？
+```
+
+分情况：
+
+- 如果字符串常量池已经有`abc`的引用，那么就只创建一个对象
+
+  ```java
+  // 字符串常量池中已存在字符串对象“abc”的引用
+  String s1 = "abc";
+  // 下面这段代码只会在堆中创建 1 个字符串对象“abc”
+  String s2 = new String("abc");
+  ```
+
+  
+
+- 如果没有`abc`的引用，那么创建两个对象：①"abc"对象，并保存在常量池；②String对象，把①中创建的复制
+
+  > 把它拆分成"abc"和new String()，首先在字符串常量池去寻找有没有"abc"这个字符串，没有就创建一个“abc”字符串对象在栈中，然后new String把这个字符串对象拷贝一份到堆中，返回这个对象的引用 
+
+
+
+**另外一个特殊的例子**
+
+```java
+final String str1 = "str";
+final String str2 = "ing";
+String c = "str" + "ing";// 常量池中的对象
+String d = str1 + str2; // 在堆上创建的新的对象
+System.out.println(c == d);// false
+```
 
 
 
@@ -421,7 +490,7 @@ class Test1 {
  Hello java
 ```
 
-### transient关键字
+### <a name=transient>transient关键字</a>
 
 > 参考——[java transient](https://javabetter.cn/io/transient.html#_01%E3%80%81transient-%E7%9A%84%E4%BD%9C%E7%94%A8%E5%8F%8A%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95)
 
@@ -517,6 +586,14 @@ password: null//密码字段为null，说明反序列化时根本没从文件中
 2）transient关键字只能修饰字段，而不能修饰方法和类。
 
 3）被 transient 关键字修饰的字段不能被序列化，**一个静态变量（static关键字修饰）不管是否被 transient 修饰，均不能被序列化**
+
+
+
+### final
+
+- 被final修饰的变量是基本数据类型不能被修改，是引用类型则不能被重新指向其他对象
+- 修饰的类不能被继承
+- 修饰的方法不能被重写
 
 
 
@@ -1158,6 +1235,256 @@ RuntimeException 是一个**非检查型异常(不需要try-catch)**，RuntimeEx
 
 
 
+
+
+## 十三、Object
+
+### 1.Object的常用方法
+
+```java
+/**
+ * native 方法，用于返回当前运行时对象的 Class 对象，使用了 final 关键字修饰，故不允许子类重写。
+ */
+public final native Class<?> getClass()
+/**
+ * native 方法，用于返回对象的哈希码，主要使用在哈希表中，比如 JDK 中的HashMap。
+ */
+public native int hashCode()
+/**
+ * 用于比较 2 个对象的内存地址是否相等，String 类对该方法进行了重写以用于比较字符串的值是否相等。
+ */
+public boolean equals(Object obj)
+/**
+ * native 方法，用于创建并返回当前对象的一份拷贝。
+ */
+protected native Object clone() throws CloneNotSupportedException
+/**
+ * 返回类的名字实例的哈希码的 16 进制的字符串。建议 Object 所有的子类都重写这个方法。
+ */
+public String toString()
+/**
+ * native 方法，并且不能重写。唤醒一个在此对象监视器上等待的线程(监视器相当于就是锁的概念)。如果有多个线程在等待只会任意唤醒一个。
+ */
+public final native void notify()
+/**
+ * native 方法，并且不能重写。跟 notify 一样，唯一的区别就是会唤醒在此对象监视器上等待的所有线程，而不是一个线程。
+ */
+public final native void notifyAll()
+/**
+ * native方法，并且不能重写。暂停线程的执行。注意：sleep 方法没有释放锁，而 wait 方法释放了锁 ，timeout 是等待时间。
+ */
+public final native void wait(long timeout) throws InterruptedException
+/**
+ * 多了 nanos 参数，这个参数表示额外时间（以纳秒为单位，范围是 0-999999）。 所以超时的时间还需要加上 nanos 纳秒。。
+ */
+public final void wait(long timeout, int nanos) throws InterruptedException
+/**
+ * 跟之前的2个wait方法一样，只不过该方法一直等待，没有超时时间这个概念
+ */
+public final void wait() throws InterruptedException
+/**
+ * 实例被垃圾回收器回收的时候触发的操作
+ */
+protected void finalize() throws Throwable { }
+
+```
+
+
+
+
+
+### 2.重写equals方法必须重写hashCode
+
+因为两个相等的对象的 `hashCode` 值必须是相等。也就是说如果 `equals` 方法判断两个对象是相等的，那这两个对象的 `hashCode` 值也要相等。
+
+如果重写 `equals()` 时没有重写 `hashCode()` 方法的话就可能会导致 `equals` 方法判断是相等的两个对象，`hashCode` 值却不相等。
+
+
+
+**例如：**
+
+对于集合：`HashMap`，`HashSet`等需要散列值作为寻址的类，如果判断就会出现两种情况：
+
+- 如果只重写了`equals`，那两个对象值相同，但是hashcode不同，就会导致插入重复数据
+- 如果只重写了`hashcode`，那两个对象hashcode可能相同，但是值并不同，发生hash碰撞，会删除多余的数据
+
+```java
+import java.util.*;
+import java.lang.Comparable;
+
+/**
+ * @desc 比较equals() 返回true 以及 返回false时， hashCode()的值。
+ *
+ * @author skywang
+ * @emai kuiwu-wang@163.com
+ */
+public class ConflictHashCodeTest1{
+
+    public static void main(String[] args) {
+        // 新建Person对象，
+        Person p1 = new Person("eee", 100);
+        Person p2 = new Person("eee", 100);
+        Person p3 = new Person("aaa", 200);
+
+        // 新建HashSet对象
+        HashSet set = new HashSet();
+        set.add(p1);
+        set.add(p2);
+        set.add(p3);
+
+        // 比较p1 和 p2， 并打印它们的hashCode()
+        System.out.printf("p1.equals(p2) : %s; p1(%d) p2(%d)\n", p1.equals(p2), p1.hashCode(), p2.hashCode());
+        // 打印set
+        System.out.printf("set:%s\n", set);
+    }
+
+    /**
+     * @desc Person类。
+     */
+    private static class Person {
+        int age;
+        String name;
+
+        public Person(String name, int age) {
+            this.name = name;
+            this.age = age;
+        }
+
+        public String toString() {
+            return "("+name + ", " +age+")";
+        }
+
+        /**
+         * @desc 覆盖equals方法
+         */
+        @Override
+        public boolean equals(Object obj){
+            if(obj == null){
+                return false;
+            }
+
+            //如果是同一个对象返回true，反之返回false
+            if(this == obj){
+                return true;
+            }
+
+            //判断是否类型相同
+            if(this.getClass() != obj.getClass()){
+                return false;
+            }
+
+            Person person = (Person)obj;
+            return name.equals(person.name) && age==person.age;
+        }
+    }
+}
+```
+
+> 输出：
+>
+> p1.equals(p2) : true; p1(168907708) p2(447718425)
+> set:[(eee, 100), (aaa, 200), (eee, 100)]
+>
+> 可以看到，set里面出现了重复的值，这是因为虽然值相同，但是hashcode不同，set则认为他们不相同。
+
+改进方法：同时覆写`hashCode`
+
+```java
+import java.util.*;
+import java.lang.Comparable;
+
+/**
+ * @desc 比较equals() 返回true 以及 返回false时， hashCode()的值。
+ *
+ * @author skywang
+ * @emai kuiwu-wang@163.com
+ */
+public class ConflictHashCodeTest2{
+
+    public static void main(String[] args) {
+        // 新建Person对象，
+        Person p1 = new Person("eee", 100);
+        Person p2 = new Person("eee", 100);
+        Person p3 = new Person("aaa", 200);
+        Person p4 = new Person("EEE", 100);
+
+        // 新建HashSet对象
+        HashSet set = new HashSet();
+        set.add(p1);
+        set.add(p2);
+        set.add(p3);
+
+        // 比较p1 和 p2， 并打印它们的hashCode()
+        System.out.printf("p1.equals(p2) : %s; p1(%d) p2(%d)\n", p1.equals(p2), p1.hashCode(), p2.hashCode());
+        // 比较p1 和 p4， 并打印它们的hashCode()
+        System.out.printf("p1.equals(p4) : %s; p1(%d) p4(%d)\n", p1.equals(p4), p1.hashCode(), p4.hashCode());
+        // 打印set
+        System.out.printf("set:%s\n", set);
+    }
+
+    /**
+     * @desc Person类。
+     */
+    private static class Person {
+        int age;
+        String name;
+
+        public Person(String name, int age) {
+            this.name = name;
+            this.age = age;
+        }
+
+        public String toString() {
+            return name + " - " +age;
+        }
+
+        /**
+         * @desc重写hashCode
+         */
+        @Override
+        public int hashCode(){
+            int nameHash =  name.toUpperCase().hashCode();
+            return nameHash ^ age;
+        }
+
+        /**
+         * @desc 覆盖equals方法
+         */
+        @Override
+        public boolean equals(Object obj){
+            if(obj == null){
+                return false;
+            }
+
+            //如果是同一个对象返回true，反之返回false
+            if(this == obj){
+                return true;
+            }
+
+            //判断是否类型相同
+            if(this.getClass() != obj.getClass()){
+                return false;
+            }
+
+            Person person = (Person)obj;
+            return name.equals(person.name) && age==person.age;
+        }
+    }
+}
+```
+
+> ```
+> p1.equals(p2) : true; p1(68545) p2(68545)
+> p1.equals(p4) : false; p1(68545) p4(68545)
+> set:[aaa - 200, eee - 100]
+> ```
+>
+> ①p1和p2的hashcode相同，所以重复
+>
+> ②p1和p4的hashcode也相同，所以判断为重复
+
+
+
 # 拓展
 
 ## 一、深拷贝、浅拷贝
@@ -1378,6 +1705,73 @@ class Student implements Cloneable {
 ## 二、序列化与反序列化
 
 > https://cloud.tencent.com/developer/article/1798815
+
+如果我们需要持久化 Java 对象比如将 Java 对象持久化在文件中，或者在网络传输 Java 对象，这些场景都需要用到序列化。
+
+简单来说：
+
+- **序列化**：将数据结构或对象转换成二进制字节流的过程
+- **反序列化**：将在序列化过程中所生成的二进制字节流转换成数据结构或者对象的过程
+
+序列化和反序列化常见应用场景：
+
+- 对象在进行网络传输（比如远程方法调用 RPC 的时候）之前需要先被序列化，接收到序列化的对象之后需要再进行反序列化；
+- 将对象存储到文件之前需要进行序列化，将对象从文件中读取出来需要进行反序列化；
+- 将对象存储到数据库（如 Redis）之前需要用到序列化，将对象从缓存数据库中读取出来需要反序列化；
+- 将对象存储到内存之前需要进行序列化，从内存中读取出来之后需要进行反序列化。
+
+> 在OSI七层模型中， **表示层**做的事情主要就是对应用层的用户数据进行处理转换为二进制流，所以序列化和反序列化是表示层做的内容。
+
+### 1.常见的序列化协议
+
+常用的序列化协议有 Hessian、Kryo、Protobuf、ProtoStuff，这些都是基于二进制的序列化协议 
+
+**Java自带的序列化协议：**
+
+只需实现 `java.io.Serializable`接口即可 
+
+```java
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Builder
+@ToString
+public class RpcRequest implements Serializable {
+    private static final long serialVersionUID = 1905122041950251207L;
+    private String requestId;
+    private String interfaceName;
+    private String methodName;
+    private Object[] parameters;
+    private Class<?>[] paramTypes;
+    private RpcMessageTypeEnum rpcMessageTypeEnum;
+}
+```
+
+> **serialVersionUID 有什么作用？**
+>
+> 序列化号 `serialVersionUID` 属于版本控制的作用。反序列化时，会检查 `serialVersionUID` 是否和当前类的 `serialVersionUID` 一致。如果 `serialVersionUID` 不一致则会抛出 `InvalidClassException` 异常。强烈推荐每个序列化类都手动指定其 `serialVersionUID`，如果不手动指定，那么编译器会动态生成默认的 `serialVersionUID`。
+
+
+
+### 2.不想序列化的变量
+
+使用[transient](#transient)关键字
+
+
+
+### 3.Serializable缺点
+
+主要原因有下面这些原因：
+
+- **不支持跨语言调用** : 如果调用的是其他语言开发的服务的时候就不支持了。
+- **性能差**：相比于其他序列化框架性能更低，主要原因是序列化之后的字节数组体积较大，导致传输成本加大。
+- **存在安全问题**：序列化和反序列化本身并不存在问题。但当输入的反序列化的数据可被用户控制，那么攻击者即可通过构造恶意输入，让反序列化产生非预期的对象，在此过程中执行构造的任意代码。
+
+
+
+### 4.其他的序列化工具
+
+可以使用前面提到的Hessian、Kryo、Protobuf、ProtoStuff
 
 
 

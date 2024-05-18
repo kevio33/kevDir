@@ -32,7 +32,7 @@ ViewModel会***一直存在在内存中***直到限定其存在范围的Lifecycl
 - 对于 Activity，是在Activity完成时；
 - 而对于 Fragment，是在 Fragment 分离时。
 
-图 1 说明了 Activity 经历屏幕旋转一直到结束时所处的各种生命周期状态。该图Activity 生命周期的旁边显示了 ViewModel的生命周期。此图表说明了 Activity 的各种状态。这些基本状态同样适用于 Fragment 的生命周期。
+下图说明了 Activity 经历屏幕旋转一直到结束时所处的各种生命周期状态。Activity 生命周期的旁边显示了 ViewModel的生命周期。
 
 ![说明 ViewModel 随着 Activity 状态的改变而经历的生命周期。](JetPack.assets/viewmodel-lifecycle.png)
 
@@ -83,7 +83,7 @@ public class UserModel extends ViewModel {
 ```java
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
 
 public class MainActivity extends FragmentActivity {
 
@@ -97,7 +97,7 @@ public class MainActivity extends FragmentActivity {
         mContentTv = findViewById(R.id.tv_content);
 
         //构建ViewModel实例
-        final UserModel userModel = ViewModelProviders.of(this).get(UserModel.class);
+        final UserModel userModel = ViewModelProvider(this).get(UserModel.class);
 
         //让TextView观察ViewModel中数据的变化,并实时展示
         userModel.mUserLiveData.observe(this, new Observer<User>() {
@@ -262,7 +262,562 @@ public class LoginActivity extends AppCompatActivity {
 
 
 
+
+
+### 6.ViewModel作用域
+
+在对应的作用域中，只会产生一个ViewModel。
+
+现在有一个自定义ViewModel
+
+```java
+public class MyViewModel extends ViewModel {
+
+    //可变的livedata
+    private final MutableLiveData<User> userMutableLiveData = new MutableLiveData<>();
+
+    //暴露给外部的不可变livedata
+    public LiveData<User> userLiveData = userMutableLiveData;
+
+    public void setValue(User user){
+        this.userMutableLiveData.postValue(user);
+    }
+
+    public void updateValue(String name,int age){
+        User user = this.userMutableLiveData.getValue();
+        user.setAge(age);
+        this.userMutableLiveData.setValue(user);
+    }
+}
+```
+
+
+
+#### **不同作用域**
+
+每个activity和每个fragment对应创建对应各自作用域的ViewModel
+
+**Fragment1：**
+
+```java
+public class MyFragment1 extends Fragment {
+
+    private MyViewModel mViewModel;
+
+    private TextView textView;
+    public static MyFragment1 newInstance() {
+        return new MyFragment1();
+    }
+
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_my_fragment1, container, false);
+        textView = view.getRootView().findViewById(R.id.frag1_tv);
+        return view;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        mViewModel = new ViewModelProvider(this).get(MyViewModel.class);
+        textView.setText(mViewModel.toString());
+        // TODO: Use the ViewModel
+    }
+}
+```
+
+**Frag2**
+
+```java
+public class MyFragment2 extends Fragment {
+
+    private MyViewModel mViewModel;
+
+    private TextView textView;
+
+    public static MyFragment2 newInstance() {
+        return new MyFragment2();
+    }
+
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_my_fragment2, container, false);
+        textView  = view.getRootView().findViewById(R.id.frag2_tv);
+        return view;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        mViewModel = new ViewModelProvider(this).get(MyViewModel.class);
+        textView.setText(mViewModel.toString());
+
+    }
+}
+```
+
+**Activity**
+
+```java
+public class MainActivity extends AppCompatActivity {
+
+    ActivityMainBinding activityMainBinding;
+
+    private MyViewModel myViewModel;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        activityMainBinding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(activityMainBinding.getRoot());
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+
+        myViewModel = new ViewModelProvider(this).get(MyViewModel.class);
+        myViewModel.userLiveData.observe(this, new Observer<User>() {
+            @Override
+            public void onChanged(User user) {
+                activityMainBinding.userage.setText(user.getName()+":"+user.getAge()+"");
+            }
+        });
+
+        myViewModel.setValue(new User("kevin",10));
+        activityMainBinding.username.setText(myViewModel.toString());
+        activityMainBinding.updateBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                myViewModel.updateValue("kevin",100);
+            }
+        });
+
+        getSupportFragmentManager().beginTransaction()
+            .add(R.id.fragcontainer1, new MyFragment1())
+            .add(R.id.fragcontainer2,new MyFragment2())
+            .commit();
+    }
+}
+```
+
+![1715862025725](JetPack.assets/1715862025725.png)
+
+可以看到，三者的viewmodel都不相同
+
+#### 同一作用域
+
+修改在Frag1创建ViewModel时候的作用域，可以发现创建出来的viewmodel和父类是同一个
+
+```java
+mViewModel = new ViewModelProvider(getActivity()).get(MyViewModel.class);
+```
+
+
+
+![1715862177387](JetPack.assets/1715862177387.png)
+
+
+
+### 7.ViewModel的原理
+
+- ViewModel为什么不会随着Activity的屏幕旋转而销毁；
+- 为什么在对应的作用域内，保证只生产出对应的唯一实例，保证UI组件间的通信
+- onCleared方法在什么调用
+
+
+
+#### (1)ViewModel相关的类
+
+- ViewModelStoreOwner：是一个接口，用来获取一个ViewModelStore对象
+- ViewModelStore：存储多个ViewModel，一个ViewModelStore的拥有者( Activity )在配置改变， 重建的时候，依然会有这个实例
+- ViewModel：一个对 Activity、Fragment 的数据管理类，通常配合 LiveData 使用
+- ViewModelProvider：创建一个 ViewModel 的实例，并且在给定的ViewModelStoreOwner中存储 ViewModel
+
+
+
+#### (2)viewmodel工作过程
+
+**从上面代码可以看出，通过viewModelProvider创建ViewModel实例**
+
+```kotlin
+//ViewModel.java
+public ViewModelProvider(@NonNull ViewModelStoreOwner owner) {
+    this(owner.getViewModelStore(), owner instanceof HasDefaultViewModelProviderFactory
+         ? ((HasDefaultViewModelProviderFactory) owner).getDefaultViewModelProviderFactory()
+         : NewInstanceFactory.getInstance());
+}
+
+
+public ViewModelProvider(@NonNull ViewModelStore store, @NonNull Factory factory) {
+    mFactory = factory;
+    mViewModelStore = store;
+}
+```
+
+> - 通过ViewModelStoreOwner获取ViewModelStore对象
+> - 给mFactory赋值，这里赋值的是**NewInstanceFactory**这个对象
+
+**ViewModel的get方法**
+
+```java
+//ViewModel.java
+
+private static final String DEFAULT_KEY = "androidx.lifecycle.ViewModelProvider.DefaultKey";
+@NonNull
+@MainThread
+public <T extends ViewModel> T get(@NonNull Class<T> modelClass) {
+    String canonicalName = modelClass.getCanonicalName();
+    if (canonicalName == null) {
+        throw new IllegalArgumentException("Local and anonymous classes can not be ViewModels");
+    }
+    return get(DEFAULT_KEY + ":" + canonicalName, modelClass);
+}
+```
+
+> - 调用了两个参数的 get 方法
+> - 第一个参数是字符串的拼接，用来以后获取对应 ViewModel 实例的，保证了同一个 Key 取出是同一个 ViewModel
+> - 第二参数是 UserViewModel 的字节码文件对象
+
+```java
+@NonNull
+@MainThread
+public <T extends ViewModel> T get(@NonNull String key, @NonNull Class<T> modelClass) {
+    //1
+    ViewModel viewModel = mViewModelStore.get(key);
+
+    //2
+    if (modelClass.isInstance(viewModel)) {
+        if (mFactory instanceof OnRequeryFactory) {
+            ((OnRequeryFactory) mFactory).onRequery(viewModel);
+        }
+        return (T) viewModel;
+    } else {
+        //noinspection StatementWithEmptyBody
+        if (viewModel != null) {
+            // TODO: log a warning.
+        }
+    }
+    
+    //3
+    if (mFactory instanceof KeyedFactory) {
+        viewModel = ((KeyedFactory) mFactory).create(key, modelClass);
+    } else {
+        viewModel = mFactory.create(modelClass);
+    }
+    
+    //4
+    mViewModelStore.put(key, viewModel);
+    return (T) viewModel;
+}
+```
+
+> 1：从ViewModelStore中，根据 key，取一个 ViewModel，ViewModelStore源码下文分析
+>
+> 2：判断取出来的 ViewModel 实例和传进来的是否是一个，是同一个，直接返回此缓存中实例
+>
+> 3：通过Factory创建一个ViewModel
+>
+> 4：把新创建的ViewModel用ViewModelStore存储起来，以备下次使用，最后返回新创建的ViewModelStore
+
+ViewModel是怎么通过Factory创建出来的
+
+这个Factory的实例是`NewInstanceFactory`
+
+**NewInstanceFactory的create方法**
+
+```java
+//ViewModelProvider.java
+public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
+    //noinspection TryWithIdenticalCatches
+    try {
+        return modelClass.newInstance();
+    } catch (InstantiationException e) {
+        throw new RuntimeException("Cannot create an instance of " + modelClass, e);
+    } catch (IllegalAccessException e) {
+        throw new RuntimeException("Cannot create an instance of " + modelClass, e);
+    }
+}
+```
+
+> 直接通过反射创建ViewModel对象
+
+其实这里还有一种情况：
+
+> 如果是通过两个参数的构造方法来实例化ViewModel，那第二个参数就是Factory类型。然后就用`AndroidViewModelFactory`来实例化UserViewModel 
+>
+> ```java
+> ViewModelProvider(this,ViewModelProvider.AndroidViewModelFactory.getInstance(application))[UserViewModel::class.java]
+> ```
+
+针对` AndroidViewModelFactory `创建ViewModel实例,`AndroidViewModelFactory`是`NewInstanceFactory`的子类。
+
+```java
+//ViewModelProvider.java 中的 AndroidViewModelFactory
+public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
+    if (AndroidViewModel.class.isAssignableFrom(modelClass)) {
+        //noinspection TryWithIdenticalCatches
+        try {
+            return modelClass.getConstructor(Application.class).newInstance(mApplication);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException("Cannot create an instance of " + modelClass, e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("Cannot create an instance of " + modelClass, e);
+        } catch (InstantiationException e) {
+            throw new RuntimeException("Cannot create an instance of " + modelClass, e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException("Cannot create an instance of " + modelClass, e);
+        }
+    }
+    return super.create(modelClass);
+}
+```
+
+> 如果创建的`UserViewModel`当初继承的是`AndroidViewModel`类就走`modelClass.getConstructor(Application.class).newInstance(mApplication);`实例化方法，否则就走父类的实例化方法，也就是`**NewInstanceFactory的create方法`**
+>
+> **在开发中建议使用`AndroidViewModel`类，它会提供给一个Application级别的 Context。**
+
+
+
+**然后看`ViewModelStoreOwner`**
+
+`viewModelStoreOwner`主要是创建返回`ViewModelStore`
+
+```java
+public interface ViewModelStoreOwner {
+    /**
+     * Returns owned {@link ViewModelStore}
+     *
+     * @return a {@code ViewModelStore}
+     */
+    @NonNull
+    ViewModelStore getViewModelStore();
+}
+```
+
+> 是一个接口，里面就一个返回`ViewModelStore`的方法
+>
+> 它的实现类在 AndroidX 中ComponentActivity和 Fragment
+
+```java
+//ComponentActivity.java
+public class ComponentActivity extends androidx.core.app.ComponentActivity implements ViewModelStoreOwner,XXX{
+
+    private ViewModelStore mViewModelStore;
+
+    @NonNull
+    @Override
+    public ViewModelStore getViewModelStore() {
+        if (getApplication() == null) {
+            throw new IllegalStateException("Your activity is not yet attached to the "
+                                            + "Application instance. You can't request ViewModel before onCreate call.");
+        }
+        if (mViewModelStore == null) {
+            NonConfigurationInstances nc =
+                (NonConfigurationInstances) getLastNonConfigurationInstance();
+            if (nc != null) {
+                // Restore the ViewModelStore from NonConfigurationInstances
+                mViewModelStore = nc.viewModelStore;
+            }
+            if (mViewModelStore == null) {
+                mViewModelStore = new ViewModelStore();
+            }
+        }
+        return mViewModelStore;
+    } 
+}
+```
+
+
+
+**然后看ViewModelStore**
+
+```java
+public class ViewModelStore {
+    //1
+    private final HashMap<String, ViewModel> mMap = new HashMap<>();
+    //2
+    final void put(String key, ViewModel viewModel) {
+        ViewModel oldViewModel = mMap.put(key, viewModel);
+        if (oldViewModel != null) {
+            oldViewModel.onCleared();
+        }
+    }
+    //3
+    final ViewModel get(String key) {
+        return mMap.get(key);
+    }
+
+    Set<String> keys() {
+        return new HashSet<>(mMap.keySet());
+    }
+
+    //4
+    public final void clear() {
+        for (ViewModel vm : mMap.values()) {
+            vm.clear();
+        }
+        mMap.clear();
+    }
+}
+```
+
+> 注释 1 ：声明一个 Map 来存储ViewModel
+>
+> 注释 2：存储ViewModel，这个方法我们在7.2 小节ViewModelProvider的 `get` 方法中用到过
+>
+> 注释 3：取出 ViewModel，这个方法我们在7.2 小节ViewModelProvider的 `get` 方法中用到过。注意在从 Map中去 ViewModel 的时候是根据 Key，也就是7.2小节注释 1 拼接的那个字符串**DEFAULT_KEY + ":" + canonicalName**。这也就解释了第 4 节的疑问 **为什么在对应的作用域内，保正只生产出对应的唯一实例**
+>
+> 注释 4：这个是一个重点方法了，表明要清空存储的数据，还会调用到ViewModel的 `clear` 方法，也就是最终会调用带 ViewModel 的`onCleared()`方法
+
+**什么时候调用`onClear**
+
+```java
+//ComponentActivity.java
+public ComponentActivity() {
+    Lifecycle lifecycle = getLifecycle();
+   	
+    getLifecycle().addObserver(new LifecycleEventObserver() {
+        @Override
+        public void onStateChanged(@NonNull LifecycleOwner source,
+                @NonNull Lifecycle.Event event) {
+          	//1
+            if (event == Lifecycle.Event.ON_DESTROY) {
+                if (!isChangingConfigurations()) {
+                    getViewModelStore().clear();
+                }
+            }
+        }
+    });
+
+}
+```
+
+> 1. 在ComponentActivity的构造方法中，可以看到，在 Activity 的生命周期为 onDestory的时候，并且当前不是配置更改（比如横竖屏幕切换）就会调用ViewModelStore 的 clear 方法，进一步回调用 ViewModel 的`onCleared`方法。 
+
+
+
+**最后看ViewModel类**
+
+```java
+public abstract class ViewModel {
+    private volatile boolean mCleared = false;
+
+    @SuppressWarnings("WeakerAccess")
+    protected void onCleared() {
+    }
+
+    @MainThread
+    final void clear() {
+        mCleared = true;
+        if (mBagOfTags != null) {
+            synchronized (mBagOfTags) {
+                for (Object value : mBagOfTags.values()) {
+                    // see comment for the similar call in setTagIfAbsent
+                    closeWithRuntimeException(value);
+                }
+            }
+        }
+        onCleared();
+    }
+}
+```
+
+
+
+**为啥ViewModel不会随着Acitivity的旋转而销毁**
+
+ViewModel是存放在ViewModelStore中的，所以要保证ViewModel不被销毁，那么就要保证ViewModelStore不被销毁
+
+在 Activity 中提供了 `onRetainNonConfigurationInstance` 方法，用于处理配置发生改变时数据的保存。随后在重新创建的 Activity 中调用 `getLastNonConfigurationInstance` 获取上次保存的数据。 
+
+```java
+//ComponentActivity.java
+/**
+ * Retain all appropriate non-config state.  You can NOT
+ * override this yourself!  Use a {@link androidx.lifecycle.ViewModel} if you want to
+ * retain your own non config state.
+ */
+@Override
+@Nullable
+public final Object onRetainNonConfigurationInstance() {
+    //onRetainCustomNonConfigurationInstance()已经被遗弃，默认返回null
+    Object custom = onRetainCustomNonConfigurationInstance();
+
+    ViewModelStore viewModelStore = mViewModelStore;
+    if (viewModelStore == null) {
+        // 获取上次保存的结果
+        NonConfigurationInstances nc =
+            (NonConfigurationInstances) getLastNonConfigurationInstance();
+        if (nc != null) {
+            viewModelStore = nc.viewModelStore;
+        }
+    }
+
+    if (viewModelStore == null && custom == null) {
+        return null;
+    }
+    //把ViewModel存储在 NonConfigurationInstances 对象中
+    NonConfigurationInstances nci = new NonConfigurationInstances();
+    nci.custom = custom;
+    nci.viewModelStore = viewModelStore;
+    return nci;
+}
+```
+
+
+
+而前面提到的`getViewModelStore()`方法其实里面就是从`NonConfigurationInstances`取出`ViewModelStore`
+
+```java
+//ComponentActivity.java
+@NonNull
+@Override
+public ViewModelStore getViewModelStore() {
+    if (getApplication() == null) {
+        throw new IllegalStateException("Your activity is not yet attached to the "
+                                        + "Application instance. You can't request ViewModel before onCreate call.");
+    }
+    if (mViewModelStore == null) {
+        //1
+        NonConfigurationInstances nc =
+            (NonConfigurationInstances) getLastNonConfigurationInstance();
+        if (nc != null) {
+            // Restore the ViewModelStore from NonConfigurationInstances
+            mViewModelStore = nc.viewModelStore;
+        }
+        if (mViewModelStore == null) {
+            mViewModelStore = new ViewModelStore();
+        }
+    }
+    return mViewModelStore;
+}
+```
+
+> 1：获取了`NonConfigurationInstances`一个对象，不为空从其身上拿一个ViewModelStore，这个就是之前保存的ViewModelStore
+>
+> 当 Activity 重建时还会走到`getViewModelStore`方法，这时候就是在`NonConfigurationInstances`拿一个缓存的ViewModelStore。
+
+`ComponentActivity.java`中的`NonConfigurationInstances`如下
+
+```java
+static final class NonConfigurationInstances {
+    Object custom;
+    ViewModelStore viewModelStore;
+}
+```
+
+
+
+
+
+
+
 ## 二、LiveData
+
+> https://juejin.cn/post/6867036161446969352
 
 ### 1.概述
 

@@ -438,16 +438,16 @@ responseData = response.body().string();
 
 ```java
 client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                /*code*/
-            }
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                /*code*/
-                }
-            }
-        });
+    @Override
+    public void onFailure(Call call, IOException e) {
+        /*code*/
+    }
+    @Override
+    public void onResponse(Call call, Response response) throws IOException {
+        /*code*/
+    }
+}
+                                });
 ```
 
 
@@ -475,7 +475,7 @@ implementation ‘eu.the4thfloor.volley:com.android.volley:2015.05.28’
 
 其次，Retrofit使用简单，结构层次分明，每一步都能清晰的表达出之所以要使用的寓意；
 
-再者，Retrofit支持同步和异步执行，使得请求变得异常简单，只要调用enqueue/execute即可完成；
+再者，Retrofit支持同步和异步执行，使得请求变得异常简单，只要调用`enqueue/execute`即可完成；
 
 最后，Retrofit更大自由度的支持我们自定义的业务逻辑，如自定义Converters。
 
