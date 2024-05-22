@@ -817,13 +817,15 @@ static final class NonConfigurationInstances {
 
 ## 二、LiveData
 
-> https://juejin.cn/post/6867036161446969352
+> [LiveData使用](https://github.com/jhbxyz/ArticleRecord/blob/master/articles/Jetpack/2LiveData%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%92%8C%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90.md)
 
 ### 1.概述
 
-> - LiveData是一个可观察的数据持有器类 ，持有可被观察的数据。
->  - LiveData是一种**可感知生命周期的组件**，仅仅在Activity、Fragment、Service等组件都处于活跃的生命周期状态的时候，才去更新app组件。
->  - 当LiveData的数据发生变化时，它会自动通知所有活动的观察者，从而更新UI 
+LiveData是一个可观察的数据持有类 ，持有可被观察的数据。
+
+LiveData是一种**可感知生命周期的组件**，仅仅在Activity、Fragment、Service等组件都处于活跃的生命周期状态的时候，才去更新app组件。
+
+当LiveData的数据发生变化时，它会自动通知所有活动的观察者，从而更新UI 
 
 ### 2.优势
 
@@ -845,7 +847,7 @@ LiveData 遵循观察者模式。当底层数据发生变化时，LiveData 会�
 
 - **数据始终保持最新状态**
 
-如果生命周期变为非活跃状态，它会在再次变为活跃状态时接收最新的数据。例如，曾经在后台的 Activity 会在返回前台后立即接收最新的数据。
+如果生命周期变为非活跃状态，它**会在再次变为活跃状态时接收最新的数据**。例如，曾经在后台的 Activity 会在返回前台后立即接收最新的数据。
 
 - **适当的配置更改**
 
@@ -853,7 +855,7 @@ LiveData 遵循观察者模式。当底层数据发生变化时，LiveData 会�
 
 - **共享资源**
 
-您可以使用单例模式扩展 [`LiveData`](https://developer.android.google.cn/reference/androidx/lifecycle/LiveData) 对象以封装系统服务，以便在应用中共享它们。`LiveData` 对象连接到系统服务一次，然后需要相应资源的任何观察者只需观察 `LiveData` 对象。如需了解详情，请参阅[扩展 LiveData](https://developer.android.google.cn/topic/libraries/architecture/livedata#extend_livedata)。
+您可以使用单例模式扩展 `LiveData` 对象以封装系统服务，以便在应用中共享它们。`LiveData` 对象连接到系统服务一次，然后需要相应资源的任何观察者只需观察 `LiveData` 对象。
 
 ### 3.使用
 
@@ -1083,6 +1085,496 @@ dependencies {
     testImplementation "androidx.room:room-testing:$room_version"
 }
 ```
+
+
+
+
+
+### 4.工作过程
+
+- LiveData 是怎么回调的？
+- LiveData 为什么可以感知生命周期？
+- LiveData 可以感知生命周期，有什么用，或者说有什么优势？
+- LiveData 为什么只会将更新通知给活跃的观察者。非活跃观察者不会收到更改通知？
+- LiveData此外还提供了observerForever()方法，所有生命周期事件都能通知到，怎么做到的？
+
+**例子：**
+
+```kotlin
+class LiveDataActivity : BaseActivity() {
+    private val mContent = MutableLiveData<String>()
+  	
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+				
+        mContent.observe(this, Observer { content ->
+            tvContent.text = content
+        })
+    }
+}
+```
+
+上面的代码主要涉及到：
+
+- 声明了一个`MutableLiveData`对象
+- 调用了`MutableLiveData`的observe方法
+- observe方法中 传入 this 和 Observer，this 指的是`LiveDataActivity`对象，其实一个是一个`LifecycleOwner`。Observer是一个接口
+
+#### (1)MutableLiveData类
+
+```java
+public class MutableLiveData<T> extends LiveData<T> {
+
+    public MutableLiveData(T value) {
+        super(value);
+    }
+
+    public MutableLiveData() {
+        super();
+    }
+
+    //可以在子线程调用
+    @Override
+    public void postValue(T value) {
+        super.postValue(value);
+    }
+
+    @Override
+    public void setValue(T value) {
+        super.setValue(value);
+    }
+}
+```
+
+> - 继承自LiveData
+> - 提供了getter，setter。postValue可以在子线程调用
+
+
+
+#### (2)MutableLiveData的observe方法
+
+需要传递两个参数：
+
+- LifecycleOwner对象，这里就是activity
+
+- Observer接口
+
+  ```java
+  public interface Observer<T> {
+      /**
+       * Called when the data is changed.
+       * @param t  The new data
+       */
+      void onChanged(T t);
+  }
+  ```
+
+  > Observer是一个观察者，其中有个回调，在LiveData数据改变时候会回调此方法。
+
+
+
+#### (3)LiveData类
+
+```java
+//LiveData.java
+//LiveData.java
+@MainThread
+public void observe(@NonNull LifecycleOwner owner, @NonNull Observer<? super T> observer) {
+    assertMainThread("observe");
+  	//1
+    if (owner.getLifecycle().getCurrentState() == DESTROYED) {
+        // ignore
+        return;
+    }
+  	//2
+    LifecycleBoundObserver wrapper = new LifecycleBoundObserver(owner, observer);
+  	//3
+    ObserverWrapper existing = mObservers.putIfAbsent(observer, wrapper);
+  	//4
+    if (existing != null && !existing.isAttachedTo(owner)) {
+        throw new IllegalArgumentException("Cannot add the same observer"
+                + " with different lifecycles");
+    }
+    if (existing != null) {
+        return;
+    }
+  	//5
+    owner.getLifecycle().addObserver(wrapper);
+}
+```
+
+> **注释 1**：首先会通过`LifecycleOwner`获取Lifecycle对象然后获取Lifecycle 的State，如果是DESTROYED直接 return 了。忽略这次订阅
+>
+> **注释 2** ：把`LifecycleOwner`和Observer包装成`LifecycleBoundObserver`对象，至于为什么包装成这个对象，我们下面具体讲，**而且这个是重点**。
+>
+> **注释 3**：把观察者存到 Map 中
+>
+> **注释 4**：之前添加过`LifecycleBoundObserver`，如果LifecycleOwner不是同一个，就抛异常
+>
+> **注释 5**：通过Lifecycle和添加`LifecycleBoundObserver`观察者，形成订阅关系
+
+
+
+#### (4)setValue和postValue
+
+**setValue**
+
+可以看到当调用了setValue和postValue时候，会出发Observer的回调，因此来解析一下这两个方法
+
+```java
+//LiveData.java
+@MainThread
+protected void setValue(T value) {
+    assertMainThread("setValue");
+    mVersion++;//记录版本号
+    mData = value;
+    dispatchingValue(null);//1
+}
+```
+
+调用了dispatchingValue方法
+
+```java
+//LiveData.java
+void dispatchingValue(@Nullable ObserverWrapper initiator) {
+    if (mDispatchingValue) {
+        mDispatchInvalidated = true;
+        return;
+    }
+    mDispatchingValue = true;
+    do {
+        mDispatchInvalidated = false;
+        if (initiator != null) {
+          	//1
+            considerNotify(initiator);
+            initiator = null;
+        } else {
+            for (Iterator<Map.Entry<Observer<? super T>, ObserverWrapper>> iterator =
+                    mObservers.iteratorWithAdditions(); iterator.hasNext(); ) {
+              	//2
+                considerNotify(iterator.next().getValue());
+                if (mDispatchInvalidated) {
+                    break;
+                }
+            }
+        }
+    } while (mDispatchInvalidated);
+    mDispatchingValue = false;
+}
+```
+
+代码逻辑无论如何都调用了`considerNotify`方法
+
+```java
+//LiveData.java
+private void considerNotify(ObserverWrapper observer) {
+    if (!observer.mActive) {
+        return;
+    }
+    if (!observer.shouldBeActive()) {
+        observer.activeStateChanged(false);
+        return;
+    }
+    if (observer.mLastVersion >= mVersion) {
+        return;
+    }
+    observer.mLastVersion = mVersion;
+    observer.mObserver.onChanged((T) mData);//1
+}
+```
+
+可以看到最终调用了传进来的回调，用于对数据更新做出反应。
+
+
+
+**postValue**
+
+```java
+//LiveData.java
+protected void postValue(T value) {
+    boolean postTask;
+    synchronized (mDataLock) {
+        postTask = mPendingData == NOT_SET;
+        mPendingData = value;
+    }
+    if (!postTask) {
+        return;
+    }
+    ArchTaskExecutor.getInstance().postToMainThread(mPostValueRunnable);//1
+}
+```
+
+> 上面最后一行代码，通过`postToMainThread`向主线程发送一个runnablle对象
+
+点进`postToMainThread`方法看到，调用的是mDelegate的post方法
+
+```java
+//ArchTaskExecutor.java
+private TaskExecutor mDelegate;
+
+@Override
+public void postToMainThread(Runnable runnable) {
+    mDelegate.postToMainThread(runnable);//1
+}
+```
+
+> mDelegate的具体实例对象是`DefaultTaskExecutor`
+>
+> ```java
+> //ArchTaskExecutor.java
+> private ArchTaskExecutor() {
+>     mDefaultTaskExecutor = new DefaultTaskExecutor();
+>     mDelegate = mDefaultTaskExecutor;//1
+> }
+> ```
+
+`DefaultTaskExecutor`的该方法实现
+
+```java
+//DefaultTaskExecutor.java
+private volatile Handler mMainHandler;
+
+@Override
+public void postToMainThread(Runnable runnable) {
+    if (mMainHandler == null) {
+        synchronized (mLock) {
+            if (mMainHandler == null) {
+                mMainHandler = createAsync(Looper.getMainLooper());//1
+            }
+        }
+    }
+
+    mMainHandler.post(runnable);//2
+}
+```
+
+> 是调用了一个拥有主线程looper的handler，传递消息给主线程，执行回调进行更新操作
+
+`ArchTaskExecutor.getInstance().postToMainThread(mPostValueRunnable);`
+
+这里面的`mPostValueRunnable`是个`Runnable`
+
+```java
+//LiveData.java
+private final Runnable mPostValueRunnable = new Runnable() {
+    @SuppressWarnings("unchecked")
+    @Override
+    public void run() {
+        Object newValue;
+        synchronized (mDataLock) {
+            newValue = mPendingData;
+            mPendingData = NOT_SET;
+        }
+        setValue((T) newValue);//1
+    }
+};
+```
+
+> 可以看到注释1： postValue方法其实最终调用也是setValue方法 
+
+#### (5) ObserverWrapper类
+
+是livedata里面的私有抽象内部类
+
+```java
+//LiveData.java
+private abstract class ObserverWrapper {
+    final Observer<? super T> mObserver;
+    boolean mActive;
+    int mLastVersion = START_VERSION;
+
+    //1
+    ObserverWrapper(Observer<? super T> observer) {
+        mObserver = observer;
+    }
+
+    //2
+    abstract boolean shouldBeActive();
+
+    boolean isAttachedTo(LifecycleOwner owner) {
+        return false;
+    }
+
+    void detachObserver() {
+    }
+
+    void activeStateChanged(boolean newActive) {
+        if (newActive == mActive) {
+            return;
+        }
+        // immediately set active state, so we'd never dispatch anything to inactive
+        // owner
+        mActive = newActive;
+        changeActiveCounter(mActive ? 1 : -1);
+        if (mActive) {
+            //3
+            dispatchingValue(this);
+        }
+    }
+}
+```
+
+> 注释 1：获取了我们的 Observer 对象，存储在 成员变量mObserver身上
+>
+> 注释 2：抽象方法，当前是否是活跃的状态
+>
+> 注释 3：活跃状态，发送最新的值，来达到通知的作用， **dispatchingValue(this)方法**咋这么眼熟，对之前在 LiveData 调用 setValue 方法时，最终也会调用到此方法。那ObserverWrapper类中的**dispatchingValue**这个方法是在`activeStateChanged`方法中调用，那`activeStateChanged`啥时候调用呢？
+
+
+
+#### (6)LifecycleBoundObserver 
+
+`LifecycleBoundObserver`是`ObserverWrapper`的子类
+
+在之前的`observe`方法中，有一行代码是
+
+```java
+//LiveData.java
+public void observe(@NonNull LifecycleOwner owner, @NonNull Observer<? super T> observer) {
+
+    LifecycleBoundObserver wrapper = new LifecycleBoundObserver(owner, observer);
+}
+```
+
+> 上面是用`LifecycleBoundObserver`对`LifecycleOwner`和`Observer`进行了绑定包装 
+
+```java
+//LiveData.java
+class LifecycleBoundObserver extends ObserverWrapper implements LifecycleEventObserver {
+    @NonNull
+    final LifecycleOwner mOwner;
+
+    LifecycleBoundObserver(@NonNull LifecycleOwner owner, Observer<? super T> observer) {
+        super(observer);
+        mOwner = owner;
+    }
+
+    //1
+    @Override
+    boolean shouldBeActive() {
+        return mOwner.getLifecycle().getCurrentState().isAtLeast(STARTED);
+    }
+
+    //2
+    @Override
+    public void onStateChanged(@NonNull LifecycleOwner source,
+                               @NonNull Lifecycle.Event event) {
+        Lifecycle.State currentState = mOwner.getLifecycle().getCurrentState();
+        if (currentState == DESTROYED) {
+            removeObserver(mObserver);
+            return;
+        }
+        Lifecycle.State prevState = null;
+        while (prevState != currentState) {
+            prevState = currentState;
+            //3
+            activeStateChanged(shouldBeActive());
+            currentState = mOwner.getLifecycle().getCurrentState();
+        }
+    }
+
+    @Override
+    boolean isAttachedTo(LifecycleOwner owner) {
+        return mOwner == owner;
+    }
+
+    //4
+    @Override
+    void detachObserver() {
+        mOwner.getLifecycle().removeObserver(this);
+    }
+}
+```
+
+>  **注释 1**：判断当前的 Lifecycle 的生命周期是否是活跃状态（状态大于STARTED），会在回调观察则 Observer 的时候进行判断，只有在活跃状态，才会回调观察者Observer的onChanged方法。 (这也就是为什么，只会将更新通知给活跃的observer)
+>
+> **注释 2**：onStateChanged每次 Activity、Fragment的生命周期回调的时候，都会走这个方法。获取Lifecycle对象然后获取Lifecycle 的State如果为DESTROYED则移除观察者，在 Activity、Fragment的生命周期走到 onDestroy 的时候，就会取消订阅，避免内存泄漏。
+>
+> **注释 3**：调用父类ObserverWrapper 的`activeStateChanged`方法，层层调用到观察者Observer的onChanged方法。
+>
+> **注释 4**：移除观察者Observer，解除订阅关系。
+>
+> 到这个时候,LiveData 的 `observer方法`、`setValue`方法，整个流程就分析完了。
+
+
+
+#### (7)observeForever
+
+如果不想管生命周期，而是想在setValue的值发生改变的时候就能接受到通知，可以通过：
+
+```kotlin
+//只要在值发生改变时,就能接收到
+mContent.observeForever { content ->
+    tvContent.text = content
+}
+```
+
+
+
+```java
+//LiveData.java
+public void observeForever(@NonNull Observer<? super T> observer) {
+    assertMainThread("observeForever");
+    AlwaysActiveObserver wrapper = new AlwaysActiveObserver(observer);
+    ObserverWrapper existing = mObservers.putIfAbsent(observer, wrapper);
+    if (existing instanceof LiveData.LifecycleBoundObserver) {
+        throw new IllegalArgumentException("Cannot add the same observer"
+                                           + " with different lifecycles");
+    }
+    if (existing != null) {
+        return;
+    }
+    wrapper.activeStateChanged(true);
+}
+```
+
+AlwaysActiveObserver类里面shouldBeActive返回直接为true，不再关注生命周期
+
+```java
+//LiveData.java
+private class AlwaysActiveObserver extends ObserverWrapper {
+
+    AlwaysActiveObserver(Observer<? super T> observer) {
+        super(observer);
+    }
+
+    @Override
+    boolean shouldBeActive() {
+        return true;
+    }
+}
+```
+
+
+
+
+
+**因此，回答最开始提出的几个问题：**
+
+1.LiveData 是怎么回调的？
+
+- LiveData通过`observe`或者`observeForever`方法订阅了一个观察者
+- LiveData 通过调用`setValue`或`postValue`方法时，会取出观察者，调用它的`onChanged`方法
+- 当然，当 Activity、Fragment 生命周期由非活跃变化为活跃状态，也会收到最新的值回调`onChanged`方法，注意这个对应的是LiveData的`observe`方法。
+
+2.LiveData 为什么可以感知生命周期？
+
+- 是因为`LifecycleBoundObserver`类
+- 以及在`observe`方法中调用了 `owner.getLifecycle().addObserver(wrapper);`这行代码，具体的看下上面的源码分析吧
+
+3.LiveData 可以感知生命周期，有什么用，或者说有什么优势？
+
+- 可以自动取消订阅
+- 防止内存泄漏
+
+4.LiveData 为什么只会将更新通知给活跃的观察者。非活跃观察者不会收到更改通知？
+
+- 在每次调用`setValue`方法时，最走到`LifecycleBoundObserver`的`shouldBeActive`这个方法的判断上
+- 这个方法返回的是状态为STARTED之后的状态才会走通知观察者回调的逻辑，否则就不执行，具体的看下上面的源码
+
+5.LiveData此外还提供了`observerForever()`方法，所有生命周期事件都能通知到，怎么做到的？
+
+- 主要`AlwaysActiveObserver`的`shouldBeActive`这个方法直接返回的 true
 
 
 
@@ -1919,6 +2411,8 @@ AppDatabase db = Room.databaseBuilder(...)
 
 
 ## 四、LifeCycle
+
+> [LifeCycle](https://github.com/jhbxyz/ArticleRecord/blob/master/articles/Jetpack/1Lifecycle%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%92%8C%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90.md)
 
 如果在生命周期函数调用大量的代码，可能会导致管理混乱，甚至出现onStop()函数以及调用结束，onStart()还在等待回调，例如下面例子：
 
