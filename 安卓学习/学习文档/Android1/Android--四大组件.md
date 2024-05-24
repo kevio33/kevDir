@@ -1265,6 +1265,12 @@ Android应用中可以创建两种不同类型的链接：
 
 
 
+**两种服务的生命周期**
+
+ ![img](Android--四大组件.assets/service_lifecycle.png) 
+
+
+
 #### 1.启动状态：
 
 创建流程

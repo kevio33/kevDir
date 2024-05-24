@@ -560,7 +560,7 @@ public class FragmentB extends Fragment {
 
 通常，将变量视为与 SavedState 相同，但下表对这两者进行了区分，以说明各种操作对每种状态类型所产生的影响。
 
-![image-20210629161933422](Android--四大组件、存储.assets/image-20210629161933422.png)
+
 
 #### (1)SavedState数据保存方式
 
@@ -606,8 +606,6 @@ public class RandomGoodDeedViewModel extends ViewModel {
 #### (3)其他
 
 当出现如下情况时：
-
-
 
 根据上面的生命周期图你将会看到Fragment从后退栈中返回时，会回调 onDestroyview 方法和 onCreateview 方法。不管怎样，显然在这种情况 onSaveInstanceState 方法没有被调用。结果就是 UI 里的所有都没有了，然后默认按照 Layout XML 文件中定义的来重新创建。
 

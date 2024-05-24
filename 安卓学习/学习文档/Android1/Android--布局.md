@@ -2170,7 +2170,7 @@ mWindow.setContentView(subDecor);
 
 #### View绘制流程
 
-在整个 activity 的生命周期中，setContentView 是在 onCreate 中调用的，它实现了对资源文件的解析，完成了 xml 文件到 View 的转化。 
+在整个 activity 的生命周期中，**setContentView 是在 onCreate 中调用的，它实现了对资源文件的解析，完成了 xml 文件到 View 的转化。** 
 
  
 
@@ -2228,8 +2228,6 @@ public void handleResumeActivity(ActivityClientRecord r, boolean finalStateReque
         }
 }
 ```
-
-
 
 `WindowManager`的实现类是`WindowManagerImpl`，因此直接跳到`WindowManagerImpl`的addView
 
@@ -2343,7 +2341,7 @@ public void setView(View view, WindowManager.LayoutParams attrs, View panelParen
 }
 ```
 
-`setView`里面的内容非常多，但是有一个`requestLayout`方法
+`setView`里面的内容非常多，但是主要有一个`requestLayout`方法
 
 ```java
 public void requestLayout() {
@@ -2747,14 +2745,14 @@ draw流程就是View绘制到屏幕上的过程，流程入口在draw方法中�
 
 ```xml
 <resources>
-       <declare-styleable name="PieChart">
-           <attr name="showText" format="boolean" />
-           <attr name="labelPosition" format="enum">
-               <enum name="left" value="0"/>
-               <enum name="right" value="1"/>
-           </attr>
-       </declare-styleable>
-    </resources>
+    <declare-styleable name="PieChart">
+        <attr name="showText" format="boolean" />
+        <attr name="labelPosition" format="enum">
+            <enum name="left" value="0"/>
+            <enum name="right" value="1"/>
+        </attr>
+    </declare-styleable>
+</resources>
 <!--此代码声明了两个自定义属性（即 showText 和 labelPosition），它们属于一个名为 PieChart 的可设样式实体。按照惯例，这个可设样式实体的名称与定义自定义视图的类的名称相同。-->
 ```
 
