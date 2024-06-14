@@ -273,6 +273,12 @@ set(EXECUTABLE_OUTPUT_PATH ..)
 
 > https://blog.csdn.net/m0_50275697/article/details/128002833
 
+
+
+## 5.配置jupyter
+
+> https://cangmang.xyz/articles/1642849032438
+
 # 二、usage
 
 ## 1.自动格式化代码

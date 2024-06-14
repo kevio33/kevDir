@@ -104,7 +104,234 @@ conda pack -p my_env
 
 # 二、Base
 
+## 1.张量处理
 
+### torch.arange
+
+创建一个张量
+
+```python
+import torch
+print(torch.arange(10))
+```
+
+
+
+### shape
+
+通过shape查看张量的形状和维度
+
+```python
+x = torch.arange(10)
+x.shape
+
+#torch.Size([10]) 
+```
+
+上面结果代表x是一维数组，长度为10
+
+### numel
+
+数组元素的数量
+
+```python
+x.numel()
+
+#10
+```
+
+
+
+### reshape
+
+要改变一个张量的形状而不改变元素数量和元素值，我们可以调用 reshape 函数。
+
+> **转换后元素个数要和转换前一致**
+
+```python
+x.reshape(2,5)
+
+#tensor([[0, 1, 2, 3, 4],
+#        [5, 6, 7, 8, 9]])
+```
+
+
+
+### 全0和全1
+
+```python
+torch.zeros((2,3,4))
+
+#tensor([[[0., 0., 0., 0.],
+#        [0., 0., 0., 0.],
+#         [0., 0., 0., 0.]],
+#       [[0., 0., 0., 0.],
+#        [0., 0., 0., 0.],
+#        [0., 0., 0., 0.]]])
+```
+
+```python
+torch.ones((2,3,4))
+```
+
+### tensor
+
+通过提供包含数值的Python列表(或嵌套列表)来为所需张量中的每个元素赋予确定值。
+
+```python
+torch.tensor([[1,2,3],[4,5,6],[7,8,9]])
+
+#tensor([[1, 2, 3],
+#        [4, 5, 6],
+#        [7, 8, 9]])
+```
+
+查看形状
+
+```python
+torch.tensor([[1,2,3],[4,5,6],[7,8,9]]).shape
+
+#torch.Size([3, 3])
+```
+
+
+
+### torch.dot
+
+> https://blog.csdn.net/GhostintheCode/article/details/102556860
+
+*计算两个张量的点积（内积）* ，**但是注意只能计算一维**
+
+```python
+>>> torch.dot(torch.tensor([2, 3]), torch.tensor([2, 1])) #即对应位置相乘再相加
+tensor(7)
+```
+
+
+
+
+
+
+
+### 运算
+
+常见的二元运算都可以升级为**元素间的运算**
+
+
+
+### 合并
+
+将多个张量合并连结在一起：
+
+- 可以指定合并的维度
+
+```python
+x = torch.arange(12,dtype=torch.float32).reshape((3,4))
+y = torch.tensor([[2.0,1,4,3],[1,2,3,4],[4,3,2,1]])
+torch.cat((x,y),dim=0)#以第一维合并，也就是按行合并
+```
+
+
+
+## 2.数据预处理
+
+> 参考——https://courses.d2l.ai/zh-v2/assets/notebooks/chapter_preliminaries/pandas.slides.html#/
+
+数据预处理主要是为了将一些缺失数据补全，然后映射成数值，方便转换为张量
+
+
+
+**创建一个人工数据集，并存储在csv（逗号分隔值）文件**
+
+```python
+import os
+
+os.makedirs(os.path.join('..', 'data'), exist_ok=True)
+data_file = os.path.join('..', 'data', 'house_tiny.csv')
+with open(data_file, 'w') as f:
+    f.write('NumRooms,Alley,Price\n')
+    f.write('NA,Pave,127500\n')
+    f.write('2,NA,106000\n')
+    f.write('4,NA,178100\n')
+    f.write('NA,NA,140000\n')
+```
+
+**从创建的csv文件中加载原始数据集**
+
+```python
+import pandas as pd
+
+data = pd.read_csv(data_file)
+print(data)
+```
+
+```
+NumRooms Alley   Price
+0       NaN  Pave  127500
+1       2.0   NaN  106000
+2       4.0   NaN  178100
+3       NaN   NaN  140000
+```
+
+**为了处理缺失的数据，典型的方法包括*插值*和*删除*， 这里，我们将考虑插值**
+
+```python
+inputs, outputs = data.iloc[:, 0:2], data.iloc[:, 2]
+inputs = inputs.fillna(inputs.mean())
+print(inputs)
+```
+
+```
+NumRooms Alley
+0       3.0  Pave
+1       2.0   NaN
+2       4.0   NaN
+3       3.0   NaN
+```
+
+ **对于`inputs`中的类别值或离散值，我们将“NaN”视为一个类别** 
+
+```python
+inputs = pd.get_dummies(inputs, dummy_na=True)
+print(inputs)
+```
+
+> `get_dummies()`函数将这些分类型变量转换成一系列的二值型变量，每个分类都对应一个二值型变量。如果某个分类在某个样本中出现，则该二值型变量的值为 1，否则为 0。
+>
+> `dummy_na=True`的作用是将 DataFrame 中的缺失值（NaN）视为一个独立的分类，并为其创建一个二值型变量。如果某个样本中的某个分类型变量的值为 NaN，则该二值型变量的值为 1，否则为 0。
+
+```
+NumRooms  Alley_Pave  Alley_nan
+0       3.0           1          0
+1       2.0           0          1
+2       4.0           0          1
+3       3.0           0          1
+```
+
+
+
+**现在`inputs`和`outputs`中的所有条目都是数值类型，它们可以转换为张量格式** 
+
+```python
+import torch
+
+X, y = torch.tensor(inputs.values), torch.tensor(outputs.values)
+X, y
+```
+
+```
+(tensor([[3., 1., 0.],
+         [2., 0., 1.],
+         [4., 0., 1.],
+         [3., 0., 1.]], dtype=torch.float64),
+ tensor([127500, 106000, 178100, 140000]))
+```
+
+
+
+
+
+# 三、模型
 
 ## 1.Pytorch简介
 
@@ -1288,7 +1515,7 @@ for data in dataloader:
 
 
 
-### (2) datasets
+### (2)datasets
 
 `Torchvision`在模块中提供了许多内置数据集，以及用于构建自己的数据集的实用程序类：`torchvision.datasets` 。`torchvision.datasets` 还包含一些常用的计算机视觉数据集的预处理和转换函数，例如随机裁剪、随机旋转等 
 
