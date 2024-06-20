@@ -69,11 +69,11 @@ values目录下存放的是一些属性变量，可以在布局时候引用
 
 ```groovy
 android {
-        ...
+    ...
         viewBinding {
             enabled = true
         }
-    }
+}
 ```
 
 > `gradle 8.2`更换了写法
