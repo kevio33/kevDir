@@ -1,6 +1,6 @@
 
 
-## 一.电脑通过ssh链接github
+# 一.电脑通过ssh链接github
 
 > 参考：
 >
@@ -94,39 +94,68 @@ git push
 
 
 
-## 二.command
+# 二.概念
+
+> https://www.cnblogs.com/qdhxhz/p/9757390.html
+
+## 分区
+
+Git往往有三部分组成，工作区、暂存区和版本库
+
+- **工作区Workspace：**就是你在电脑里能看到的目录。
+- **暂存区：**英文叫 stage 或 index。一般存放在 **.git** 目录下的 index 文件（.git/index）中，所以我们把暂存区有时也叫作索引（index）。
+- **仓库Repository：**工作区有一个隐藏目录 **.git**，这个不算工作区，而是 Git 的版本库。
+- **远程仓库Remote：** 远程仓库，托管代码的服务器，可以简单的认为是你项目组中的一台电脑用于远程数据交换 
+
+ ![img](Git.assets/1090617-20181008211557402-232838726.png) 
+
+
+
+## 状态
+
+ ![img](Git.assets/1090617-20181008212040668-1339848607.png) 
+
+**Untracked:**  未跟踪, 此文件在文件夹中, 但并没有加入到git库, 不参与版本控制. 通过git add 状态变为Staged.
+
+ **Unmodify:**  文件已经入库, 未修改, 即版本库中的文件快照内容与文件夹中完全一致. 这种类型的文件有两种去处, 如果它被修改, 而变为Modified.
+
+​          如果使用git rm移出版本库, 则成为Untracked文件
+
+ **Modified:** 文件已修改, 仅仅是修改, 并没有进行其他的操作. 这个文件也有两个去处, 通过git add可进入暂存staged状态, 使用git checkout 则丢弃修改过,
+
+​        返回到unmodify状态, 这个git checkout即从库中取出文件, 覆盖当前修改
+
+  **Staged:** 暂存状态. 执行git commit则将修改同步到库中, 这时库中的文件和本地文件又变为一致, 文件为Unmodify状态. 执行git reset HEAD filename取消暂存,文件状态为Modified
+
+> 新建文件--->Untracked
+>
+> 使用add命令将新建的文件加入到暂存区--->Staged
+>
+> 使用commit命令将暂存区的文件提交到本地仓库--->Unmodified
+>
+> 如果对Unmodified状态的文件进行修改---> modified
+>
+> 如果对Unmodified状态的文件进行remove操作--->Untracked
+
+
+
+# 三.command
 
 > 参考：
 >
 > [菜鸟——git命令](https://www.runoob.com/git/git-basic-operations.html)
 
-> base step 4
->
-> ```bash
-> git add .
-> git commit -m ''
-> git pull
-> git push
-> ```
+## 分支管理
 
-### 1.查看远程分支
+### 删除分支
 
-```shell
-git branch -r 
-#输出
-origin/master
-origin/feature
-```
-
-### 2.删除分支
-
- **删除本地分支`master`：** 
+####  删除本地分支`master`： 
 
 ```shell
 git branch -d master
 ```
 
- **删除远程分支`master`：** 
+####  删除远程分支`master`： 
 
 将本地 master 分支推送到远程仓库 origin 的 master 分支，并 删除 远程仓库 origin 的 master 分支。
 
@@ -138,31 +167,21 @@ git push origin --delete master
 
 
 
-### 3.将本地分支链接到远程分支
+### 查看分支
 
-在本地创建了一个新分支，如果要链接远程分支的话使用如下命令
-
-```shell
-git branch --set-upstream-to=origin/<远程分支名> <本地分支名>
-```
-
-
-
-### 4.查看本地、远程分支
-
-**查看本地分支**
+#### 查看本地分支
 
 ```shell
 git branch
 ```
 
-**查看远程分支**
+#### 查看远程分支
 
 ```shell
 git branch -r
 ```
 
-**查看本地分支和远程分支链接情况**
+#### 查看本地分支和远程分支链接情况
 
 ```shell
 git branch -vv
@@ -172,48 +191,57 @@ git branch -vv
 
 
 
-### 5.添加一个远程仓库
+### 修改分支
 
-命令将指定的 GitHub 仓库 URL 添加为本地 Git 仓库的远程仓库，并命名为 “origin”
+#### 修改本地分支名
 
 ```shell
-git remote add origin <仓库地址> 
+git branch -M main #修改当前分支名为main
 ```
 
 
 
-### 拉取不同历史记录的更改
+### 创建分支
+
+#### 创建本地分支
+
+**基于本地分支创建分支**
 
 ```shell
-git pull origin main --allow-unrelated-histories
-```
-
-- 从远程仓库 `origin` 的 `main` 分支拉取最新的更改并合并到本地当前分支。
-- 允许合并来自不同历史记录的更改。
-
-
-
-### 6.修改本地分支名
-
-```shell
-git branch -M main #修改当前分支名位main
-```
-
-
-
-### 7.创建本地分支
-
-```shell
-# 创建一个分支并切换到该分支
+# 复制当前分支，并创建一个分支并切换到该分支，
 $ git checkout -b <branch-name>
 
 # 只创建一个分支
 $ git branch <branch-name>
 ```
 
+> **注意:**
+>
+> 实际上`git checkout -b `是根据指定分支复制来创建新的分支，一次不指定第二个参数，默认就是复制当前分支
+>
+> ```shell
+> git checkout -b [NEW_BRANCH] [FROM_BRANCH]
+> ```
+>
+> 
 
 
-### 8.创建远程分支
+
+
+
+**基于远程分支创建本地分支**
+
+```shell
+git checkout -b dev origin/dev #基于远程分支创建本地分支
+```
+
+
+
+
+
+#### 创建远程分支
+
+
 
 ```shell
 git checkout -b my-test  //在当前分支下创建my-test的本地分支分支
@@ -224,15 +252,282 @@ git branch -a //查看远程分支
 
 
 
+### 切换分支
+
+```shell
+git checkout (branch) #切换到对于分支
+```
+
+**也可以先创建分支，然后切换到该分支下**
+
+```shell
+git checkout -b (branchname)#创建新分支并且切换到该分支下
+```
 
 
-## 三.回退版本
 
-### 1.回退某个文件版本
+### 合并分支
+
+> [merge和git rebase](https://dingjingmaster.github.io/2022/05/0002-rebase%E4%B8%8Emerge%E7%9A%84%E5%8C%BA%E5%88%AB/)
+
+合并分支非常重要，对于多个分支而言。有两个参数可以合并分支，要仔细区分他们的区别
+
+**先说结论：**
+
+`git rebase` 和 `git merge` 这两个命令旨在将更改代码从一个分支合并到另一个分支，只是两者合并方式不一样。
+
+- 融合代码到公共分支的时候用 `git merge`，而不能使用 `git rebase`
+- 融合代码到个人分支的时候用 `git rebase`， 可以不污染分支的提交记录，形成简洁的线性提交历史记录
+
+
+
+
+
+**场景**
+
+假设当前我们有master和feature分支，当你在专用分支上开发新 feature 时，然后另一个团队成员在 master 分支提交了新的 commits，这种属于正常的Git工作场景。如下图： 
+
+ ![img](Git.assets/1.png) 
+
+#### merge
+
+使用merge合并master道feature
+
+```shell
+git checkout feature
+git merge master
+
+#或者缩写形式
+git merge feature master
+```
+
+ ![img](Git.assets/2.png) 
+
+由此可见，`git merge` 会在 `feature` 分支中新增一个新的 `merge commit`，然后将两个分支的历史联系在一起
+
+- 使用 `merge` 是很好的方式，因为它是一种非破坏性的操作，对现有分支不会以任何方式被更改
+- 另一方面，这也意味着 `feature` 分支每次需要合并上游更改时候，都会产生一个额外的合并提交。
+- 如果 `master` 提交非常活跃，这可能会严重污染你的 `feature` 分支历史记录。不过这个问题可以使用高级选项 `git log` 来缓解
+
+
+
+
+
+#### rebase
+
+例如有两个分支`master`、`develop`，rebase合并过程如下
+
+```shell
+git checkout  feature
+git rebase master
+
+#或者简介写法
+
+git rebase feature master
+```
+
+ ![img](Git.assets/3.png) 
+
+![1719740111552](Git.assets/1719740111552.png)
+
+> **注意：此时master的5，7是新的提交记录，有新的commit id**
+
+- `rebase` 会将整个 `feature` 分支移动到 `master` 分支的顶端，从而有效地整合了所有 `master` 分支上的提交。
+- 但是，与`merge` 提交方式不同，`rebase`通过为原始分之中的每个提交创建全新的 commits 来重写项目历史记录，特点是仍然会在 `feature` 分支上形成线性提交。
+- `rebase` 的主要好处是可以获得更清晰的项目历史。首先，它消除了 `git merge` 所需的不必要的合并提交；其次，正如你在上图中所看到的，`rebase` 会产生完美线性的历史记录，你可以在 `feature` 分支上没有任何分叉的情况下一直追寻到项目的初始提交。
+
+
+
+#### 如何选择merge、rebase
+
+根据上面的对比可知：
+
+- `git merge` 分支代码合并后不破坏原分支的代码提交记录，缺点就是会产生额外的提交记录并进行两条分支的合并
+- `git rebase` 优点是无须新增提交记录到目标分支，rebase后可以将对象分支的提交历史续上目标分支上，形成线性提交历史记录，进行review的时候更加直观
+- `git merge` 如果有多人进行开发并进行分支合并，会形成复杂的合并分支图
+
+
+
+#### rebase黄金法则：
+
+**但是注意：不能在共享分支上运用rebase**
+
+所谓共享的分支，即是指那些存在于远端并且允许团队中的其他人进行Pull操作的分支，比如我们Git工作的master分支就是最常见的公共分支。
+
+假设现在Bob和Anna在同一个项目组中工作，项目所属的仓库和分支大概是下图这样：
+
+![img](Git.assets/6.png)
+
+现在Bob为了图一时方便打破了原则(使用了`git rebase`)，正巧这时Anna在特征分支上进行了新的提交，此时的结构图大概是这样的：
+
+![img](Git.assets/7.png)
+
+当Bob推送自己的分支到远端的时候，现在的分支情况如下：
+
+![img](Git.assets/8.png)
+
+然后呢，当Anna也进行推送的时候，她会得到如下的提醒，Git提醒Anna她本地的版本与远程分支并不一致，需要向远端服务器拉取代码进行同步：
+
+![img](Git.assets/9.png)
+
+在Anna提交之前，分支中的Commit序列是如下这样的：
+
+```shell
+A--B--C--D'   origin/feature // GitHub
+
+A--B--D--E    feature        // Anna
+```
+
+
+
+在进行Pull操作之后，Git会进行自动地合并操作，结果大概是这样的：
+
+![img](Git.assets/10.png)
+
+这个第M个提交即代表着合并的提交，也就是Anna本地的分支与Github上的特征分支最终合并的点，现在Anna解决了所有的合并冲突并且可以Push她的代码，在Bob进行Pull之后，每个人的Git Commit结构为：
+
+![img](Git.assets/11.png)
+
+看到上面这个混乱的流线图，相信你对于Rebase和所谓的黄金准则也有了更形象深入的理解。
+
+假设下还有一哥们Emma，第三个开发人员，在他进行了本地Commit并且Push到远端之后，仓库变为了：
+
+![img](Git.assets/12.png)
+
+另外，相信你也注意到，在远端的仓库中存有大量的重复的Commit信息，这会大大浪费我们的存储空间。
+
+因此，**不能在一个共享的分支上进行Git rebase操作,避免出现项目分支代码提交记录错乱和浪费存储空间的现象。**
+
+
+
+
+
+#### 合并commit
+
+merge和rebase还有一个非常重要的功能，就是可以额合并多个commit。
+
+> **场景：**
+>
+> 我们可能会提交多次代码，但是这几次提交的都是同一模块代码，所有可以合并为一个commit，减少commit的复杂度，方便review
+
+**尝试合并分支最近4次的提交记录**
+
+```shell
+git rebase -i HEAD~4
+```
+
+> 输入上面命令之后会进入vim模式
+>
+>  进入编辑模式，第一列为操作指令，第二列为commit号，第三列为commit信息。 - pick：保留该commit - reword：保留该commit但是修改commit信息 - edit：保留该commit但是要修改commit内容 - squash：将该commit和前一个commit合并 - fixup：将该commit和前一个commit合并，并不保留该commit的commit信息 - exec：执行shell命令 - drop：删除该commit 
+
+按照上面命令修改代码，将4条commit合并为1条
+
+```shell
+p 799770a add article
+s 72530e4 add article
+s 53284b1 add article
+s 9f6e388 add article
+```
+
+
+
+### 本地分支链接到远程分支
+
+在本地创建了一个新分支，如果要链接远程分支的话使用如下命令
+
+```shell
+git branch --set-upstream-to=origin/<远程分支名> <本地分支名>
+#或者是
+git branch -u origin/<远程分支名> <本地分支名>
+```
+
+
+
+## 仓库管理
+
+### 管理本地仓库
+
+#### 创建仓库
+
+```shell
+git init #指定当前目录为仓库
+
+git init newrepo  #指定目录为仓库
+```
+
+
+
+### 管理远程仓库
+
+主要通过`git remote`命令来管理远程仓库
+
+####  列出当前仓库中已配置的远程仓库
+
+```git
+git remote
+```
+
+
+
+#### 添加远程仓库
+
+命令将指定的 GitHub 仓库 URL 添加为本地 Git 仓库的远程仓库，并命名为 “origin”
+
+```shell
+git remote add origin <仓库地址> 
+```
+
+
+
+#### 重命名远程仓库
+
+ 将已配置的远程仓库重命名 
+
+```shell
+git remote rename <old_name> <new_name>
+```
+
+
+
+#### 删除远程仓库
+
+ 从当前仓库中删除指定的远程仓库 
+
+```shell
+git remote remove <remote_name>
+```
+
+
+
+#### 修改URL
+
+ 修改指定远程仓库的 URL 
+
+```shell
+git remote set-url <remote_name> <new_url>
+```
+
+
+
+#### 列出已配置远程仓库
+
+ 列出当前仓库中已配置的远程仓库，并显示它们的 URL。 
+
+```shell
+git remote -v
+```
+
+
+
+
+
+## 版本、撤销管理
+
+### （1）回退某个文件版本
 
 > [git回退文件版本](https://blog.csdn.net/panweiwei1994/article/details/78501371)
 
-**场景1：**修改了文件/path/to/file，没有提交，但是觉得改的不好，想还原。
+**场景1：**修改了文件/path/to/file，**没有add**，但是觉得改的不好，想还原。
 
 ```
 git checkout -- /path/to/file
@@ -240,7 +535,7 @@ git checkout -- /path/to/file
 
 
 
-**场景二：** 修改了文件/path/to/file，已经提交，但是觉得改的不好，想还原到上一版本。 
+**场景二：** 修改了文件/path/to/file，**已经commit**，但是觉得改的不好，想还原到上一版本。 
 
 ```shell
 #1.首先查看文件的历史版本。
@@ -259,7 +554,7 @@ git checkout 052c0233bcaef35bbf6e6ebd43bfd6a648e3d93b /path/to/file
 
 
 
-### 2.回退版本
+### （2）回退版本
 
 > [git回退版本](https://blog.csdn.net/yxlshk/article/details/79944535)
 
@@ -325,19 +620,48 @@ git commit -m "revert add text.txt"
 
 
 
-### 3.撤销add 和commit
+### （3）撤销add 和commit
 
-https://www.cnblogs.com/FengZeng666/p/15753153.html
+>  https://www.cnblogs.com/FengZeng666/p/15753153.html
+
+#### 撤销add.
+
+```shell
+git reset . #撤销所有的add
+
+git reset <filename> #撤销单个文件修改
+```
 
 
 
-## 四.查看远程更新
+#### 撤销commit
 
-> https://juejin.cn/s/git%20%E6%9F%A5%E7%9C%8B%E8%BF%9C%E7%A8%8B%E5%88%86%E6%94%AF%E6%98%AF%E5%90%A6%E6%9C%89%E6%9B%B4%E6%96%B0
+```shell
+git reset --soft HEAD^ 
+
+#HEAD^的意思是上一个版本，也可以写成HEAD~1
+#如果你进行了2次commit，想都撤回，可以使用HEAD~2
+```
+
+> **其他参数解析：**
+>
+> - **--soft**
+>   不删除工作空间改动代码，撤销commit，不撤销git add .
+> - **--mixed**
+>   不删除工作空间改动代码，撤销commit，并且撤销git add .
+>   这个为默认参数, git reset --mixed HEAD^ 和 git reset HEAD^ 效果是一样的。
+> - **--hard**
+>   删除工作空间改动代码，撤销commit，并且撤销git add .
 
 
 
-## 五.初始化项目并链接
+
+
+
+
+
+
+## 基本仓库操作
 
 首先在本地项目初始化仓库
 
@@ -361,7 +685,7 @@ git push -u origin <远程分支名> #将当前本地分支的内容推送到远
 
 
 
-## 六.问题
+# 六.问题
 
 ### 1.ssh同时绑定gitee和github
 
@@ -476,7 +800,7 @@ ssh -T git@gitee.com
 
 
 
-## 文件
+# 七.文件
 
 ### 1.`“.gitignore”`
 
@@ -565,4 +889,14 @@ img*
 > !test/example.md
 > ```
 >
+
+
+
+
+
+# 命令
+
+### cherry-pick
+
+> https://www.ruanyifeng.com/blog/2020/04/git-cherry-pick.html
 
