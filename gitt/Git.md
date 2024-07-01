@@ -103,7 +103,7 @@ git push
 Git往往有三部分组成，工作区、暂存区和版本库
 
 - **工作区Workspace：**就是你在电脑里能看到的目录。
-- **暂存区：**英文叫 stage 或 index。一般存放在 **.git** 目录下的 index 文件（.git/index）中，所以我们把暂存区有时也叫作索引（index）。
+- **暂存区Stage：**英文叫 stage 或 index。一般存放在 **.git** 目录下的 index 文件（.git/index）中，所以我们把暂存区有时也叫作索引（index）。
 - **仓库Repository：**工作区有一个隐藏目录 **.git**，这个不算工作区，而是 Git 的版本库。
 - **远程仓库Remote：** 远程仓库，托管代码的服务器，可以简单的认为是你项目组中的一台电脑用于远程数据交换 
 
@@ -115,17 +115,19 @@ Git往往有三部分组成，工作区、暂存区和版本库
 
  ![img](Git.assets/1090617-20181008212040668-1339848607.png) 
 
-**Untracked:**  未跟踪, 此文件在文件夹中, 但并没有加入到git库, 不参与版本控制. 通过git add 状态变为Staged.
+**Untracked:**  未跟踪, 此文件在文件夹中, 但并没有加入到git库, 不参与版本控制. 通过`git add`状态变为`Staged`.
 
- **Unmodify:**  文件已经入库, 未修改, 即版本库中的文件快照内容与文件夹中完全一致. 这种类型的文件有两种去处, 如果它被修改, 而变为Modified.
+**Unmodify:**  文件已经入库, 未修改, 即版本库中的文件快照内容与文件夹中完全一致. 这种类型的文件有两种去处,：
 
-​          如果使用git rm移出版本库, 则成为Untracked文件
+- 如果它被修改, 而变为`Modified`.
+- 如果使用`git rm`移出版本库, 则成为`Untracked`文件
 
- **Modified:** 文件已修改, 仅仅是修改, 并没有进行其他的操作. 这个文件也有两个去处, 通过git add可进入暂存staged状态, 使用git checkout 则丢弃修改过,
+**Modified:** 文件已修改, 仅仅是修改, 并没有进行其他的操作. 这个文件也有两个去处：
 
-​        返回到unmodify状态, 这个git checkout即从库中取出文件, 覆盖当前修改
+- 通过`git add`可进入暂存`staged`状态, 使用`git checkout`则丢弃修改
+- 返回到`unmodify`状态, 这个`git checkout`即从库中取出文件, 覆盖当前修改
 
-  **Staged:** 暂存状态. 执行git commit则将修改同步到库中, 这时库中的文件和本地文件又变为一致, 文件为Unmodify状态. 执行git reset HEAD filename取消暂存,文件状态为Modified
+ **Staged:** 暂存状态. 执行`git commit`则将修改同步到库中, 这时库中的文件和本地文件又变为一致, 文件为`Unmodify`状态. 执行`git reset HEAD filename`取消暂存,文件状态为Modified
 
 > 新建文件--->Untracked
 >
@@ -138,6 +140,13 @@ Git往往有三部分组成，工作区、暂存区和版本库
 > 如果对Unmodified状态的文件进行remove操作--->Untracked
 
 
+
+
+
+## 版本管理
+
+使用git的每次提交，Git都会自动把它们串成一条时间线，这条时间线就是一个分支。如果没有新建分支，那么只有一条时间线，即只有一个分支，在Git里，这个分支叫主分支，即master分支。有一个HEAD指针指向当前分支（只有一个分支的情况下会指向master，而master是指向最新提交）。每个版本都会有自己的版本信息，如特有的版本号、版本名等。如下图，假设只有一个分支：
+![1707051546850](Git.assets/1707051546850.png) 
 
 # 三.command
 
@@ -348,7 +357,7 @@ git rebase feature master
 
 
 
-#### rebase黄金法则：
+##### rebase黄金法则：
 
 **但是注意：不能在共享分支上运用rebase**
 
@@ -402,7 +411,7 @@ A--B--D--E    feature        // Anna
 
 
 
-#### 合并commit
+##### 合并commit
 
 merge和rebase还有一个非常重要的功能，就是可以额合并多个commit。
 
@@ -428,6 +437,82 @@ s 72530e4 add article
 s 53284b1 add article
 s 9f6e388 add article
 ```
+
+
+
+
+
+### 合并提交
+
+#### 合并一次提交
+
+如果只是想将指定的提交(commit)应用于其他分支
+
+```shell
+git cherry-pick <commitHash>
+```
+
+例如： 代码仓库有`master`和`feature`两个分支。 
+
+```shell
+a - b - c - d   Master
+         \
+           e - f - g Feature
+```
+
+ 现在将提交`f`应用到`master`分支。 
+
+```shell
+# 切换到 master 分支
+$ git checkout master
+
+# Cherry pick 操作
+$ git cherry-pick f
+```
+
+完成上述操作后，代码库变成：
+
+```shell
+a - b - c - d - f   Master
+         \
+           e - f - g Feature
+```
+
+可以看到，master分支的末尾增加了一个提交f
+
+
+
+#### 合并多次提交
+
+```shell
+git cherry-pick <HashA> <HashB>
+```
+
+上面的命令将 A 和 B 两个提交应用到当前分支。这会在当前分支生成两个对应的新提交。 
+
+**如果转移一系列连续提交，可以使用下面的简便语法**
+
+```shell
+git cherry-pick A..B 
+```
+
+上面的命令可以转移从 A 到 B 的所有提交。它们必须按照正确的顺序放置：**提交 A 必须早于提交 B，否则命令将失败，但不会报错**。 
+
+
+
+#### 合并最新提交
+
+参数还可以是分支名，表示转移该分支的最新提交
+
+```shell
+git cherry-pick feature
+```
+
+上面代码表示将feature分支的最近一次提交，转移到当前分支
+
+
+
+
 
 
 
@@ -554,75 +639,11 @@ git checkout 052c0233bcaef35bbf6e6ebd43bfd6a648e3d93b /path/to/file
 
 
 
-### （2）回退版本
+### （2）撤销add和commit
 
 > [git回退版本](https://blog.csdn.net/yxlshk/article/details/79944535)
-
-**git版本管理知识**
-使用git的每次提交，Git都会自动把它们串成一条时间线，这条时间线就是一个分支。如果没有新建分支，那么只有一条时间线，即只有一个分支，在Git里，这个分支叫主分支，即master分支。有一个HEAD指针指向当前分支（只有一个分支的情况下会指向master，而master是指向最新提交）。每个版本都会有自己的版本信息，如特有的版本号、版本名等。如下图，假设只有一个分支：
-![1707051546850](Git.assets/1707051546850.png) 
-
-**如何回退版本**
-
-**（1）git reset**
-
- git reset的作用是修改HEAD的位置，即将HEAD指向的位置改变为之前存在的某个版本 
-
-![1707051522549](Git.assets/1707051522549.png) 
-
-
-
-**具体操作：**
-
- **查看版本号：**
-可以使用命令“git log”查看： 
-
-![1707051507624](Git.assets/1707051507624.png) 
-
-> 也可以在github网站查看
-
-然后**使用`git reset --hard 目标版本号`命令将版本回退** 
-
- **使用“git push -f”提交更改：**
-此时如果用“git push”会报错，因为我们本地库HEAD指向的版本比远程库的要旧： 
-
- ![这里写图片描述](https://imgconvert.csdnimg.cn/aHR0cDovL2ltZy5ibG9nLmNzZG4ubmV0LzIwMTgwNDE0MjAzNjA1Nzk3) 
-
- 所以要用`git push -f`强制推上去 
-
-
-
-**（2）git revert**
-
-**原理**：` git revert`是用于“反做”某一个版本，以达到撤销该版本的修改的目的。比如，我们commit了三个版本（版本一、版本二、 版本三），突然发现版本二不行（如：有bug），想要撤销版本二，但又不想影响撤销版本三的提交，就可以用 git revert 命令来反做版本二，生成新的版本四，这个版本四里会保留版本三的东西，但撤销了版本二的东西。如下图所示：
- ![这里写图片描述](https://imgconvert.csdnimg.cn/aHR0cDovL2ltZy5ibG9nLmNzZG4ubmV0LzIwMTgwNDE0MjA1ODE2MTg4) 
-
-**查看版本号：**
-可以通过命令行查看（输入git log）：
-如图，最近的两个版本分别叫：“add text.txt”（即新增了文件text.txt）、“add text2.txt”（新增了文件text2.txt）。这个时候我们不需要text.txt这个文件了，那就是说不想要“add text.txt”那个版本的操作，那可以通过反做“add text.txt”这个版本来实现。
- ![在这里插入图片描述](https://img-blog.csdnimg.cn/20190726105234748.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3l4bHNoaw==,size_16,color_FFFFFF,t_70) 
-
- **使用“git revert -n 版本号”反做，并使用“git commit -m 版本名”提交：**
-（1）反做，使用“git revert -n 版本号”命令。如下命令，我们反做版本号为8b89621的版本： 
-
-```shell
-git revert -n 8b89621019c9adc6fc4d242cd41daeb13aeb9861
-```
-
- **注意：** 这里可能会出现冲突，那么需要手动修改冲突的文件。而且要git add 文件名。
-（2）提交，使用“git commit -m 版本名”，如： 
-
-```shell
-git commit -m "revert add text.txt" 
-```
-
-
-
-
-
-### （3）撤销add 和commit
-
->  https://www.cnblogs.com/FengZeng666/p/15753153.html
+>
+> [撤销add和commit](https://www.cnblogs.com/FengZeng666/p/15753153.html)
 
 #### 撤销add.
 
@@ -636,6 +657,10 @@ git reset <filename> #撤销单个文件修改
 
 #### 撤销commit
 
+ git reset的作用是修改HEAD的位置，即将HEAD指向的位置改变为之前存在的某个版本 
+
+![1707051522549](Git.assets/1707051522549.png) 
+
 ```shell
 git reset --soft HEAD^ 
 
@@ -646,16 +671,63 @@ git reset --soft HEAD^
 > **其他参数解析：**
 >
 > - **--soft**
->   不删除工作空间改动代码，撤销commit，不撤销git add .
+>   不删除工作空间改动代码，撤销commit，**不撤销git add** .
 > - **--mixed**
->   不删除工作空间改动代码，撤销commit，并且撤销git add .
+>   不删除工作空间改动代码，撤销commit，**并且撤销git add** .
 >   这个为默认参数, git reset --mixed HEAD^ 和 git reset HEAD^ 效果是一样的。
 > - **--hard**
->   删除工作空间改动代码，撤销commit，并且撤销git add .
+>   **删除工作空间改动代码**，撤销commit，**并且撤销git add** .
+>
+> > 最好不要使用`--hard`，不然改动代码也会被删除
+
+
+
+**具体操作：**
+
+**查看版本号：**
+可以使用命令“git log”查看： 
+
+![1707051507624](Git.assets/1707051507624.png) 
+
+
+
+然后**使用`git reset --hard 目标版本号`命令将版本回退** 
+
+ **使用“git push -f”提交更改：**
+
+> 此时如果用“git push”会报错，因为我们本地库HEAD指向的版本比远程库的要旧： 
+
+ ![这里写图片描述](https://imgconvert.csdnimg.cn/aHR0cDovL2ltZy5ibG9nLmNzZG4ubmV0LzIwMTgwNDE0MjAzNjA1Nzk3) 
 
 
 
 
+
+#### **git revert**
+
+**原理**：` git revert`是用于“反做”某一个版本，以达到撤销该版本的修改的目的。比如，我们commit了三个版本（版本一、版本二、 版本三），突然发现版本二不行（如：有bug），想要撤销版本二，但又不想影响撤销版本三的提交，就可以用 `git revert`命令来反做版本二，生成新的版本四，这个版本四里会保留版本三的东西，但撤销了版本二的东西。如下图所示：
+ ![这里写图片描述](https://imgconvert.csdnimg.cn/aHR0cDovL2ltZy5ibG9nLmNzZG4ubmV0LzIwMTgwNDE0MjA1ODE2MTg4) 
+
+**查看版本号：**
+
+如图，最近的两个版本分别叫：“add text.txt”（即新增了文件text.txt）、“add text2.txt”（新增了文件text2.txt）。这个时候我们不需要text.txt这个文件了，那就是说不想要“add text.txt”那个版本的操作，那可以通过反做“add text.txt”这个版本来实现。
+ ![在这里插入图片描述](https://img-blog.csdnimg.cn/20190726105234748.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3l4bHNoaw==,size_16,color_FFFFFF,t_70) 
+
+ **使用“git revert -n 版本号”反做，并使用“git commit -m 版本名”提交：**
+
+（1）反做，使用“git revert -n 版本号”命令。如下命令，我们反做版本号为8b89621的版本： 
+
+```shell
+git revert -n 8b89621019c9adc6fc4d242cd41daeb13aeb9861
+```
+
+ **注意：** 这里可能会出现冲突，那么需要手动修改冲突的文件。而且要`git add 文件名`。
+
+（2）提交，使用“git commit -m”，如： 
+
+```shell
+git commit -m "revert add text.txt" 
+```
 
 
 
@@ -896,7 +968,7 @@ img*
 
 # 命令
 
-### cherry-pick
+## cherry-pick
 
 > https://www.ruanyifeng.com/blog/2020/04/git-cherry-pick.html
 
