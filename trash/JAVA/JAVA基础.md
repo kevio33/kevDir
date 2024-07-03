@@ -206,6 +206,55 @@ System.out.println(c == d);// false
 
 
 
+#### StringBuffer与StringBuilder清空
+
+> [内容清空效率比较](https://blog.csdn.net/ladymorgana/article/details/90294186)
+>
+> [delete与setLength](https://www.cnblogs.com/dengjk/p/10432635.html)
+
+`setLength`和`delete`都可以用于`StringBuilder`/`StringBuffer`的清空，且效率都很高，**但是硬要比较，那setLength效率要更高**
+
+**源码：**
+
+两者都是继承自`AbstractStringBuilder.java`
+
+```java
+public void setLength(int newLength) {
+    if (newLength < 0)
+        throw new StringIndexOutOfBoundsException(newLength);
+    ensureCapacityInternal(newLength);
+
+    if (count < newLength) {
+        Arrays.fill(value, count, newLength, '\0');
+    }
+
+    count = newLength;
+}
+```
+
+> 可以看到，`setLength（length）`如果改变字符串长度，如果参数大于长度，则填充`'\o'`，否则长度赋值即可
+
+```java
+public AbstractStringBuilder delete(int start, int end) {
+    if (start < 0)
+        throw new StringIndexOutOfBoundsException(start);
+    if (end > count)
+        end = count;
+    if (start > end)
+        throw new StringIndexOutOfBoundsException();
+    int len = end - start;
+    if (len > 0) {
+        System.arraycopy(value, start+len, value, start, count-end);
+        count -= len;
+    }
+    return this;
+}
+```
+
+> delete函数删除指定索引范围的数组，但是会多执行一步复制数组的操作
+
+综上，`setLength`最佳
+
 
 
 ## 二、Java堆栈
