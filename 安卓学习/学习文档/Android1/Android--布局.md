@@ -1609,7 +1609,7 @@ DecorView的结构
   > View view = getWindow().getDecorView().findViewById(android.R.id.content);
   > ```
 
-- Activity的布局文件就加载进content里面（这也是为什么加载视图的方法叫`setContentView`）
+- **Activity的布局文件就加载进`content`里面（这也是为什么加载视图的方法叫`setContentView`）**
 
 
 
@@ -1617,9 +1617,7 @@ DecorView的结构
 
 #### ViewRootImpl
 
-`ViewRootImpl` 是连接 `WindowManager` 和 `DecorView` 的纽带，**测量、放置和绘制**三大流程都是通过 ViewRootImpl 实现的。 
-
-
+`ViewRootImpl` 是连接 `WindowManager` 和 `DecorView` 的纽带，**测量、放置和绘制**三大流程都是通过`ViewRootImpl`实现的。 
 
 
 
@@ -2170,13 +2168,21 @@ mWindow.setContentView(subDecor);
 
 #### View绘制流程
 
+> [View绘制流程](https://cloud.tencent.com/developer/article/1601353)
+>
+> [View绘制流程——很详细](https://blog.yorek.xyz/android/framework/View%E7%9A%84%E7%BB%98%E5%88%B6%E5%8E%9F%E7%90%86/#1-viewrootimpldecorview)
+
 在整个 activity 的生命周期中，**setContentView 是在 onCreate 中调用的，它实现了对资源文件的解析，完成了 xml 文件到 View 的转化。** 
 
  
 
 **View真正开始绘制是在onResume之后;**
 
-`ActivityThread`通过调用`activity`中 `windowmanager`的`addView `方法，将 `decorView `传入到 `ViewRootImpl `的 `setView `方法中，通过 `setView `来完成 `View `的绘制。 
+- `ActivityThread`调用`handleResumeActivity`
+
+- 会在里面获取Activity的`windowmanage`
+- 然后调用 `windowmanager`的`addView `方法，传入`decorView`
+- 将 `decorView `传入到 `ViewRootImpl `的 `setView `方法中，通过 `setView `来完成 `View `的绘制。 
 
 ```java
 //ActivityThread.java
@@ -2197,20 +2203,8 @@ public void handleResumeActivity(ActivityClientRecord r, boolean finalStateReque
 
         final Activity a = r.activity;
 
-        if (localLOGV) {
-            Slog.v(TAG, "Resume " + r + " started activity: " + a.mStartedActivity
-                    + ", hideForNow: " + r.hideForNow + ", finished: " + a.mFinished);
-        }
-
-        final int forwardBit = isForward
-                ? WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION : 0;
-
-        
-        boolean willBeVisible = !a.mStartedActivity;
-        if (!willBeVisible) {
-            willBeVisible = ActivityClient.getInstance().willActivityBeVisible(
-                    a.getActivityToken());
-        }
+        .....
+            
         if (r.window == null && !a.mFinished && willBeVisible) {
             r.window = r.activity.getWindow();
             View decor = r.window.getDecorView();
@@ -2244,22 +2238,12 @@ public void addView(@NonNull View view, @NonNull ViewGroup.LayoutParams params) 
 ```java
 public void addView(View view, ViewGroup.LayoutParams params,
                     Display display, Window parentWindow, int userId) {
-    if (view == null) {
-        throw new IllegalArgumentException("view must not be null");
-    }
-    if (display == null) {
-        throw new IllegalArgumentException("display must not be null");
-    }
-    if (!(params instanceof WindowManager.LayoutParams)) {
-        throw new IllegalArgumentException("Params must be WindowManager.LayoutParams");
-    }
+    ......
 
     final WindowManager.LayoutParams wparams = (WindowManager.LayoutParams) params;
     if (parentWindow != null) {
         parentWindow.adjustLayoutParamsForSubWindow(wparams);
     } else {
-        // If there's no parent, then hardware acceleration for this view is
-        // set from the application's hardware acceleration setting.
         final Context context = view.getContext();
         if (context != null
             && (context.getApplicationInfo().flags
@@ -2268,27 +2252,14 @@ public void addView(View view, ViewGroup.LayoutParams params,
         }
     }
 
+    //初始化了`ViewRootImpl`
     ViewRootImpl root;
     View panelParentView = null;
 
     ...
 
-
-        // If this is a panel window, then find the window it is being
-        // attached to for future reference.
-        if (wparams.type >= WindowManager.LayoutParams.FIRST_SUB_WINDOW &&
-            wparams.type <= WindowManager.LayoutParams.LAST_SUB_WINDOW) {
-            final int count = mViews.size();
-            for (int i = 0; i < count; i++) {
-                if (mRoots.get(i).mWindow.asBinder() == wparams.token) {
-                    panelParentView = mViews.get(i);
-                }
-            }
-        }
-
     IWindowSession windowlessSession = null;
-    // If there is a parent set, but we can't find it, it may be coming
-    // from a SurfaceControlViewHost hierarchy.
+   
     if (wparams.token != null && panelParentView == null) {
         for (int i = 0; i < mWindowlessRoots.size(); i++) {
             ViewRootImpl maybeParent = mWindowlessRoots.get(i);
@@ -2312,8 +2283,9 @@ public void addView(View view, ViewGroup.LayoutParams params,
     mRoots.add(root);
     mParams.add(wparams);
 
-    // do this last because it fires off messages to start doing things
+    
     try {
+        //viewRootImpl的setView方法
         root.setView(view, wparams, panelParentView, userId);
     } catch (RuntimeException e) {
         final int viewIndex = (index >= 0) ? index : (mViews.size() - 1);
@@ -2327,7 +2299,7 @@ public void addView(View view, ViewGroup.LayoutParams params,
 }
 ```
 
-上面的代码可以看到，初始化了`ViewRootImpl`，并调用了`setView`
+观察`setView`
 
 ```java
 public void setView(View view, WindowManager.LayoutParams attrs, View panelParentView,
@@ -2355,8 +2327,10 @@ public void requestLayout() {
 
 > 这个方法做了两件事：
 >
-> - 检查绘制的线程是不是创建 View 的线程 
-> - 调用scheduleTraversals
+> - 检查绘制的线程是不是UI线程 
+> - 调用scheduleTraversals 方法来调度一次完整的绘制流程
+
+ 该方法会向主线程发送一个“遍历”消息，最终会导致ViewRootImpl的performTraversals()方法被调用 
 
 ```java
 void scheduleTraversals() {
@@ -2364,7 +2338,7 @@ void scheduleTraversals() {
         mTraversalScheduled = true;
         //获取内存屏障
         mTraversalBarrier = mHandler.getLooper().getQueue().postSyncBarrier();
-        //执行绘制任务
+        //发送绘制消息
         mChoreographer.postCallback(
             Choreographer.CALLBACK_TRAVERSAL, mTraversalRunnable, null);
         notifyRendererOfFramePending();
@@ -2406,21 +2380,21 @@ void doTraversal() {
 }
 ```
 
-又接着调用`performTraversals`，这个方法非常长，但是主要是调用三个方法进行绘制
-
-**针对 performTraversals 的大致流程，可用下图表示：**
+又接着调用`performTraversals`， 从DecorView自上而下遍历整个View树，**注意是所有View执行完一个步骤后，再进行下一步，而不是一个View执行完所有步骤再遍历下一个View。** 
 
 ![img](Android--布局.assets/0ba56d52432b4f7ebbf8984400e335ff_tplv-k3u1fbpfcp-zoom-in-crop-mark_1512_0_0_0.awebp)
 
-> View 绘制主要的三个方法就是 `onMeasure()`、 `onLayout()`、`onDraw()`，这三个方法要解决的问题就是`画多大`、`在哪画`、`画什么`。
+>  `onMeasure()`、 `onLayout()`、`onDraw()`，这三个方法要解决的问题就是`画多大`、`在哪画`、`画什么`。
 >
 > ViewRootImpl 的 performTraversal() 方法会依次调用 `performMeasure()`、`performLayout()` 和 `performDraw()` 三个方法，这三个方法分别完成 DecorView 的测量、放置和绘制三大流程。
 >
-> performMeasure() 方法会调用 DecorView 的 measure() 方法，在 measure() 方法中又会调用自己的 onMeasure() 方法。
+>   Measure ：从顶层父View到子View递归调用measure方法，measure方法又回调OnMeasure。 
 >
-> DecorView 的 onMeasure() 方法会调用父类 FrameLayout 的 onMeasure() 方法，在 FrameLayout 的 onMeasure() 方法中，会调用子元素的 onMeasure() 方法测量子元素的宽高，接着子元素会重复父容器的 measure 过程，如此反复完成整个 View 树的遍历。
+> > DecorView 的 onMeasure() 方法会调用父类 FrameLayout 的 onMeasure() 方法，在 FrameLayout 的 onMeasure() 方法中，会调用子元素的 measure() 方法测量子元素的宽高，接着子元素会重复父容器的 measure 过程，如此反复完成整个 View 树的遍历。
 >
-> 而 performLayout() 和 performDraw() 的执行流程与 performMeasure() 是类似的。
+> Layout：确定View位置，进行页面布局。从顶层父View向子View的递归调用view.layout方法的过程，即父View根据上一步measure子View所得到的布局大小和布局参数，将子View放在合适的位置上。
+>
+> Draw：绘制视图。ViewRoot创建一个Canvas对象，然后调用OnDraw()。六个步骤：①、绘制视图的背景；②、保存画布的图层（Layer）；③、绘制View的内容；④、绘制View子视图，如果没有就不用；⑤、还原图层（Layer）；⑥、绘制滚动条。
 
 
 

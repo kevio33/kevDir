@@ -516,7 +516,7 @@ public <T extends ViewModel> T get(@NonNull String key, @NonNull Class<T> modelC
 }
 ```
 
-> 1：从ViewModelStore中，根据 key，取一个 ViewModel，ViewModelStore源码下文分析
+> 1：从ViewModelStore中，根据 key，取一个 ViewModel
 >
 > 2：判断取出来的 ViewModel 实例和传进来的是否是一个，是同一个，直接返回此缓存中实例
 >
@@ -731,7 +731,7 @@ public abstract class ViewModel {
 
 ViewModel是存放在ViewModelStore中的，所以要保证ViewModel不被销毁，那么就要**保证ViewModelStore不被销毁**
 
-**屏幕旋转或配置发生变化时会调用`ComponentActivity`的`onRetainNonConfigurationInstance`方法**，在`performDestroyActivity`阶段执行。 用于处理配置发生改变时数据的保存。
+**屏幕旋转或配置发生变化时会调用`performDestroyActivity`，调用activity的`retainNonConfigurationInstance`，在里面调用`ComponentActivity`的`onRetainNonConfigurationInstance`方法**，在阶段执行。 用于处理配置发生改变时数据的保存。
 
  ![图片](JetPack.assets/640.webp) 
 
@@ -784,13 +784,13 @@ public Object getLastNonConfigurationInstance() {
 
 
 
-所以上上图的中的activity局部变量是NonConfigurationInstances实例，所以咱们的viewModel一路传递到了performDestroyActivity中的r.lastNonConfigurationInstances中，即**ActivityClientRecord**中！ 
+上上图的中的activity局部变量是NonConfigurationInstances实例，所以咱们的viewModel一路传递到了performDestroyActivity中的r.lastNonConfigurationInstances中，即**ActivityClientRecord**中！ 
 
 >  **我们可以得出结论：**
 >
 > **我们旋转屏幕，Aactivity1销毁时，会把我们的viewModel保存到ActivityClientRecord中，又因为ActivityClientRecord不受Activity因配置变化而销毁重建的影响，所以它能够帮我们安全得保留了数据。** 
 
->  **ActivityClientRecord：r**
+>  **ActivityClientRecord——r**
 >
 > ActivityClientRecord 的作用是跟踪和管理每个活动（Activity）的状态和信息。它记录了Activity的各种信息，包括活动实例、Intent、状态标志等。这个类通常在应用程序的生命周期中被创建和使用。它在活动被创建时被实例化，并在Activity生命周期结束时被清除。清除的时机通常是当活动被销毁（比如用户退出当前Activity或系统回收资源时) ActivityThread 将相应的 ActivityClientRecord 从其内部管理的列表 mActivities 中移除，释放相应的资源。 
 
@@ -803,8 +803,6 @@ static final class NonConfigurationInstances {
     ViewModelStore viewModelStore;
 }
 ```
-
-
 
 
 
