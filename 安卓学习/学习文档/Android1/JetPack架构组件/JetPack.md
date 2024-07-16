@@ -2571,6 +2571,14 @@ class MyActivity extends AppCompatActivity {
 
 **Lifecycle**是一个类，用于存储有关组件（如 activity 或 fragment）的生命周期状态的信息，并允许其他对象观察此状态。
 
+每个可能的`Lifecycle`状态都在[`Lifecycle.State`](https://developer.android.google.cn/reference/androidx/lifecycle/Lifecycle.State)枚举中表示 。
+
+- [`INITIALIZED`]
+- [`CREATED`]
+- [`STARTED`]
+- [`RESUMED`]
+- [`DESTROYED`]
+
 #### ①DefaultLifecycleObserver
 
 可以实现该接口，并且实现方法来监听组件的生命周期

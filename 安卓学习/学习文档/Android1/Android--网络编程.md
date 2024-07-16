@@ -1,4 +1,4 @@
-# 异步编程
+# 异步框架
 
 ## 一、AsyncTask
 
@@ -402,34 +402,69 @@ implementation ‘org.xutils:xutils:3.5.1’
 
 ```groovy
 //需要导入依赖：
-implementation ‘com.squareup.okhttp3:okhttp:3.12.1’
+implementation 'com.squareup.okhttp3:okhttp:3.12.1'
 ```
 
-优点:
+### 优点:
 
-> - 允许连接到同一个主机地址的所有请求,提高请求效率
-> - 共享Socket,减少对服务器的请求次数
-> - 通过连接池,减少了请求延迟
-> - 缓存响应数据来减少重复的网络请求
-> - 减少了对数据流量的消耗
-> - 自动处理GZip压缩
+OkHttp是一个默认有效的HTTP客户端：
+
+- HTTP/2支持允许对同一主机的所有请求共享套接字。
+
+- 连接池减少了请求延迟（如果HTTP/2不可用）。
+
+- transparent GZIP 压缩了下载大小。
+
+- Response缓存可以完全避免网络的重复请求。
+
+- 当网络故障时，OkHttp会自动重试：它将从常见的连接问题中静默地恢复。如果您的服务有多个IP地址，如果第一次连接失败，OkHttp将尝试备用地址；这对于IPv4 + IPv6以及在冗余数据中心中托管的服务是必需的。
+- OkHttp还支持现代TLS功能（TLS 1.3，ALPN，certificate pinning）。
+
+**get请求**
+
+```java
+public class GetExample {
+    OkHttpClient client = new OkHttpClient();
+
+    String run(String url) throws IOException {
+        Request request = new Request.Builder()
+            .url(url)
+            .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            return response.body().string();
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
+        GetExample example = new GetExample();
+        String response = example.run("https://raw.github.com/square/okhttp/master/README.md");
+        System.out.println(response);
+    }
+}
+```
+
+> 1. 创建`OkHttpClient`对象
+> 2. 构造请求`Request`
+> 3. 调用`OkHttpClient`发送`Request`
+> 4. 解析请求结果
 
 ```java
 //进行post请求
 OkHttpClient okHttpClient = new OkHttpClient();
- FormBody formBody = new FormBody.Builder()//封装请求数据
-             .add("username",username_ed.getText().toString())
-             .add("password",password_ed.getText().toString())
-             .build();
+FormBody formBody = new FormBody.Builder()//封装请求数据
+    .add("username",username_ed.getText().toString())
+    .add("password",password_ed.getText().toString())
+    .build();
 Request request = new Request.Builder()
-            .url(urlLogin)//请求地址
-            .post(formBody)//请求数据
-            .build();
+    .url(urlLogin)//请求地址
+    .post(formBody)//请求数据
+    .build();
 
 //进行请求并且得到回复
 Call call = okHttpClient.newCall(request);
 Response response = call.execute();
-    
+
 //获取返回的数据,并转化成字符串
 responseData = response.body().string();
 ```
@@ -452,7 +487,430 @@ client.newCall(request).enqueue(new Callback() {
 
 
 
-okhttp访问拦截器：
+
+
+### 源码分析
+
+> https://blog.yorek.xyz/android/3rd-library/okhttp/
+
+#### (1)OkHttpClient以及Request的构造器
+
+ 先看看`OkHttpClient`的构造器：  
+
+构造器实现很简单，在默认构造器中传入了一个`OkHttpClient.Builder`建造者对象，然后将其中的参数复制给自己。 
+
+```java
+public OkHttpClient() {
+  this(new Builder());//传入一个Builder对象
+}
+
+OkHttpClient(Builder builder) {//将builder的参数赋值给自己
+  this.dispatcher = builder.dispatcher;
+  this.proxy = builder.proxy;
+  this.protocols = builder.protocols;
+  this.connectionSpecs = builder.connectionSpecs;
+  this.interceptors = Util.immutableList(builder.interceptors);
+  this.networkInterceptors = Util.immutableList(builder.networkInterceptors);
+  this.eventListenerFactory = builder.eventListenerFactory;
+  this.proxySelector = builder.proxySelector;
+  this.cookieJar = builder.cookieJar;
+  this.cache = builder.cache;
+  this.internalCache = builder.internalCache;
+  this.socketFactory = builder.socketFactory;
+
+  boolean isTLS = false;
+  for (ConnectionSpec spec : connectionSpecs) {
+    isTLS = isTLS || spec.isTls();
+  }
+
+  if (builder.sslSocketFactory != null || !isTLS) {
+    this.sslSocketFactory = builder.sslSocketFactory;
+    this.certificateChainCleaner = builder.certificateChainCleaner;
+  } else {
+    X509TrustManager trustManager = systemDefaultTrustManager();
+    this.sslSocketFactory = systemDefaultSslSocketFactory(trustManager);
+    this.certificateChainCleaner = CertificateChainCleaner.get(trustManager);
+  }
+
+  this.hostnameVerifier = builder.hostnameVerifier;
+  this.certificatePinner = builder.certificatePinner.withCertificateChainCleaner(
+      certificateChainCleaner);
+  this.proxyAuthenticator = builder.proxyAuthenticator;
+  this.authenticator = builder.authenticator;
+  this.connectionPool = builder.connectionPool;
+  this.dns = builder.dns;
+  this.followSslRedirects = builder.followSslRedirects;
+  this.followRedirects = builder.followRedirects;
+  this.retryOnConnectionFailure = builder.retryOnConnectionFailure;
+  this.connectTimeout = builder.connectTimeout;
+  this.readTimeout = builder.readTimeout;
+  this.writeTimeout = builder.writeTimeout;
+  this.pingInterval = builder.pingInterval;
+}
+```
+
+ 在`OkHttpClient.Builder`的构造器中有很多默认的值，如下注释： 
+
+```java
+public Builder() {
+  dispatcher = new Dispatcher();    // 分发器，另有一个带线程池参数的构造器
+  protocols = DEFAULT_PROTOCOLS;    // 支持的协议，默认为HTTP_2、HTTP_1_1
+  connectionSpecs = DEFAULT_CONNECTION_SPECS;  // 传输层版本、连接协议
+  // 事件监听器，3.8版本set方法还是package级别的，暂时不能设置
+  eventListenerFactory = EventListener.factory(EventListener.NONE);
+  proxySelector = ProxySelector.getDefault();   // 代理选择器
+  cookieJar = CookieJar.NO_COOKIES;             // 读写Cookie的容器
+  socketFactory = SocketFactory.getDefault();   // Socket工厂
+  hostnameVerifier = OkHostnameVerifier.INSTANCE;// 主机名验证器
+  certificatePinner = CertificatePinner.DEFAULT;
+  proxyAuthenticator = Authenticator.NONE;      // 代理认证器
+  authenticator = Authenticator.NONE;           // 本地认证器
+  connectionPool = new ConnectionPool();        // 连接池
+  dns = Dns.SYSTEM;                             // 域名
+  followSslRedirects = true;                    // SSL重定向
+  followRedirects = true;                       // 普通重定向
+  retryOnConnectionFailure = true;              // 连接失败重试
+  connectTimeout = 10_000;                      // 连接超时时间
+  readTimeout = 10_000;                         // 读超时时间
+  writeTimeout = 10_000;                        // 写超时时间
+  pingInterval = 0;
+}
+```
+
+**Request的构造方法**
+
+```java
+final HttpUrl url;                // 请求的url
+final String method;              // 请求方式
+final Headers headers;            // 请求头
+final @Nullable RequestBody body; // 请求体
+final Object tag;                 // 请求的tag
+```
+
+```java
+public final class Request {
+    final HttpUrl url;
+    final String method;
+    final Headers headers;
+    final @Nullable RequestBody body;
+    final Map<Class<?>, Object> tags;
+
+    private volatile @Nullable CacheControl cacheControl; // Lazily initialized.
+
+    Request(Builder builder) {
+        this.url = builder.url;
+        this.method = builder.method;
+        this.headers = builder.headers.build();
+        this.body = builder.body;
+        this.tags = Util.immutableMap(builder.tags);
+    }
+
+    public static class Builder {
+        @Nullable HttpUrl url;
+        String method;
+        Headers.Builder headers;
+        @Nullable RequestBody body;
+
+        /** A mutable map of tags, or an immutable empty map if we don't have any. */
+        Map<Class<?>, Object> tags = Collections.emptyMap();
+
+        public Builder() {
+            this.method = "GET";
+            this.headers = new Headers.Builder();
+        }
+
+        Builder(Request request) {
+            this.url = request.url;
+            this.method = request.method;
+            this.body = request.body;
+            this.tags = request.tags.isEmpty()
+                ? Collections.<Class<?>, Object>emptyMap()
+                : new LinkedHashMap<>(request.tags);
+            this.headers = request.headers.newBuilder();
+        }
+
+        public Request build() {
+            if (url == null) throw new IllegalStateException("url == null");
+            return new Request(this);
+        }
+    }
+}
+```
+
+
+
+#### (2)Call & RealCall
+
+接着看`client.newCall(request).execute()`这一行代码。
+首先是`OkHttpCient.newCall(Request)`方法：
+
+```java
+/**
+  * Prepares the {@code request} to be executed at some point in the future.
+  */
+@Override public Call newCall(Request request) {
+  return new RealCall(this, request, false /* for web socket */);
+}
+```
+
+ 这里创建了一个`RealCall`对象，而`RealCall`实现了`Call`接口。`Call`接口声明如下： 
+
+```java
+public interface Call extends Cloneable {
+  /** 获得原始请求 */
+  Request request();
+
+  /** 同步执行请求 */
+  Response execute() throws IOException;
+
+  /** 异步执行请求 */
+  void enqueue(Callback responseCallback);
+
+  /** 尽可能取消请求。已经完成了的请求不能被取消 */
+  void cancel();
+
+  /**
+   * 调用了execute()或者enqueue(Callback)后都是true
+   */
+  boolean isExecuted();
+
+  boolean isCanceled();
+
+  /** 创建一个新的、完全一样的Call对象，即使原对象状态为enqueued或者executed */
+  Call clone();
+
+  interface Factory {
+    Call newCall(Request request);
+  }
+}
+```
+
+ 回到`RealCall`，看看其的构造器以及成员变量： 
+
+```java
+final OkHttpClient client;
+final RetryAndFollowUpInterceptor retryAndFollowUpInterceptor;
+final EventListener eventListener;
+
+/** The application's original request unadulterated by redirects or auth headers. */
+final Request originalRequest;
+final boolean forWebSocket;
+
+// Guarded by this.
+private boolean executed;
+
+RealCall(OkHttpClient client, Request originalRequest, boolean forWebSocket) {
+  // 事件监听器，默认为null，目前3.8版本也无法设置
+  final EventListener.Factory eventListenerFactory = client.eventListenerFactory();
+
+  this.client = client;
+  this.originalRequest = originalRequest;
+  this.forWebSocket = forWebSocket;
+  // 创建一个重试、重定向拦截器
+  this.retryAndFollowUpInterceptor = new RetryAndFollowUpInterceptor(client, forWebSocket);
+
+  // TODO(jwilson): this is unsafe publication and not threadsafe.
+  this.eventListener = eventListenerFactory.create(this);
+}
+```
+
+
+
+#### (3)RealCall.execute
+
+ 接着看看重点`RealCall.execute`方法： 
+
+```java
+@Override 
+public Response execute() throws IOException {
+    synchronized (this) {
+        if (executed) throw new IllegalStateException("Already Executed");
+        //一旦Call.execute方法被执行，那么其executed就会被设置为true，如果多次调用就会报错。
+        executed = true;
+    }
+    captureCallStackTrace();
+    try {
+        //将call加入到Dispatcher.runningSyncCalls队列中
+        client.dispatcher().executed(this);
+        //调用getResponseWithInterceptorChain进行网络请求并获取Response，该方法是OkHttp中的最重要的点
+        Response result = getResponseWithInterceptorChain();
+        if (result == null) throw new IOException("Canceled");
+        return result;
+    } finally {
+        //Call执行完毕后将其从Dispatcher.runningSyncCalls队列中移除
+        client.dispatcher().finished(this);
+    }
+}
+```
+
+> ```java
+> synchronized void executed(RealCall call) {
+>     runningSyncCalls.add(call);
+> }
+> ```
+>
+> ```java
+> void finished(RealCall call) {
+>     finished(runningSyncCalls, call, false);
+> }
+> 
+> private <T> void finished(Deque<T> calls, T call, boolean promoteCalls) {
+>     int runningCallsCount;
+>     Runnable idleCallback;
+>     synchronized (this) {
+>         if (!calls.remove(call)) throw new AssertionError("Call wasn't in-flight!");
+>         if (promoteCalls) promoteCalls();
+>         runningCallsCount = runningCallsCount();
+>         idleCallback = this.idleCallback;
+>     }
+> 
+>     if (runningCallsCount == 0 && idleCallback != null) {
+>         idleCallback.run();
+>     }
+> }
+> ```
+
+
+
+#### (4)RealCall.enqueue
+
+ 同`execute`方法类似，一旦`Call.enqueue`方法被执行，那么其`executed`就会被设置为`true`，如果多次调用就会报错。
+然后调用`client.dispatcher().enqueue(new AsyncCall(responseCallback));`方法开始了异步调用。 
+
+```java
+@Override public void enqueue(Callback responseCallback) {
+    synchronized (this) {
+        if (executed) throw new IllegalStateException("Already Executed");
+        executed = true;
+    }
+    captureCallStackTrace();
+    //异步调用
+    client.dispatcher().enqueue(new AsyncCall(responseCallback));
+}
+```
+
+ 先看一下`AsyncCall`的相关代码 
+
+```java
+final class AsyncCall extends NamedRunnable {
+    private final Callback responseCallback;
+
+    AsyncCall(Callback responseCallback) {
+        super("OkHttp %s", redactedUrl());
+        this.responseCallback = responseCallback;
+    }
+    ...
+        @Override protected void execute() {
+        ...
+    }
+}
+```
+
+ `AsyncCall`的父类`NamedRunnable`是一个有`name`属性的`Runnable`抽象类，在执行代码前，会将当前线程名设置为`name`，执行完毕后恢复。 
+
+```java
+/**
+ * Runnable implementation which always sets its thread name.
+ */
+public abstract class NamedRunnable implements Runnable {
+    protected final String name;
+
+    public NamedRunnable(String format, Object... args) {
+        this.name = Util.format(format, args);
+    }
+
+    @Override public final void run() {
+        String oldName = Thread.currentThread().getName();
+        Thread.currentThread().setName(name);
+        try {
+            execute();
+        } finally {
+            Thread.currentThread().setName(oldName);
+        }
+    }
+
+    protected abstract void execute();
+}
+```
+
+ 了解了`AsyncCall`的大致结构，我们返回`Dispatcher.enqueue`方法： 
+
+​	 `maxRequests`和`maxRequestsPerHost`都有默认值，且有setter方法可以设置具体值，两者的setter方法最后会执行`promoteCalls`方法尝试执行异步任务。 
+
+​	 在`enqueue`方法中，首先会检查「正在运行的异步请求数」以及「call对应的host上的异步请求数」是否达到了阈值。如果还没有达到阈值，那么加入到`runningAsyncCalls`队列中，同时开始执行请求；否则加入到`readyAsyncCalls`队列中进行等待。 
+
+```java
+private int maxRequests = 64;
+private int maxRequestsPerHost = 5;
+
+synchronized void enqueue(AsyncCall call) {
+    if (runningAsyncCalls.size() < maxRequests && runningCallsForHost(call) < maxRequestsPerHost) {
+        runningAsyncCalls.add(call);
+        executorService().execute(call);
+    } else {
+        readyAsyncCalls.add(call);
+    }
+}
+```
+
+ 这里出现了一个`executorService()`，这是一个单例实现的线程池，该线程池也可以在`Dispatcher`的构造器中注入。 
+
+​	这里我们可以看出来，这是一个典型的`CachedThreadPool`:
+
+- 这是一个线程数量不定的线程池，他只有非核心线程，并且其最大线程数为`Integer.MAX_VALUE`。线程池中的空闲线程都有超时机制，这个超时时常为60s，超过这个时间的闲置线程就会被回收。`SynchronousQueue`可以简单的理解为一个无法存储元素的队列，因此这将导致任何任务都会立刻执行。
+- 从其特性来看，这类线程池适合执行大量耗时较少的任务。当整个线程池处理闲置状态时，线程池中的线程都会因为超时而被停止，这个时候`CachedThreadPool`之中实际上是没有线程的，它几乎不占用任何系统资源。 
+
+```java
+/** Executes calls. Created lazily. */
+private @Nullable ExecutorService executorService;
+
+public Dispatcher(ExecutorService executorService) {
+    this.executorService = executorService;
+}
+
+public synchronized ExecutorService executorService() {
+    if (executorService == null) {
+        //可以看到，是一个cachedThreadPool
+        executorService = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60, TimeUnit.SECONDS,
+                                                 new SynchronousQueue<Runnable>(), Util.threadFactory("OkHttp Dispatcher", false));
+    }
+    return executorService;
+}
+```
+
+> ![1720979688415](Android--网络编程.assets/1720979688415.png)
+
+ 提交到线程池后，`AsyncCall.run`方法就会被调用，又因为`AsyncCall`继承了`NamedRunnable`，所以最后执行的是`AsyncCall.execute`方法： 
+
+```java
+@Override 
+protected void execute() {
+    boolean signalledCallback = false;
+    try {
+        //调用getResponseWithInterceptorChain进行网络请求并获取Response
+        Response response = getResponseWithInterceptorChain();
+        //然后根据请求是否被取消，调用对应的回调方法
+        if (retryAndFollowUpInterceptor.isCanceled()) {
+            signalledCallback = true;
+            responseCallback.onFailure(RealCall.this, new IOException("Canceled"));
+        } else {
+            signalledCallback = true;
+            responseCallback.onResponse(RealCall.this, response);
+        }
+    } catch (IOException e) {
+        if (signalledCallback) {
+            Platform.get().log(INFO, "Callback failure for " + toLoggableString(), e);
+        } else {
+            responseCallback.onFailure(RealCall.this, e);
+        }
+    } finally {
+        //最后调用client.dispatcher().finished(this)方法在runningAsyncCalls方法中移除call
+        client.dispatcher().finished(this);
+    }
+}
+```
+
+
 
 
 

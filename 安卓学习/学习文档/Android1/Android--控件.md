@@ -1599,7 +1599,7 @@ viewpager是实现轮播图、引导页、图片画廊的常用工具，允许�
 
 > `setAdapter(PagerAdapter adapter)` 设置适配器
 >
-> `setOffscreenPageLimit(int limit)` 设置缓存的页面个数,默认是 1
+> **`setOffscreenPageLimit(int limit)` 设置缓存的页面个数,默认是 1**
 >
 > `setCurrentItem(int item)` 跳转到特定的页面
 >
@@ -1619,7 +1619,9 @@ ViewPager有两个适配器（`FragmentStatePagerAdapter`和`FragmentPagerAdapte
 
 > **两者区别：**
 >
-> - **FragmentStatePagerAdapter不可以缓存**： 会销毁不再需要的 fragment，当前事务提交以后，会彻底的将 fragmeng 从当前 Activity 的FragmentManager 中移除。state 标明，销毁时，会将其 `onSaveInstanceState(Bundle outState)` 中的 bundle 信息保存下来，当用户切换回来，可以通过该 bundle 恢复生成新的 fragment，也就是说，你可以在 `onSaveInstanceState(Bundle outState)` 方法中保存一些数据，在 onCreate 中进行恢复创建。
+> - **FragmentStatePagerAdapter不可以缓存**： 会销毁不再需要的 fragment，当前事务提交以后，会彻底的将 fragmeng 从当前 Activity 的FragmentManager 中移除。
+>
+>   **state 表明**，销毁时，会将其 `onSaveInstanceState(Bundle outState)` 中的 bundle 信息保存下来，当用户切换回来，可以通过该 bundle 恢复生成新的 fragment，也就是说，你可以在 `onSaveInstanceState(Bundle outState)` 方法中保存一些数据，在 onCreate 中进行恢复创建。
 >
 > - **FragmentPagerAdapter可以缓存** ： 对于不再需要的 fragment，选择调用 onDetach() 方法，仅销毁视图，并不会销毁 fragment 实例。
 >
@@ -1656,8 +1658,6 @@ viewpager1默认没有实现懒加载，需要自定义
 ### (2)viewpager2
 
 > https://blog.csdn.net/YoungOne2333/article/details/130140166
-
-
 
 #### **适配器**
 
@@ -1712,8 +1712,10 @@ new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
 - **滑动方向**
   ①ViewPager2支持横向和竖向滑动，而ViewPager只能横向滑动。
 
-  ②Adapter：ViewPager2只有一个适配器：`FragmentStateAdapter`(继承自RecyclerView.Adapter)。而ViewPager有两个适配器：`FragmentStatePagerAdapter`和`FragmentPagerAdapter`，均继承自`PagerAdapter`。FragmentStatePagerAdapter不可以缓存，而FragmentPagerAdapter可以缓存。
+  ②Adapter：`ViewPager2`只有一个适配器：`FragmentStateAdapter`(继承自RecyclerView.Adapter)。
 
+  ​					`ViewPager`有两个适配器：`FragmentStatePagerAdapter`和`FragmentPagerAdapter`，均继承自`PagerAdapter`。FragmentStatePagerAdapter不可以缓存，而FragmentPagerAdapter可以缓存。
+  
 - **懒加载**
   ViewPager2内部实现了懒加载，默认不进行预加载，通过Lifecycle对Fragment的生命周期进行管理。而ViewPager需要自己实现懒加载。
 
@@ -1760,8 +1762,6 @@ public class MyViewPager extends ViewPager {
 
 > `viewPager.setOffscreenPageLimit(int size)`方法用于设置ViewPager在闲置状态下**保留在当前页面两侧的页面数**。例如设置为2的话，会在左右两侧各缓存2个页面。
 >
-> 超过此限制的页面将在需要时从适配器中重新创建。 
->
 > 该方法有以下作用：
 >
 > - **提高页面切换的流畅度。**当用户快速滑动页面时，ViewPager可以提前加载相邻页面，从而避免页面切换时出现卡顿现象。
@@ -1769,8 +1769,6 @@ public class MyViewPager extends ViewPager {
 > - **减少内存消耗**。当页面数量较多时，ViewPager可以销毁超出限制的页面，从而减少内存占用。
 
  ![image](Android--控件.assets/16c21b4c94d65f5d_tplv-t2oaga2asx-jj-mark_3024_0_0_0_q75.png) 
-
-
 
 
 
@@ -1789,14 +1787,14 @@ public class MyViewPager extends ViewPager {
 **①利用fragment的`setUserVisibleHint`**
 
 - Fragment中有一个`setUserVisibleHint(boolean isVisibleToUser)`方法，这个方法就是告诉用户，UI对用户是否可见，可以做懒加载初始化操作。 
-- 因为预加载已经将fragment的生命周期执行完毕，所有可以使用一个占位视图 ViewStub，当真正跳转到该页时，执行ViewStub.inflate()方法，加载真正的数据视图和请求数据。 
+- 因为预加载已经将fragment的生命周期执行完毕，因此可以使用一个占位视图 ViewStub，当真正跳转到该页时，执行ViewStub.inflate()方法，加载真正的数据视图和请求数据。 
 - 当某一页超出可视范围和预加载范围，那么它将会被销毁，FragmentStatePagerAdapter销毁整个Fragment, 我们可以自己保存该Fragment,或使用FragmentPagerAdapter让FragmentTransition来保留Fragment的引用。虽然这样，但是它的周期方法已经走完，那么我们只能手动的保存Fragment根View的引用，当再次重新进入新的声明周期方法时，返回原来的View
 
 **实现要点：**
 
-- 因为 `setUserVisibleHint()`，此方法会在`onCreateView()`之前执行，当fragment 从可见到不见，或者从不可见切换到可见，都会调用此方法，所以可以用它来判断是否可以加载数据
+- 因为 `setUserVisibleHint()`，会在`onCreateView()`之前执行，当fragment 从可见到不见，或者从不可见切换到可见，都会调用此方法，所以可以用它来判断是否可以加载数据
 
-- 需要在`onActivityCreated()`及`setUserVisibleHint()`方法中都调了一次`lazyLoad()`方法。如果仅仅在`setUserVisibleHint()`调用`lazyLoad()`，当默认首页首先加载时会导致viewPager的首页第一次展示时没有数据显示，切换一下才会有数据。因为首页fragment的setUserVisible()在onActivityCreated() 之前调用，此时isPrepared为false 导致首页fragment 没能调用onLazyLoad()方法加载数据。
+- 需要在`onActivityCreated()`及`setUserVisibleHint()`方法中都调了一次`lazyLoad()`方法。如果仅仅在`setUserVisibleHint()`调用`lazyLoad()`，当默认首页首先加载时会导致viewPager的首页第一次展示时没有数据显示，切换一下才会有数据。因为首页fragment的`setUserVisible()`在`onActivityCreated()`之前调用，此时isPrepared为false 导致首页fragment 没能调用onLazyLoad()方法加载数据。
 
 ```java
 /**
@@ -1841,7 +1839,7 @@ public abstract class BaseLazyFragment extends BaseFragment {
 
     /**
      * 第二步
-     * 此方法会在onCreateView(）之前执行
+     * 此方法会在onActivityCreated之前执行
      * 当viewPager中fragment改变可见状态时也会调用
      * 当fragment 从可见到不见，或者从不可见切换到可见，都会调用此方法
      * true表示当前页面可见，false表示不可见
@@ -1866,7 +1864,7 @@ public abstract class BaseLazyFragment extends BaseFragment {
             onLazyLoad();
             isLazyLoaded = true;
         } else {
-            //当视图已经对用户不可见并且加载过数据，如果需要在切换到其他页面时停止加载数据，可以覆写此方法
+            //当视图已经对用户不可见并且已经开始加载数据，在切换到其他页面时停止加载数据，可以覆写stopLoad
             if (isLazyLoaded) {
                 stopLoad();
             }
@@ -1995,11 +1993,11 @@ ListView的setAdapter方法可以传入一个ListAdapter对象，实现了ListAd
 
 ListView的缓存有两级，ListView里面有一个内部类 RecycleBin，RecycleBin有两个对象Active View和Scrap View来管理缓存，Active View是第一级，Scrap View是第二级。
 
-- **Active View**：是缓存在屏幕内的ItemView，当列表数据发生变化时，屏幕内的数据可以直接拿来复用，无须进行数据绑定。
+- **Active View**：是缓存在屏幕内的ItemView，当列表数据发生变化时，屏幕内的item可以直接拿来复用，无须进行数据绑定。
 
-- **Scrap view**：缓存屏幕外的ItemView，这里所有的缓存的数据都是"脏的"，也就是数据需要重新绑定，也就是说屏幕外的所有数据在进入屏幕的时候都要走一遍`getView()`方法。
+- **Scrap view**：缓存划出屏幕外的ItemView，这里所有的缓存的数据都是"脏的"，也就是数据需要重新绑定，因此屏幕外的所有数据在进入屏幕的时候都要走一遍`getView()`方法。
  ![img](Android--控件.assets/2477378-e4406d2c3ed6cce6.webp)
-> 当Active View和Scrap View中都没有缓存的时候就会直接create view。
+> 当Active View和Scrap View中都没有缓存的时候就会create view。
 
 ##### 复用
 
@@ -2008,8 +2006,6 @@ ListView的缓存有两级，ListView里面有一个内部类 RecycleBin，Recyc
  ![img](Android--控件.assets/1728769-20200413005906454-1744888899.png) 
 
  ![img](Android--控件.assets/1728769-20200413010138564-1760389473.png) 
-
-
 
 
 
@@ -2065,7 +2061,6 @@ protected void onCreate(Bundle savedInstanceState) {
 //自定义adapter
 public class LinearAdapter extends RecyclerView.Adapter<LinearAdapter.LinearViewHolder> {
 
-    
     private Context context;//父activity的context
     private List<Item> itemList;//数据
     public LinearAdapter(Context context,List<Item> itemList){
@@ -2485,7 +2480,7 @@ public class GridRVActivity extends AppCompatActivity {
 
 **图片错乱：**
 
-由于复用的原因，时常会导致item中view错乱，例如以下代码：
+由于复用的原因，时常会导致item中view错乱（前面提到的脏数据，需要重新绑定），例如以下代码：
 
 ```java 
 public class MyRecyclerAdapter extends RecyclerView.Adapter<MyRecyclerAdapter.MyViewHolder> {
@@ -2953,6 +2948,8 @@ private SparseArray<String> mTextCache = new SparseArray<>();
 
 #### 6）recyclerview缓存
 
+> [RecyclerView四级缓存](https://mp.weixin.qq.com/s/ymdkjE8AFiYhiyj7Av2aVg)
+>
 > https://blog.csdn.net/m0_51276753/article/details/125667231
 >
 > https://segmentfault.com/a/1190000040421118
@@ -3003,7 +3000,7 @@ void scrapView(View view) {
 ```
 
 > - 当调用` LayoutManager` 类的 `onLayoutChildren() `方法对views进行布局，这时会将RecyclerView上的items全部暂存到一个 ArrayList 集合，这里的数据是没有做修改的，所以不用重新绑定 Adapter。
-> - 而如果其他情况比如调用了 `notifyItemChanged()` 和 `notifyItemRangeChanged() `来通知数据发生了更新、位置发生改变，那么该ViewHolder会被缓存到`mChangedScrap`中，因此存储的是发生了变化的ViewHolder，所以要重新走Adapter的绑定方法
+> - 而如果其他情况比如调用了 `notifyItemChanged()` 和 `notifyItemRangeChanged() `来通知**数据发生了更新**、**位置发生改变**，那么该ViewHolder会被缓存到`mChangedScrap`中，因此存储的是发生了变化的ViewHolder，所以要重新走Adapter的绑定方法
 
  ![在这里插入图片描述](Android--控件.assets/6b870794d9d74e89b82ebcee100aebc7.png) 
 
@@ -3015,11 +3012,11 @@ void scrapView(View view) {
 
 ###### ②二级缓存
 
-`CacheView`用于RecyclerView列表位置产生变动时，通常称为`离屏缓存`，对刚刚移出屏幕的view进行回收。它的默认容量是2（可以修改）。 
+`CacheView`用于RecyclerView列表位置产生变动时，通常称为**离屏缓存**，对刚刚移出屏幕的view进行回收。**它的默认容量是2（可以修改）**。 
 
- ![在这里插入图片描述](Android--控件.assets/01311bed9ff14912a061a972e1fe52b7.png) 
+![在这里插入图片描述](Android--控件.assets/01311bed9ff14912a061a972e1fe52b7.png) 
 
->  mAttachedScrapp和mCachedViews都是需要进行索引判断，也就是说从这两个缓存中取出的ViewHolder只能复用到指定的位置。mCachedViews只能缓存屏幕外它容量大小的ViewHolder，超出容量的部分会被移除，丢到缓存池中 
+>  **mAttachedScrap和mCachedViews都是需要进行索引判断，也就是说从这两个缓存中取出的ViewHolder只能复用到指定的位置。mCachedViews只能缓存屏幕外它容量大小的ViewHolder，超出容量的部分会被移除，丢到第四级缓存：缓存池中** 
 
 ###### ③三级缓存
 
@@ -3043,29 +3040,27 @@ if (holder == null && mViewCacheExtension != null) {
 
 从缓存池里取出来的ViewHolder将其重置，**复用的时候再重新绑定数据**。
 
-> 而一二级缓存无需再绑定数据，直接拿来复用，因为他们的位置和数据都没有变化。当有相同类型的表项插入列表时，不用重新创建 ViewHolder 实例（执行 onCreateViewHolder()），从缓存池中获取即可。
+> 一二级缓存无需再绑定数据，直接拿来复用，因为他们的位置和数据都没有变化。当有相同类型的表项插入列表时，不用重新创建 ViewHolder 实例（执行 onCreateViewHolder()），从缓存池中获取即可。
 > 
 
 
 
 ##### RecyclerView缓存过程：
 
-在滑动过程中，会将先滑动的itemView保存到CacheView中，**CacheView大小默认是2**，如果超过了最大容量，则按FIFO,将队列头部的itemView出队，保存至缓存池RecyclerViewPool中，**缓存池是按itemView的类型itemType来保存的，每种itemType默认缓存个数是5**，超过了，则直接由GC回收。具体表现如下图
+- 在滑动过程中，会将先滑动的itemView保存到CacheView中，**CacheView大小默认是2**，如果超过了最大容量，则按FIFO,将队列头部的itemView出队，保存至缓存池RecyclerViewPool中，**缓存池是按itemView的类型itemType来保存的，每种itemType默认缓存个数是5**，超过了，则直接由GC回收。
 
-![img](Android--控件、布局.assets/20190326091821406.png)
-
-可以看到CacheView缓存中蓝色的块一直最最近两个，而RecycledViewPool中，保存最大是5,超过5了后ViewHolder都被回收。
+- 可以看到CacheView缓存中蓝色的块一直最最近两个，而RecycledViewPool中，保存最大是5,超过5了后ViewHolder都被回收。
 
 ##### recyclerview找缓存过程：
 
-RecyclerView在找到可用ViewHodler的顺序是：如果在缓存CacheViews中找到，则直接复用；如果在缓存池RecycerViewPool找到，则需要bindView；如果没有找到可用的ViewHolder，则需要create新建一个ViewHolder，并bindView绑定view。
-
-
+- RecyclerView在找到可用ViewHodler的顺序是：
+  - 如果在缓存CacheViews中找到，则直接复用；
+  - 如果在缓存池RecycerViewPool找到，则需要bindView；
+  - 如果没有找到可用的ViewHolder，则需要create新建一个ViewHolder，并bindView绑定view。
 
 ##### 调用notifyDataSetChanged过程:
 
 如果调用notifyDataSetChanged，**每个itemView没有稳定的id的话**，RecyclerView不知道接下来会发生什么，也不知道哪些改变，它假设所有都改变了，会将每一个ViewHolder设置成无效并且放到缓存池Pool中，如果我们仅是把屏幕上的第四条itemView移到第六条的位置，屏幕上所有itemView都会重新layout一遍，这样只能从缓存池RecycledViewPool池中取缓存的ViewHolder，如果不够时，需要重新create ViewHolder.具体实现如下：
-![img](Android--控件、布局.assets/2019032609260765.png)
 
 **如果设置了Stable Ids**，即每一个itemView都有一个唯一的id来标识，通过getItemId()来获取这个唯一标识id，当然我们不能用position来标识，因为itemView会复用，位置会乱序。当调用notifyDataSetChanged()方法时，ViewHolder会进入上面的一级缓存mAttachedScrap中，而不是进入缓存池pool中，这样的好处：1）不会存在缓存池pool满的问题，不需要重新createViewHolder; 2) 不需要重新bindView了。
 ![img](Android--控件.assets/20190326094544879.png)
@@ -3271,7 +3266,7 @@ public static int growSize(int currentSize) {
 
 #### 局部刷新
 
-- 在ListView中通常刷新数据是用notifyDataSetChanged() ，但是这种刷新数据是全局刷新的（每个item的数据都会重新加载一遍），这样一来就会非常消耗资源；
+- 在ListView中通常刷新数据是用`notifyDataSetChanged()`，但是这种刷新数据是全局刷新的（每个item的数据都会重新加载一遍），这样一来就会非常消耗资源；
 
   > 如果要在ListView实现局部刷新，依然是可以实现的，当一个item数据刷新时，可以在Adapter中，实现一个notifyItemChanged()方法，在方法里面通过这个 item 的 position，刷新这个item的数据
 
@@ -3292,7 +3287,7 @@ public static int growSize(int currentSize) {
 
 **缓存内容不同**
 
-- ListView缓存View。
+- ListView缓存ItemView。
 - RecyclerView缓存RecyclerView.ViewHolder
 
 **RV优势**
