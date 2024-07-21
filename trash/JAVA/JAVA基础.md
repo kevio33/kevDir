@@ -1064,7 +1064,33 @@ test_dots();
 
 
 
+### lambda
 
+ Java Lambda 表达式，也可称为闭包，它是推出于 Java 8 的一个重要新特性。Lambda 表达式可以用来创建匿名函数，这些函数可以作为参数传递或者作为返回值，从而使得代码变得更加简洁和灵活。
+
+```java
+(parameters) -> { statements; }
+
+//或者
+
+(parameters) -> expression
+```
+
+ **用法：**
+
+- Lambda 表达式的**参数类型可以省略**，因为编译器可以根据上下文推断出参数类型。
+
+- **如果只有一个参数，则可以省略小括号**。如果 Lambda 表达式的函数体只有一条语句，则可以省略大括号和返回语句。 
+
+-  当一个接口只包含一个抽象方法时，它就是一个函数式接口（Functional Interface），可以使用 Lambda 表达式来创建该接口的实例。 
+
+  ```java
+  new Thread(() -> System.out.println("Hello World")).start();
+  ```
+
+  
+
+ 
 
 ## 十、引用
 
@@ -1533,6 +1559,59 @@ public class ConflictHashCodeTest2{
 > ②p1和p4的hashcode也相同，所以判断为重复
 
 
+
+
+
+## 十四、枚举
+
+ Java SE5 提供了一种新的类型-Java 的枚举类型，关键字`enum`可以将一组具名的值的有限集合创建为一种新的类型，而这些具名的值可以作为常规的程序组件使用，这是一种非常有用的功能。 
+
+> **enum是一个类似class的关键字**
+
+```java
+public enum t {
+    SPRING,SUMMER;
+}
+```
+
+上面代码反编译之后
+
+```java
+public final class T extends Enum
+{
+    private T(String s, int i)
+    {
+        super(s, i);
+    }
+    public static T[] values()
+    {
+        T at[];
+        int i;
+        T at1[];
+        System.arraycopy(at = ENUM$VALUES, 0, at1 = new T[i = at.length], 0, i);
+        return at1;
+    }
+
+    public static T valueOf(String s)
+    {
+        return (T)Enum.valueOf(demo/T, s);
+    }
+
+    public static final T SPRING;
+    public static final T SUMMER;
+    private static final T ENUM$VALUES[];
+    static
+    {
+        SPRING = new T("SPRING", 0);
+        SUMMER = new T("SUMMER", 1);
+        ENUM$VALUES = (new T[] {
+            SPRING, SUMMER
+        });
+    }
+}
+```
+
+ `public final class T extends Enum`，说明，该类是继承了`Enum`类的，同时`final`关键字告诉我们，这个类也是不能被继承的。 
 
 # 拓展
 

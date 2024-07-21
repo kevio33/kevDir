@@ -1,6 +1,8 @@
 
 
 > [官方文档](https://kotlinlang.org/docs/getting-started.html)
+>
+> [中文文档](https://book.kotlincn.net/text/basic-syntax.html)
 
 # 一、基础语法
 
@@ -59,6 +61,33 @@ Number类是一个抽象类，Int、Float、Long、Double都是子类
 
 
 
+#### 类型转换
+
+**“不安全的”转换操作符**
+
+ 如果转换是不可能的，转换操作符会抛出一个异常。使用`as`来转换
+
+```kotlin
+val x: String = y as String
+```
+
+> 如果y为null，那上面代码要抛异常
+
+
+
+**“安全的”转换操作符**
+
+ 可以使用*安全*转换操作符 `as?`，它可以在失败时返回 `null` 
+
+```kotlin
+val x: String? = y as? String
+```
+
+> 上面代码加了两个可空符号`?`
+>
+> - 第一个是因为String默认不可为空，这里加上是允许其为空
+> - 第二个是因为可能为空，如果为空就返回null
+
 ### 2.3序列
 
 #### 升序
@@ -75,6 +104,8 @@ val a  = 0..10 //创建一个[0,10]的序列
 val range = 0 until 10 //创建一个[0,10)的区间
 ```
 
+
+
 #### 降序
 
 ```kotlin
@@ -86,8 +117,6 @@ val range = 0 until 10 //创建一个[0,10)的区间
 
 
 ### 2.4集合
-
-
 
 #### 2.4.1 list和set
 
@@ -140,7 +169,7 @@ map.put("Grape", 5)
 
 
 
-**但是kotlin不推荐get和put方法进行读写，应该类似python的方式访问map**
+**kotlin不推荐get和put方法进行读写，应该类似python的方式访问map**
 
 ```kotlin
 map["Apple"] = 1//存数据
@@ -149,7 +178,7 @@ val apple = map["Apple"]//读
 
 
 
-同list，map也有mapOf和mutableMapOf简化创建的代码
+同list，map也有`mapOf`和`mutableMapOf`来创建Map
 
 ```kotlin
 val map = mapOf("Apple" to 1, "Banana" to 2, "Orange" to 3, "Pear" to 4, "Grape" to 5)
@@ -166,13 +195,13 @@ for ((fruit, number) in map) {
 
 
 
-### 2.5 Unit / Nothing/Any
+### 2.5 Unit/Nothing/Any
 
 > https://www.jianshu.com/p/223e95ac41ef
 
 #### **Unit**
 
- 由于在Kotlin中，一切方法/函数都是表达式，表达式是总是有值的，所以每一个方法都必有一个返回值。如果没有用 `return` 明确的指定，那么一般来说就会用自动帮我们加上 `Unit`，等同于这样: 
+ 由于在Kotlin中，一切方法/函数都是表达式，表达式是总是有值的，所以每一个方法都必有一个返回值。如果没有用 `return` 明确的指定，那么一般来说就会自动帮我们加上 `Unit`: 
 
 ```kotlin
 fun returnUnit():Unit{
@@ -190,7 +219,7 @@ fun returnUnit():Unit{
 
 #### Any
 
-Any其实就跟Java里的Object是一样的，也就是说在Kotlin中Any取代了Java中的Object，成为了Kotlin中所有类的父类。**不过这个说法还不是很严谨**，因为`Any`是不可为空的，而Kotlin中还有一个 `Any?`，是指可空的 `Any` 。显而易见， `Any?` 是 `Any` 的父类，那么严格来说， `Any?` 是所有类的父类， `Any` 只是所有不可为空的类（也就是没有?）的父类。
+**Any其实就跟Java里的`Object`是一样的**，也就是说在Kotlin中Any取代了Java中的Object，成为了Kotlin中所有类的父类。**不过这个说法还不是很严谨**，因为`Any`是不可为空的，而Kotlin中还有一个 `Any?`，是指可空的 `Any` 。显而易见， `Any?` 是 `Any` 的父类，那么严格来说， `Any?` 是所有类的父类， `Any` 只是所有不可为空的类（也就是没有?）的父类。
 
 
 
@@ -226,17 +255,11 @@ fun largerNumber(num1: Int, num2: Int) = max(num1, num2) //这里连函数返回
 
 
 
-
-
-
-
-
-
 ### 3.2标准库函数
 
 **3.2.1 repeat**
 
- 用于执行指定次数的循环操作 
+ 用于执行**指定次数的循环操作** 
 
 ```kotlin
 repeat(times: Int, action: (Int) -> Unit)
@@ -263,7 +286,7 @@ Kotlin中有4种函数修饰符，分别是`public`、`private`、`protected`和
 
 
 
-### 3.4lambda
+### 3.4**lambda**
 
 #### （1）maxBy
 
@@ -293,8 +316,6 @@ val maxLengthFruit = list.maxBy { fruit: String -> fruit.length }
 ```kotlin
 val maxLengthFruit = list.maxBy { it.length }
 ```
-
-
 
 
 
@@ -335,7 +356,7 @@ println("anyResult is " + anyResult + ", allResult is " + allResult)
 
 
 
-#### （4）调用java函数时api
+#### （4）调用java函数式api
 
 当kotlin调用一个方法，且该方法接收一个Java`单抽象方法接口（即只有一个方法的接口）`作为参数，就可以使用**函数式API**
 
@@ -379,7 +400,7 @@ Thread(object : Runnable {
 
 ### if
 
-kotlin中的if可以有返回值，**返回值就是if语句条件的最后一句话**
+kotlin中的`if`可以有返回值，**返回值就是if语句条件的最后一句话**
 
 ```kotlin
 fun largerNumber(num1: Int, num2: Int): Int {
@@ -477,9 +498,24 @@ fun main() {
 可以在类名后面直接指定主构造函数(默认构造函数)
 
 ```kotlin
+class Student constructor(val sno: String, val grade: Int)  {
+}
+```
+
+ 如果主构造函数没有任何注解或者可见性修饰符，可以省略这个 `constructor` 关键字 
+
+```kotlin
 class Student(val sno: String, val grade: Int)  {
 }
 ```
+
+> **有注解导致不能省略的情况**
+>
+> ```kotlin
+> class Customer public @Inject constructor(name: String) { /*……*/ }
+> ```
+>
+> 
 
 如果主构造函数有函数体，可以放在init里面
 
@@ -500,17 +536,54 @@ class Student(val sno: String, val grade: Int) {
 
 **当一个类既有主构造函数又有次构造函数时，所有的次构造函数都必须调用主构造函数（包括间接调用）**
 
+并且次构造函数参数不允许有`val`或`var`，必须声明参数类型
+
 ```kotlin
 class Student(val sno: String, val grade: Int, name: String, age: Int) :
 Person(name, age) {
     constructor(name: String, age: Int) : this("", 0, name, age) {//次构造体函数调用主构造体函数函数
     }
-    constructor() : this("", 0) {//调用上一个此构造函数，间接调用主构造体函数
+    constructor() : this("", 0) {//调用上一个次构造函数，间接调用主构造体函数
     }
 }
 ```
 
+即使次构造函数没有委托主构造函数，但依然会执行init代码块
 
+```kotlin
+class Constructors {
+    init {
+        println("Init block")
+    }
+
+    constructor(i: Int) {
+        println("Constructor $i")
+    }
+}
+//sampleEnd
+
+fun main() {
+    Constructors(1)
+}
+
+//输出
+Init block
+Constructor 2
+```
+
+**关于主和次之间的关系**
+
+我觉得就和java中的重载类似，`主`就是默认最终执行的的，`次`就是根据参数重载的，但是都必须要调用`主`
+
+
+
+#### 私有构造函数
+
+不想有外部可以访问的构造函数
+
+```kotlin
+class DontCreateMe private constructor() { /*……*/ }
+```
 
 
 
@@ -518,15 +591,17 @@ Person(name, age) {
 
 **与java类似，类只支持单继承类**
 
-kotlin中类默认无法被继承，默认都为非抽象类，因此需要加上关键字`open`才可以使得非抽象类能被继承
+**kotlin中类默认无法被继承(抽象类除外)**，因此需要加上关键字`open`才可以使得非抽象类能被继承
+
+且所有类默认继承自`Any`
 
 ```kotlin
-open class Person {
+open class Person {//默认继承自Any
     ...
 }
 ```
 
-**继承的时候也要显示说明调用父亲的主题构造函数，也就是`Person()`，实现super功能**
+**继承的时候也要显示说明调用父亲的主题构造函数**
 
 ```kotlin
 class Student(val sno: String, val grade: Int) : Person() {
@@ -544,7 +619,7 @@ class Student(val sno: String, val grade: Int, name: String, age: Int) : Person(
 如果没有主构造函数，那么次构造函数需要通过`super`调用父类的构造函数
 
 ```kotlin
-class Student : Person {//因为没有主构造函数，因此继承时候也不用加括号
+class Student : Person {
     constructor(name: String, age: Int) : super(name, age) {
     }
 }
@@ -552,7 +627,75 @@ class Student : Person {//因为没有主构造函数，因此继承时候也不
 
 
 
-### 6.3 接口
+#### 方法覆盖
+
+- `Circle.draw()` 函数上必须加上 `override` 修饰符。如果没写，编译器会报错。 
+- 如果函数没有标注 `open` 如 `Shape.fill()`，那么子类中不允许定义相同签名的函数， 无论加不加 `override`。 
+
+```kotlin
+open class Shape {
+    open fun draw() { /*……*/ }//如果子类要覆盖父类方法必须加open
+    fun fill() { /*……*/ }
+}
+
+class Circle() : Shape() {
+    override fun draw() { /*……*/ }//子类重写必须加override
+}
+```
+
+
+
+**禁止子类覆盖**
+
+如果不想让子类覆盖，加上`final`关键字
+
+```kotlin
+open class Rectangle() : Shape() {
+    final override fun draw() { /*……*/ }
+}
+```
+
+
+
+#### 属性覆盖
+
+同样如此
+
+```kotlin
+open class Shape {
+    open val vertexCount: Int = 0
+}
+
+class Rectangle : Shape() {
+    override val vertexCount = 4
+}
+```
+
+
+
+
+
+### 6.3抽象类
+
+抽象类通过加上`abstract`来辩别，并且不用声明`open`关键字
+
+```kotlin
+abstract class Polygon {
+    abstract fun draw()
+}
+
+class Rectangle : Polygon() {
+    override fun draw() {
+        // draw the rectangle
+    }
+}
+```
+
+
+
+
+
+### 6.4接口
 
 **与java类似，类支持多继承接口**
 
@@ -563,7 +706,7 @@ interface Study {
 }
 ```
 
-和java(1.8开始)一样，接口中的方法可以有默认实现
+和java(1.8)一样，接口中的方法可以有默认实现
 
 ```kotlin
 interface Study {
@@ -576,7 +719,43 @@ interface Study {
 
 
 
-### 6.4数据类
+#### SAM
+
+ 只有一个抽象方法的接口称为*函数式接口*或 *单一抽象方法（SAM）*接口。函数式接口可以有多个非抽象成员，但只能有一个抽象成员。 
+
+**可以用 `fun` 修饰符在 Kotlin 中声明一个函数式接口** 
+
+```kotlin
+fun interface IntPredicate {
+   fun accept(i: Int): Boolean
+}
+```
+
+对于函数式接口，可以通过lambda表达式实现SAM转换，从而使代码更简洁、更有可读性。 如下：
+
+```kotlin
+// 通过 lambda 表达式创建一个实例
+val isEven = IntPredicate { it % 2 == 0 }
+
+print(isEven.accept(10))
+```
+
+> **如果不使用SAM转换**
+>
+> ```kotlin
+> // 创建一个类的实例
+> val isEven = object : IntPredicate {
+>    override fun accept(i: Int): Boolean {
+>        return i % 2 == 0
+>    }
+> }
+> ```
+>
+> 
+
+
+
+### 6.5数据类
 
 java中如果实现一个entity一般要重写`toString`、`equals`、`hashCode`等方法。**在kotlin中，直接在类前声明`data`关键字即可**，免去代码量
 
@@ -586,7 +765,7 @@ data class Cellphone(val brand: String, val price: Double)
 
 
 
-### 6.5单例类
+### 6.6单例类
 
 不像java中创建单例模式那么繁琐，kotlin提供了`object`关键字可以创建单例类
 
@@ -607,8 +786,6 @@ Singleton.singletonTest()
 
 
 
-
-
 ## 7.空指针检查
 
 ### 7.1可空类型系统
@@ -616,8 +793,8 @@ Singleton.singletonTest()
 kotlin的变量默认不为空，因此在编译时就会判断变量是否为空并报错
 
 ```kotlin
-fun  main(args: Array<String>) {
-   n(null)//报错：error: null can not be a value of a non-null type Int
+fun main(args: Array<String>) {
+    n(null)//报错：error: null can not be a value of a non-null type Int
 }
 private fun n( a:Int){
     print("我是n")
@@ -1563,14 +1740,14 @@ object RepositoryManager{
 >
 > ```kotlin
 > class ObjectOuter {
->     object Inner{
->         fun method(){
->             println("I'm in inner class")
->         }
->     }
+>        object Inner{
+>            fun method(){
+>                println("I'm in inner class")
+>            }
+>        }
 > }
 > fun main(args: Array<String>) {
->     ObjectOuter.Inner.method()
+>        ObjectOuter.Inner.method()
 > }
 > ```
 
@@ -1776,9 +1953,3 @@ b. `Companion object`：当它对应的类被加载后，它才初始化，类�
 c. `object expression`：一旦它被执行，立马初始化
 
 
-
-
-
-# 
-
-## 
