@@ -285,6 +285,48 @@ public void onSaveInstanceState(Bundle outState) {
 
 
 
+##### 屏幕旋转时候的Activity声明周期变化
+
+> https://juejin.cn/post/7136577262383529992
+>
+> https://juejin.cn/post/6844903794849890317
+
+屏幕旋转分两种情况：
+
+- 一种是没有任何配置
+
+- 一种是 `android:configChanges` 的配置
+
+  > 最常用的值包括： `orientation` 和 `keyboardHidden`, 分别用于避免因屏幕方向和可用键盘改变而导致的重启。 而`screenSize`是在Android 4.0以上的情况必须加上，因为横纵向切换时，屏幕尺寸也会改变
+  >
+  > ```xml
+  > <activity android:name=".MainActivity"
+  >             android:configChanges="orientation|keyboardHidden|screenSize" / >
+  > ```
+  >
+  > 当其中一个配置发生变化时， `MainActivity` 不会重启。 但是会收到 `onConfigurationChanged()` 的调用。向此方法传递 `Configuration` 对象指定新设备配置。可以通过读取 `Configuration`  中的字段，确定新配置。然后通过更新界面中使用的资源进行适当的更改。调用此方法时，Activity 的  Resources 对象会相应的进行更新，以根据新配置返回资源，这样，就能够在系统不重启 Activity 的情况下轻松重置 UI 的元素。
+
+**①当按crtl+f12切换成横屏时 **
+
+没有任何配置的Activity的生命周期
+
+```
+onSaveInstanceState-->
+onPause-->
+onStop-->
+onDestroy-->
+onCreate-->
+onStart-->
+onRestoreInstanceState-->
+onResume-->
+```
+
+而配置了configChanges的activity则只会回调
+
+```java
+onConfigurationChanged-->
+```
+
 #### 4.跳转界面
 
 ##### (1)显式跳转
