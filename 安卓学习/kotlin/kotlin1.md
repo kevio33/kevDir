@@ -150,7 +150,17 @@ fun main() {
 }
 ```
 
-> **set同理**
+> 关于这个`mutableListOf`和`ArrayList`：
+>
+> 查看源码发现，内部其实是通过ArrayList创建的
+>
+> ![1722155507269](kotlin1.assets/1722155507269.png)
+
+
+
+**set同理**
+
+
 
 
 
@@ -274,15 +284,6 @@ repeat(5) { index ->
 ```
 
 
-
-### 3.3函数修饰符
-
-Kotlin中有4种函数修饰符，分别是`public`、`private`、`protected`和 `internal`
-
-- `public`：默认修饰符，表示对所有类都可见
-- `private`：只对类内部可见
-- `protected`：对当前类和子类可见
-- `internal`：（摒弃了default）对同一模块中的类可见
 
 
 
@@ -534,9 +535,9 @@ class Student(val sno: String, val grade: Int) {
 
 次构造函数是通过`constructor`关键字来定义的。
 
-**当一个类既有主构造函数又有次构造函数时，所有的次构造函数都必须调用主构造函数（包括间接调用）**
+- **当一个类既有主构造函数又有次构造函数时，所有的次构造函数都必须调用主构造函数（包括间接调用）**
 
-并且次构造函数参数不允许有`val`或`var`，必须声明参数类型
+- **并且次构造函数参数不允许有`val`或`var`，必须声明参数类型**
 
 ```kotlin
 class Student(val sno: String, val grade: Int, name: String, age: Int) :
@@ -574,6 +575,12 @@ Constructor 2
 **关于主和次之间的关系**
 
 我觉得就和java中的重载类似，`主`就是默认最终执行的的，`次`就是根据参数重载的，但是都必须要调用`主`
+
+
+
+> 在 JVM 上，**如果主构造函数的所有的参数都有默认值，编译器会生成一个额外的无参构造函数**，它将使用默认值。这使得 Kotlin 更易于使用像 Jackson 或者 JPA 这样的通过无参构造函数创建类的实例的库。 
+
+
 
 
 
@@ -630,7 +637,7 @@ class Student : Person {
 #### 方法覆盖
 
 - `Circle.draw()` 函数上必须加上 `override` 修饰符。如果没写，编译器会报错。 
-- 如果函数没有标注 `open` 如 `Shape.fill()`，那么子类中不允许定义相同签名的函数， 无论加不加 `override`。 
+- **如果函数没有标注 `open` 如 `Shape.fill()`，那么子类中不允许定义相同签名的函数**， 无论加不加 `override`。 
 
 ```kotlin
 open class Shape {
@@ -745,9 +752,9 @@ print(isEven.accept(10))
 > ```kotlin
 > // 创建一个类的实例
 > val isEven = object : IntPredicate {
->    override fun accept(i: Int): Boolean {
->        return i % 2 == 0
->    }
+>        override fun accept(i: Int): Boolean {
+>            return i % 2 == 0
+>        }
 > }
 > ```
 >
@@ -757,11 +764,28 @@ print(isEven.accept(10))
 
 ### 6.5数据类
 
-java中如果实现一个entity一般要重写`toString`、`equals`、`hashCode`等方法。**在kotlin中，直接在类前声明`data`关键字即可**，免去代码量
+**在kotlin中，直接在类前声明`data`关键字**， 编译器自动**从主构造函数中**声明的所有属性导出以下成员： 
+
+- `.equals()`/`.hashCode()` 对。
+- `.toString()` 格式是 `"User(name=John, age=42)"`。
+- [`.componentN()` 函数](https://book.kotlincn.net/text/destructuring-declarations.html) 按声明顺序对应于所有属性。
+- `.copy()` 函数（见下文）
 
 ```kotlin
 data class Cellphone(val brand: String, val price: Double)
 ```
+
+
+
+
+
+#### 要求
+
+数据类必须满足以下要求：
+
+- 主构造函数必须至少有一个参数。
+- 主构造函数的所有参数必须标记为 `val` 或 `var`。
+- 数据类不能是抽象、开放、密封或者内部的。
 
 
 
@@ -783,6 +807,83 @@ object Singleton {
 ```kotlin
 Singleton.singletonTest()
 ```
+
+
+
+### 6.7内部类
+
+
+
+### 6.8密封类
+
+
+
+### 6.9委托
+
+ 委托是实现继承的一个很好的替代方式 
+
+例如： `Derived` 类可以通过将其所有公有成员都委托给指定对象来实现一个接口 `Base`： 
+
+```kotlin
+interface Base {
+    fun print()
+}
+
+class BaseImpl(val x: Int) : Base {
+    override fun print() { print(x) }
+}
+
+//b 将会在 Derived 中内部存储， 并且编译器将生成转发给 b 的所有 Base 的方法。
+class Derived(b: Base) : Base by b
+
+fun main() {
+    val b = BaseImpl(10)
+    Derived(b).print()
+}
+```
+
+
+
+### 内联类
+
+
+
+### getter \setter
+
+kotlin默认会帮属性实现getter、setter方法。
+
+如果想自己定义，参考如下：
+
+```kotlin
+class Person(private val _name: String, private var _age: Int) {
+    val name: String
+    get() = _name
+
+    var age: Int
+    get() = _age
+    set(value) {
+        if (value >= 0) {
+            _age = value
+        }
+    }
+}
+
+fun main() {
+    val person = Person("Alice", 30)
+    println(person.name) // 输出 Alice
+    println(person.age) // 输出 30
+
+    person.age = 31
+    println(person.age) // 输出 31
+
+    person.age = -1 // 不会更新 age，因为值小于 0
+    println(person.age) // 输出 31
+}
+```
+
+
+
+
 
 
 
@@ -1649,7 +1750,22 @@ suspend fun getData(): String {
 
 
 
-## 新特性
+## 可见性修饰符
+
+Kotlin中有4种修饰符，分别是`public`、`private`、`protected`和 `internal`
+
+- `public`：默认修饰符，表示对所有类都可见
+- `private`：只对类内部可见
+- `protected`：对当前类和子类可见
+- `internal`：（摒弃了default）对同一模块中的类可见
+
+
+
+
+
+
+
+# 新特性
 
 ### 字符串内嵌
 
@@ -1794,7 +1910,7 @@ class A{
 >
 > > 在定义（定义时如果省略了伴生对象名，那么编译器会为其提供默认的名字Companion）和调用时伴生对象名是可以省略的。 
 > >
-> > **所以一个类只允许有一个伴生对象，因为可以省略伴生对象名**
+> > **也因为如此，所以一个类只允许有一个伴生对象**
 
 #### (3) **对象表达式（Object Expression）** 
 
@@ -1952,4 +2068,208 @@ b. `Companion object`：当它对应的类被加载后，它才初始化，类�
 
 c. `object expression`：一旦它被执行，立马初始化
 
+
+
+
+
+### 类拓展
+
+Kotlin 能够对一个类或接口扩展新功能而无需继承该类或者使用像*装饰者*这样的设计模式。 这通过叫做*扩展*的特殊声明完成。 
+
+
+
+#### 拓展方法
+
+例如，**要对MutableList拓展一个swap方法**
+
+```kotlin
+fun <T> MutableList<T>.swap(index1: Int, index2: Int) {
+    val temp = this[index1]
+    this[index1] = this[index2]
+    this[index2] = temp
+}
+
+
+fun main(){
+    var list = mutableListOf("hello","it's me")//调用
+    list.swap(0,1)
+}
+```
+
+
+
+##### 静态解析
+
+类拓展是静态解析的，也就是**编译时候就已经根据接收者类型确定好要调用哪一个拓展方法**。比如下面例子
+
+```kotlin
+fun main() {
+    open class Shape
+    class Rectangle: Shape()
+
+    fun Shape.getName() = "Shape"
+    fun Rectangle.getName() = "Rectangle"
+
+    fun printClassName(s: Shape) {
+        println(s.getName())
+    }
+
+    printClassName(Rectangle())
+}
+
+//输出
+Shape
+```
+
+上面最后会输出Shape， 因为调用的扩展函数只取决于参数 `s` 的声明类型，该类型是 `Shape` 类 
+
+
+
+##### 成员函数和拓展函数
+
+如果一个类定义有一个成员函数与一个扩展函数，而这两个函数又有相同的接收者类型、 相同的名字，并且都适用给定的参数，这种情况*总是取成员函数*。 
+
+```kotlin
+fun main() {
+    class Example {
+        fun printFunctionType() { println("Class method") }
+    }
+
+    fun Example.printFunctionType() { println("Extension function") }
+
+    Example().printFunctionType()
+}
+
+//输出
+"Class Method"
+```
+
+
+
+#### 拓展属性
+
+```kotlin
+class MyClass(val value: Int)
+
+val MyClass.doubleValue: Int
+    get() = this.value * 2
+
+fun main() {
+    val obj = MyClass(10)
+    println(obj.doubleValue) // 输出 20
+}
+
+```
+
+> **扩展属性不能存储状态**：扩展属性不能有自己的字段来存储状态，它们只能通过 getter 和 setter 方法来计算或修改原类的属性。
+>
+> ```kotlin
+> val House.number = 1 // 错误：扩展属性不能有初始化器
+> ```
+
+
+
+#### 作用域
+
+一般拓展作用域的在包级别，同一包下都可以调用
+
+````kotlin
+package com.example.kotlintest
+
+fun <T> MutableList<T>.swap(index1: Int, index2: Int) {
+    val temp = this[index1]
+    this[index1] = this[index2]
+    this[index2] = temp
+}
+````
+
+如果是不同包下，import就好
+
+```kotlin
+package org.example.usage
+
+import org.example.declarations.getLongestString
+
+fun main() {
+    val list = listOf("red", "green", "blue")
+    list.getLongestString()
+}
+```
+
+
+
+#### 类内部拓展
+
+可以在一个类内部为另一个类声明扩展。在这样的扩展内部，有多个*隐式接收者*—— 其中的对象成员可以无需通过限定符访问。 
+
+```kotlin
+class Host(val hostname: String) {
+    fun printHostname() { print(hostname) }
+}
+
+class Connection(val host: Host, val port: Int) {
+    fun printPort() { print(port) }
+
+    fun Host.printConnectionString() {
+         printHostname()   // 调用 Host.printHostname()
+        print(":")
+         printPort()   // 调用 Connection.printPort()
+    }
+
+    fun connect() {
+         /*……*/
+         host.printConnectionString()   // 调用扩展函数
+    }
+}
+
+fun main() {
+    Connection(Host("kotl.in"), 443).connect()
+    //Host("kotl.in").printConnectionString()  // 错误，该扩展函数在 Connection 外不可用
+}
+```
+
+ 对于分发接收者与扩展接收者的成员名字冲突的情况，扩展接收者优先。要引用分发接收者的成员你可以使用 限定的 `this` 语法。 
+
+```kotlin
+class Connection {
+    fun Host.getConnectionString() {
+        toString()         // 调用 Host.toString()
+        this@Connection.toString()  // 调用 Connection.toString()
+    }
+}
+```
+
+
+
+
+
+### 限定this
+
+ 如果 `this` 没有限定符，它指的是最内层的包含它的作用域。要引用其他作用域中的 `this`，请使用 *标签限定符*： 
+
+要访问来自外部作用域的 `this`（一个类或者扩展函数， 或者带标签的带有接收者的函数字面值）使用`this@label`， 其中 `@label` 是一个代指 `this` 来源的标签： 
+
+```kotlin
+class A { // 隐式标签 @A
+    inner class B { // 隐式标签 @B
+        fun Int.foo() { // 隐式标签 @foo
+            val a = this@A // A 的 this
+            val b = this@B // B 的 this
+
+            val c = this // foo() 的接收者，一个 Int
+            val c1 = this@foo // foo() 的接收者，一个 Int
+
+            val funLit = lambda@ fun String.() {
+                val d = this // funLit 的接收者，一个 String
+            }
+
+            val funLit2 = { s: String ->
+                // foo() 的接收者，因为它包含的 lambda 表达式
+                // 没有任何接收者
+                val d1 = this
+            }
+        }
+    }
+}
+```
 

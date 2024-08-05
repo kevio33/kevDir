@@ -1,30 +1,81 @@
 ## Application
 
+> [Context解释](https://juejin.cn/post/7258508878386855993)
+
 `Application`是应用程序的**全局上下文**。Application 组件在应用程序启动时被创建，并在整个应用程序生命周期中保持存在。 
 
 **Application 组件在 Android 应用程序中是单例的**，即在整个应用程序中只有一个 Application 实例。因此，它**可以用于在不同组件之间共享数据和状态。**
 
 ### (1)作用 
 
-Application 组件主要用于存储和管理应用程序的全局状态和数据，例如用户信息、应用程序配置信息、数据库连接等。 
+- 访问应用程序资源：通过`Context`，可以获取应用程序的资源，如字符串、布局文件、图像等。这些资源可以在应用程序的各个组件中使用，例如`Activity`、`Service`、`BroadcastReceiver`等。
 
-往往通过继承Application类实现自己的Application
+- **启动组件**：通过`Context`，可以启动其他组件，如启动`Activity`、启动`Service`、发送广播等。它提供了访问系统服务的能力，如启动其他应用程序、发送系统广播等。
+
+- **获取应用程序的上下文**：通过`Context`，可以获取应用程序的上下文，如获取`ApplicationContext`，用于在整个应用程序中共享数据或执行全局操作。
+
+- **访问系统服务**：通过`Context`，可以访问各种系统服务，如获取系统级的服务（如传感器服务、位置服务）、访问设备功能（如摄像头、存储器）、执行网络操作等。
+
+- 访问应用程序的文件：通过`Context`对象，可以获取应用程序的文件目录，创建、读取、写入和删除文件等操作。
+
+- 处理资源生命周期：通过`Context`，可以管理应用程序资源的生命周期，如创建、销毁对象、注册和注销监听器等。它提供了一种机制，确保资源的正确使用和释放，避免内存泄漏等问题。
 
 ### (2)Application、activity、context
 
 > [activity、service、application与context区别](https://blog.csdn.net/qq475703980/article/details/88430891)
 >
-> [context](https://blog.csdn.net/guolin_blog/article/details/47028975)
+> [Context源码](https://mp.weixin.qq.com/s/Q-rvFKNn8-m04Kua45YUrg)
 
  ![在这里插入图片描述](Android--四大组件.assets/20190531205848781.jpg) 
 
 > `Context`:是一个接口类，主要提供通用接口
 >
-> `ContextImpl`:Context接口的具体实现类
+> `ContextImpl`:Context接口的具体实现类。用到的很多常用的方法都是这个类实现，具体源码
 >
-> `ContextWrapper`：Context的包装类，内部持有一个ContextImpl的实例对象mBase,对Context的操作最终都进入ContextImpl类
+> `ContextWrapper`：**Context的包装类**，内部持有一个`ContextImpl`的实例对象`mBase`,对`Context`的操作最终都进入`ContextImpl`类
 >
-> `ContextThemeWrappe`r：该类内部包含了主题(Theme)相关的接口，即android:theme属性指定的。Service不需要主题，所以Service直接继承于ContextWrapper类。而Activity继承此类。
+> `ContextThemeWrapper`：**也是Context的包装类**，该类内部包含了主题(Theme)相关的接口，即`android:theme`属性指定的。Service不需要主题，所以Service直接继承于ContextWrapper类。而Activity继承此类。
+
+
+
+### (3)获取context的方式
+
+> [getApplication和getApplicationContext](https://www.cnblogs.com/mingfeng002/p/11995177.html)
+
+开发中经常会获取context，有几种方式：
+
+- **`View.getContext`**： 返回**视图**当前运行的上下文。通常是当前活动的Activity。
+
+- **`Activity.this`**：在Activity当中就是代表当前的Activity，换句话说就是Activity.this在Activity当中可以缩写为this.
+
+  ​    Activity.this的context 返回当前activity的上下文，属于activity ，activity 摧毁他就摧毁
+
+- **`ContextWrapper.getApplicationContext`**：返回整个应用程序的上下文（所有Activities正在其中运行的进程）。如果需要一个与整个应用程序的生命周期相关联的上下文，而不仅仅是当前Activity，则应使用此上下文。
+
+- **`Activity.getApplication`**：返回和`getApplicationContext`一样的`application`实例
+
+> `getApplicationContext`和`getApplicaion`区别：
+>
+> getApplication()是用来获取Application实例的，但是**该方法只在Activity和Service中才能调用**；
+>
+> 在一些其他的地方，比如在BroadcastReceiver中也想获取Application实例，这时就需要使用getApplicationContext()方法 
+
+- **`ContextWrapper.getBaseContext`**：contextWrapper中持有一个`ContextImpl`，用`mBase`保存
+
+
+
+### (4)context适用情况总结
+
+> https://web.archive.org/web/20150329210012/https://possiblemobile.com/2013/06/context/
+
+ ![screenshot](Android--四大组件.assets/r6P9w.png) 
+
+
+
+通过这个表格可以注意到：
+
+- **Broadcast**：本身并不是一个 Context，但每当新的广播事件到达时，框架会在 onReceive() 中向其传递一个 Context。这个实例是一个 ReceiverRestrictedContext，其中的两个主要功能被禁用：调用 registerReceiver() 和 bindService()。这两个功能不允许在现有的 BroadcastReceiver.onReceive() 中调用。每当接收者处理广播时，传递给它的 Context 是一个新实例。
+- **ContentProvider**：本身也不是一个上下文，但在创建时可以通过 getContext() 访问。如果 ContentProvider 在调用者（即同一应用程序进程）本地运行，则实际上将返回相同的 Application 单例。但是，如果两者在不同的进程中，则将创建一个新的实例，该实例代表提供程序所在的包。
 
 
 
@@ -2723,7 +2774,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
         String log = sb.toString();
         Log.d(TAG, log);
 
-       Toast.makeText(context,log,Toast.LENGTH_LONG).show();
+        Toast.makeText(context,log,Toast.LENGTH_LONG).show();
     }
 }
 ```

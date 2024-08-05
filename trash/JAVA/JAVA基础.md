@@ -1564,7 +1564,7 @@ public class ConflictHashCodeTest2{
 
 ## 十四、枚举
 
- Java SE5 提供了一种新的类型-Java 的枚举类型，关键字`enum`可以将一组具名的值的有限集合创建为一种新的类型，而这些具名的值可以作为常规的程序组件使用，这是一种非常有用的功能。 
+枚举（Enum）是一种特殊的数据类型，它允许开发者定义一组命名的常量。枚举在Java 5中引入，提供了一种安全且方便的方式来处理具有预定义值的集合。 
 
 > **enum是一个类似class的关键字**
 
@@ -1574,7 +1574,7 @@ public enum t {
 }
 ```
 
-上面代码反编译之后
+**上面代码反编译之后**
 
 ```java
 public final class T extends Enum
@@ -1611,7 +1611,55 @@ public final class T extends Enum
 }
 ```
 
- `public final class T extends Enum`，说明，该类是继承了`Enum`类的，同时`final`关键字告诉我们，这个类也是不能被继承的。 
+- `public final class T extends Enum`，说明，该类是继承了`Enum`类的，同时`final`关键字告诉我们，这个类也是不能被继承的。 
+
+- **枚举常量（Enum Constants）可以被看作是枚举类型（Enum Type）的实例**。在Java中，定义一个枚举类型时，每个枚举常量都是该枚举类型的一个唯一实例。 例如上面的`SPRING,SUMMER`都是`t`的一个实例，因此自然可以调用t中的方法
+
+  ```java
+  public enum Color {
+      RED(255, 0, 0),
+      GREEN(0, 255, 0),
+      BLUE(0, 0, 255);
+  
+      private final int redValue;
+      private final int greenValue;
+      private final int blueValue;
+  
+      Color(int redValue, int greenValue, int blueValue) {
+          this.redValue = redValue;
+          this.greenValue = greenValue;
+          this.blueValue = blueValue;
+      }
+  
+      public int getRedValue() {
+          return redValue;
+      }
+  
+      public int getGreenValue() {
+          return greenValue;
+      }
+  
+      public int getBlueValue() {
+          return blueValue;
+      }
+  }
+  
+  
+  public static void main(){
+      Color.RED.getRedValue();//RED就是一个枚举实例，因此可以调用枚举内部方法
+  }
+  ```
+
+
+
+### 枚举特性
+
+1. **类型安全**：枚举确保变量只能是预定义的常量之一。
+2. **可以添加方法和变量**：枚举可以像类一样定义方法和变量。
+3. **可以覆盖方法**：枚举中的常量可以覆盖枚举中的方法。
+4. **可以有构造器**：枚举可以有构造器，用于初始化枚举常量。
+
+
 
 # 拓展
 

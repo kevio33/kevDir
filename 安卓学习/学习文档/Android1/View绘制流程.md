@@ -1428,25 +1428,26 @@ public void setWillNotDraw(boolean willNotDraw) {
 
 
 
-
-
-
-
 # View刷新
 
 View重绘和更新可以使用`invalidate()`和`requestLayout()`方法，其主要区别如下：
 
-- `invalidate()`方法只会执行onDraw方法
+- `invalidate()`：**只会执行`onDraw`方法**
 
-- `requestLayout()`只会执行onMeasure方法和onLayout方法，并不会执行onDraw方法
+- `requestLayout()`：只会执行`onMeasure`方法和`onLayout`方法，并不会执行`onDraw`方法
 
   > 这里的requestLayout和viewrootImpl不是同一个
 
 
 
-当进行View更新时，若仅View的显示内容发生改变且新显示内容不影响View的大小、位置，则只需调用`invalidate()`方法；若View宽高、位置发生改变且显示内容不变，只需调用`requestLayout()`方法；若两者均发生改变，则需调用两者，按照View的绘制流程，推荐先调用`requestLayout()`方法再调用`invalidate()`方法。 
+- 若仅View的显示内容发生改变且新显示内容不影响View的大小、位置，则只需调用`invalidate()`方法；
+
+- 若View宽高、位置发生改变且显示内容不变，只需调用`requestLayout()`方法；
+- 若两者均发生改变，则需调用两者，按照View的绘制流程，推荐先调用`requestLayout()`方法再调用`invalidate()`方法。 
 
 # 创建自定义View
+
+## 2D
 
 **构建步骤**
 
@@ -1456,7 +1457,9 @@ View重绘和更新可以使用`invalidate()`和`requestLayout()`方法，其主
 
 
 
-> **onDraw()**：`onDraw()` 方法为您提供了一个 `Canvas`，您可以在其上实现所需的任何东西：2D 图形、其他标准或自定义组件、样式文本或您可以想到的其他任何东西。(**注意**：这不适用于实现 3D 图形。如果您想要使用 3D 图形，则必须扩展 `SurfaceView`（而不是 View），并从单独的线程绘制。如需了解详情，请参阅 GLSurfaceViewActivity 示例。)
+> **onDraw()**：`onDraw()` 方法为您提供了一个 `Canvas`，您可以在其上实现所需的任何东西：2D 图形、其他标准或自定义组件、样式文本或您可以想到的其他任何东西。
+>
+> (**注意**：这不适用于实现 3D 图形。如果想要使用 3D 图形，则必须扩展 `SurfaceView`（而不是 View），并从单独的线程绘制。如需了解详情，请参阅 GLSurfaceViewActivity 示例。)
 
 
 
@@ -1468,37 +1471,9 @@ View重绘和更新可以使用`invalidate()`和`requestLayout()`方法，其主
 
 
 
-**使用自定义组件：**
+### 自定义组件基本步骤：
 
-```xml
-<view xmlns:android="http://schemas.android.com/apk/res/android"
-    class="com.example.android.notepad.NoteEditor$LinedEditText"//声明自定义组件的类
-    android:id="@+id/note"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@android:color/transparent"
-    android:padding="5dp"
-    android:scrollbars="vertical"
-    android:fadingEdge="vertical"
-    android:gravity="top"
-    android:textSize="22sp"
-    android:capitalize="sentences"
-/>
-```
-
-> 请注意，我们定义的**内部类**是使用 `NoteEditor$LinedEditText` 标记引用的，这是以 Java 编程语言引用内部类的标准方式。
->
-> 如果您的自定义 View 组件未定义为内部类，则您可以选择使用 XML 元素名称声明 View 组件，并排除 `class` 属性。例如：
-
-```xml
-<com.example.android.notepad.LinedEditText
-  id="@+id/note"
-  ... />
-```
-
-
-
-**子类化视图：**
+#### (1)子类化视图：
 
 为了使 Android Studio 能够与您的视图交互，您必须*至少提供一个以 `Context` 和 `AttributeSet` 对象为参数的构造函数*。此构造函数允许布局编辑器创建和编辑视图的实例。
 
@@ -1547,7 +1522,39 @@ View重绘和更新可以使用`invalidate()`和`requestLayout()`方法，其主
 
 
 
-**自定义属性值**
+#### (2)布局文件引入
+
+```xml
+<view xmlns:android="http://schemas.android.com/apk/res/android"
+    class="com.example.android.notepad.NoteEditor$LinedEditText"//声明自定义组件的类
+    android:id="@+id/note"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent"
+    android:padding="5dp"
+    android:scrollbars="vertical"
+    android:fadingEdge="vertical"
+    android:gravity="top"
+    android:textSize="22sp"
+    android:capitalize="sentences"
+/>
+```
+
+> 请注意，我们定义的**内部类**是使用 `NoteEditor$LinedEditText` 标记引用的，这是以 Java 编程语言引用内部类的标准方式。
+>
+> 如果您的自定义 View 组件未定义为内部类，则您可以选择使用 XML 元素名称声明 View 组件，并排除 `class` 属性。例如：
+
+```xml
+<com.example.android.notepad.LinedEditText
+  id="@+id/note"
+  ... />
+```
+
+
+
+
+
+#### (3)自定义属性值
 
 如需定义自定义属性，请向项目添加 `<declare-styleable> `资源。这些资源通常放在 `res/values/attrs.xml` 文件中。以下是 `attrs.xml` 文件的示例：
 
@@ -1666,7 +1673,7 @@ View重绘和更新可以使用`invalidate()`和`requestLayout()`方法，其主
   <TextView android:gravity="bottom|left"/>
   ```
 
-  `位运算类型的属性在使用的过程中可以使用多个值`
+  
 
 - 混合类型：属性定义时可以指定多种类型值
 
@@ -1684,32 +1691,37 @@ View重绘和更新可以使用`invalidate()`和`requestLayout()`方法，其主
   android:background = "#00FF00" />
   ```
 
-**应用自定义属性：**
+
+
+**构造函数中获取属性**：
 
 通过 XML 布局创建视图时，XML 标记中的所有属性都会从资源包读取，并作为 `AttributeSet` 传递到视图的构造函数中。将 `AttributeSet` 传递给 `obtainStyledAttributes()`。此方法会传回一个 `TypedArray` 数组，其中包含已解除引用并设置了样式的值。
 
 ```java
+//自定义一个PieChart
+//构造函数中获取属性
 public PieChart(Context context, AttributeSet attrs) {
-       super(context, attrs);
-       TypedArray a = context.getTheme().obtainStyledAttributes(
-            attrs,
-            R.styleable.PieChart,
-            0, 0);//获取属性返回一个TypeArray
+    super(context, attrs);
+    //获取属性返回一个TypeArray
+    TypedArray a = context.getTheme().obtainStyledAttributes(
+        attrs,
+        R.styleable.PieChart,
+        0, 0);
 
-       try {
-           mShowText = a.getBoolean(R.styleable.PieChart_showText, false);
-           textPos = a.getInteger(R.styleable.PieChart_labelPosition, 0);
-       } finally {
-           a.recycle();//TypedArray 对象是共享资源，必须在使用后回收。
-       }
+    try {
+        mShowText = a.getBoolean(R.styleable.PieChart_showText, false);
+        textPos = a.getInteger(R.styleable.PieChart_labelPosition, 0);
+    } finally {
+        a.recycle();//TypedArray 对象是共享资源，必须在使用后回收。
     }
+}
 ```
 
 
 
 **添加属性和事件**
 
-属性是控制视图行为和外观的强大方式，但只能在视图初始化时读取。如需提供动态行为，请为每个自定义属性公开一个 getter 与 setter 属性对。以下代码段展示了 `PieChart` 如何公开名为 `showText` 的属性：
+属性是控制视图行为和外观的强大方式，但只能在视图初始化时读取。如需提供动态行为，请为每个自定义属性公开一个 getter 与 setter 属性对。以下代码段展示了 `PieChart` 公开名为 `showText` 的属性：
 
 ```java
 public boolean isShowText() {
@@ -1722,12 +1734,34 @@ public void setShowText(boolean showText) {
     invalidate();
     requestLayout();
 }
-//setShowText 会调用 invalidate() 和 requestLayout()。这些调用对于确保视图可靠运行至关重要。您必须在视图属性发生任何可能改变其外观的更改后使该视图失效，以便系统知道需要重新绘制该视图。同样，如果属性更改可能会影响视图的大小或形状，则需要请求新的布局。
 ```
 
 
 
-## 自定义组合控件：
+#### (4)重写方法绘制
+
+如果自定义视图类继承了View，那需要重写三个方法来测量、定位、绘制视图
+
+```java
+public class CustomTextView extends View {
+    public void onMeasure(){
+        
+    }
+    
+    
+    public
+}
+```
+
+
+
+
+
+
+
+
+
+### 自定义组合控件：
 
 自定义组合控件就是将多个控件组合成为一个新的控件，主要解决多次重复使用同一类型的布局。我们通过一个自定义HeaderView实例来了解自定义组合控件的用法。
 
@@ -1800,37 +1834,37 @@ public class YFHeaderView extends RelativeLayout {
 ③初始化UI
 
 ```java
- //初始化UI，可根据业务需求设置默认值。
-    private void initView(Context context) {
-        LayoutInflater.from(context).inflate(R.layout.view_header, this, true);
-        img_left = (ImageView) findViewById(R.id.header_left_img);
-        img_right = (ImageView) findViewById(R.id.header_right_img);
-        text_center = (TextView) findViewById(R.id.header_center_text);
-        layout_root = (RelativeLayout) findViewById(R.id.header_root_layout);
-        layout_root.setBackgroundColor(Color.BLACK);
-        text_center.setTextColor(Color.WHITE);
+//初始化UI，可根据业务需求设置默认值。
+private void initView(Context context) {
+    LayoutInflater.from(context).inflate(R.layout.view_header, this, true);
+    img_left = (ImageView) findViewById(R.id.header_left_img);
+    img_right = (ImageView) findViewById(R.id.header_right_img);
+    text_center = (TextView) findViewById(R.id.header_center_text);
+    layout_root = (RelativeLayout) findViewById(R.id.header_root_layout);
+    layout_root.setBackgroundColor(Color.BLACK);
+    text_center.setTextColor(Color.WHITE);
 
-    }
+}
 ```
 
 ④提供对外方法
 
 ```java
 //设置标题文字的方法
-    private void setTitle(String title) {
-        if (!TextUtils.isEmpty(title)) {
-            text_center.setText(title);
-        }
+private void setTitle(String title) {
+    if (!TextUtils.isEmpty(title)) {
+        text_center.setText(title);
     }
-    //对左边按钮设置事件的方法
-    private void setLeftListener(OnClickListener onClickListener) {
-        img_left.setOnClickListener(onClickListener);
-    }
+}
+//对左边按钮设置事件的方法
+private void setLeftListener(OnClickListener onClickListener) {
+    img_left.setOnClickListener(onClickListener);
+}
 
-    //对右边按钮设置事件的方法
-    private void setRightListener(OnClickListener onClickListener) {
-        img_right.setOnClickListener(onClickListener);
-    }
+//对右边按钮设置事件的方法
+private void setRightListener(OnClickListener onClickListener) {
+    img_right.setOnClickListener(onClickListener);
+}
 ```
 
 ⑤布局中引用控件
@@ -1851,311 +1885,11 @@ public class YFHeaderView extends RelativeLayout {
 </LinearLayout>
 ```
 
-完整代码：
-
-```java
-public class YFHeaderView extends RelativeLayout {
-    
-    ImageView img_left,img_right;
-    TextView text_center;
-    RelativeLayout layout_root;
-
-    public YFHeaderView(Context context) {
-        super(context);
-    }
-
-    public YFHeaderView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-    }
-
-    public YFHeaderView(Context context, AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-    }
-
-    //初始化UI，可根据业务需求设置默认值。
-    private void initView(Context context) {
-        LayoutInflater.from(context).inflate(R.layout.composite_custom_layout, this, true);
-        img_left = (ImageView) findViewById(R.id.header_left_img);
-        img_right = (ImageView) findViewById(R.id.header_right_img);
-        text_center = (TextView) findViewById(R.id.header_center_text);
-        layout_root = (RelativeLayout) findViewById(R.id.header_root_layout);
-        layout_root.setBackgroundColor(Color.BLACK);
-        text_center.setTextColor(Color.WHITE);
-
-    }
-
-    //设置标题文字的方法
-    private void setTitle(String title) {
-        if (!TextUtils.isEmpty(title)) {
-            text_center.setText(title);
-        }
-    }
-    //对左边按钮设置事件的方法
-    private void setLeftListener(OnClickListener onClickListener) {
-        img_left.setOnClickListener(onClickListener);
-    }
-
-    //对右边按钮设置事件的方法
-    private void setRightListener(OnClickListener onClickListener) {
-        img_right.setOnClickListener(onClickListener);
-    }
-}
-```
-
-## 继承控件系统
-
-业务需求：为文字设置背景，并在布局中间添加一条横线。
-
-因为这种实现方式会复用系统的逻辑，大多数情况下我们希望复用系统的`onMeaseur`和`onLayout`流程，所以我们只需要重写`onDraw`方法 。实现非常简单，话不多说，直接上代码。
-
-```java
-public class LineTextView extends TextView {
-
-    //定义画笔，用来绘制中心曲线
-    private Paint mPaint;
-    
-    /**
-     * 创建构造方法
-     * @param context
-     */
-    public LineTextView(Context context) {
-        super(context);
-        init();
-    }
-
-    public LineTextView(Context context, @Nullable AttributeSet attrs) {
-        super(context, attrs);
-        init();
-    }
-
-    public LineTextView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-        init();
-    }
-
-    private void init() {
-        mPaint = new Paint();
-        mPaint.setColor(Color.BLACK);
-    }
-
-    //重写draw方法，绘制我们需要的中间线以及背景
-    @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        int width = getWidth();
-        int height = getHeight();
-        mPaint.setColor(Color.BLUE);
-        //绘制方形背景
-        RectF rectF = new RectF(0,0,width,height);
-        canvas.drawRect(rectF,mPaint);
-        mPaint.setColor(Color.BLACK);
-        //绘制中心曲线，起点坐标（0,height/2），终点坐标（width,height/2）
-        canvas.drawLine(0,height/2,width,height/2,mPaint);
-    }
-}
-```
 
 
 
-## 直接继承view
 
-直接继承View会比上一种实现方复杂一些，这种方法的使用情景下，完全不需要复用系统控件的逻辑，除了要重写`onDraw`外还需要对`onMeasure`方法进行重写。
-
-通过自定义view绘制一个正方形
-
-```java
-ublic class RectView extends View{
-    //定义画笔
-    private Paint mPaint = new Paint();
-
-    /**
-     * 实现构造方法
-     * @param context
-     */
-    public RectView(Context context) {
-        super(context);
-        init();
-    }
-
-    public RectView(Context context, @Nullable AttributeSet attrs) {
-        super(context, attrs);
-        init();
-    }
-
-    public RectView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-        init();
-    }
-
-    private void init() {
-        mPaint.setColor(Color.BLUE);
-
-    }
-
-}
-```
-
-重写draw方法，绘制正方形，注意对padding属性进行设置
-
-```java
-/**
-     * 重写draw方法
-     * @param canvas
-     */
-    @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        //获取各个编剧的padding值
-        int paddingLeft = getPaddingLeft();
-        int paddingRight = getPaddingRight();
-        int paddingTop = getPaddingTop();
-        int paddingBottom = getPaddingBottom();
-        //获取绘制的View的宽度
-        int width = getWidth()-paddingLeft-paddingRight;
-        //获取绘制的View的高度
-        int height = getHeight()-paddingTop-paddingBottom;
-        //绘制View，左上角坐标（0+paddingLeft,0+paddingTop），右下角坐标（width+paddingLeft,height+paddingTop）
-        canvas.drawRect(0+paddingLeft,0+paddingTop,width+paddingLeft,height+paddingTop,mPaint);
-    }
-```
-
-之前讲到过measure源码处理过程：
-
-```java
-    public static int getDefaultSize(int size, int measureSpec) {
-        int result = size;
-        int specMode = MeasureSpec.getMode(measureSpec);
-        int specSize = MeasureSpec.getSize(measureSpec);
-
-        switch (specMode) {
-        case MeasureSpec.UNSPECIFIED:
-            result = size;
-            break;
-        case MeasureSpec.AT_MOST:
-        case MeasureSpec.EXACTLY:
-            result = specSize;
-            break;
-        }
-        return result;
-    }
-```
-
-在View的源码当中并没有对`AT_MOST`和`EXACTLY`两个模式做出区分，也就是说View在`wrap_content`和`match_parent`两个模式下是完全相同的，都会是`match_parent`，显然这与我们平时用的View不同，所以我们要重写`onMeasure`方法。
-
-**重写onMeasure方法：**
-
-```java
-    /**
-     * 重写onMeasure方法
-     *
-     * @param widthMeasureSpec
-     * @param heightMeasureSpec
-     */
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
-        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
-        int heightSize = MeasureSpec.getSize(heightMeasureSpec);
-        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
-
-        //处理wrap_contentde情况
-        if (widthMode == MeasureSpec.AT_MOST && heightMode == MeasureSpec.AT_MOST) {
-            setMeasuredDimension(300, 300);
-        } else if (widthMode == MeasureSpec.AT_MOST) {
-            setMeasuredDimension(300, heightSize);
-        } else if (heightMode == MeasureSpec.AT_MOST) {
-            setMeasuredDimension(widthSize, 300);
-        }
-    }
-```
-
-```java
-//完整代码
-public class RectView extends View {
-    //定义画笔
-    private Paint mPaint = new Paint();
-
-    /**
-     * 实现构造方法
-     *
-     * @param context
-     */
-    public RectView(Context context) {
-        super(context);
-        init();
-    }
-
-    public RectView(Context context, @Nullable AttributeSet attrs) {
-        super(context, attrs);
-        init();
-    }
-
-    public RectView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-        init();
-    }
-
-    private void init() {
-        mPaint.setColor(Color.BLUE);
-
-    }
-
-    /**
-     * 重写onMeasure方法
-     *
-     * @param widthMeasureSpec
-     * @param heightMeasureSpec
-     */
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
-        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
-        int heightSize = MeasureSpec.getSize(heightMeasureSpec);
-        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
-
-        if (widthMode == MeasureSpec.AT_MOST && heightMode == MeasureSpec.AT_MOST) {
-            setMeasuredDimension(300, 300);
-        } else if (widthMode == MeasureSpec.AT_MOST) {
-            setMeasuredDimension(300, heightSize);
-        } else if (heightMode == MeasureSpec.AT_MOST) {
-            setMeasuredDimension(widthSize, 300);
-        }
-    }
-
-    /**
-     * 重写draw方法
-     *
-     * @param canvas
-     */
-    @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        //获取各个编剧的padding值
-        int paddingLeft = getPaddingLeft();
-        int paddingRight = getPaddingRight();
-        int paddingTop = getPaddingTop();
-        int paddingBottom = getPaddingBottom();
-        //获取绘制的View的宽度
-        int width = getWidth() - paddingLeft - paddingRight;
-        //获取绘制的View的高度
-        int height = getHeight() - paddingTop - paddingBottom;
-        //绘制View，左上角坐标（0+paddingLeft,0+paddingTop），右下角坐标（width+paddingLeft,height+paddingTop）
-        canvas.drawRect(0 + paddingLeft, 0 + paddingTop, width + paddingLeft, height + paddingTop, mPaint);
-    }
-}
-```
-
-直接继承View时需要注意的几点：
-
-> 1、在onDraw当中对padding属性进行处理。
-> 2、在onMeasure过程中对wrap_content属性进行处理。
-> 3、至少要有一个构造方法。
-
-
-
-## 继承ViewGroup
+### 继承ViewGroup
 
 自定义ViewGroup的过程相对复杂一些，因为除了要对自身的大小和位置进行测量之外，还需要对子View的测量参数负责。
 
@@ -2165,112 +1899,7 @@ public class RectView extends View {
 
 
 
-## 实现自定义绘图
 
-绘制自定义视图最重要的一步是替换 `onDraw()` 方法。`onDraw()` 的参数是一个 `Canvas` 对象，视图可以使用该对象绘制其自身。`Canvas` 类定义了绘制文本、线条、位图和许多其他图形基元的方法。您可以在 `onDraw()` 中使用这些方法创建自定义界面。
-
-**创建绘制对象：**
-
-`android.graphics` 框架将绘制分为两个方面：
-
-- 需要绘制什么，由 `Canvas` 处理
-
-- 如何绘制，由 `Paint` 处理。
-
-  简而言之，`Canvas` 定义您可以在屏幕上绘制的形状，`Paint` 则定义您绘制的每个形状的颜色、样式和字体等。
-
-
-
-`PieChart` 示例在名为 `init` 的方法中执行此操作，该方法是从 Java 的构造函数调用的，
-
-```java
-private void init() {
-       textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-       textPaint.setColor(textColor);
-       if (textHeight == 0) {
-           textHeight = textPaint.getTextSize();
-       } else {
-           textPaint.setTextSize(textHeight);
-       }
-
-       piePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-       piePaint.setStyle(Paint.Style.FILL);
-       piePaint.setTextSize(textHeight);
-
-       shadowPaint = new Paint(0);
-       shadowPaint.setColor(0xff101010);
-       shadowPaint.setMaskFilter(new BlurMaskFilter(8, BlurMaskFilter.Blur.NORMAL));
-```
-
-> 提前创建对象是一项重要的优化措施。视图会非常频繁地重新绘制，并且许多绘制对象的初始化都需要占用很多资源。在 `onDraw()` 方法内创建绘制对象会显著降低性能并使界面显得卡顿。
-
-
-
-**处理布局事件：**
-
-为了正确绘制自定义视图，需要获取到视图大小。View提供了多种测量处理方式，大部分方法都不需要重写，如果您的视图不需要对其大小进行特殊控制，您只需替换一个方法，即 `onSizeChanged()`。
-
-> 系统会在首次为您的视图分配大小时调用 `onSizeChanged()`，如果视图大小由于任何原因而改变，系统会再次调用该方法。
->
-> 为视图指定大小时，布局管理器会假定其大小包含视图的所有内边距。您必须在计算视图大小时处理内边距值。以下是`PieChart.onSizeChanged()`的代码段，其中说明了如何执行此操作：
->
-> ```java
-> // 计算padding
-> float xpad = (float)(getPaddingLeft() + getPaddingRight());
-> float ypad = (float)(getPaddingTop() + getPaddingBottom());
-> 
-> // 计算label宽度
-> if (showText) xpad += textWidth;
-> 
-> 	//总的大小减去已经使用的宽度
-> float ww = (float)w - xpad;
-> float hh = (float)h - ypad;
-> 
-> // 计算出我们能够绘制最大的pie的直接
-> float diameter = Math.min(ww, hh);
-> ```
->
-> 
-
-如果需要更精细地控制视图的布局参数，请实现 `onMeasure()`。
-
-以下是 `onMeasure()` 的一个实现示例。在此实现中，`PieChart` 尝试使其面积足够大，以使饼图大小与其标签一致：
-
-> 此方法的参数是 `View.MeasureSpec` 值，用于告诉您视图的父视图希望您的视图有多大，以及该大小是硬性最大值还是只是建议值。
-
-```java
- @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-       // Try for a width based on our minimum
-       int minw = getPaddingLeft() + getPaddingRight() + getSuggestedMinimumWidth();
-       int w = resolveSizeAndState(minw, widthMeasureSpec, 1);
-
-       // Whatever the width ends up being, ask for a height that would let the pie
-       // get as big as it can
-       int minh = MeasureSpec.getSize(w) - (int)mTextWidth + getPaddingBottom() + getPaddingTop();
-       int h = resolveSizeAndState(MeasureSpec.getSize(w) - (int)mTextWidth, heightMeasureSpec, 0);
-
-       setMeasuredDimension(w, h);
-    }
-
-
-/*
--计算时会考虑视图的内边距。如前文所述，这由视图负责计算。
--辅助方法 resolveSizeAndState() 用于创建最终的宽度和高度值。该辅助程序通过将视图所需大小与传递到 onMeasure() 的规格进行比较，返回合适的 View.MeasureSpec 值。
--onMeasure() 没有返回值。而是由方法通过调用 setMeasuredDimension() 传达其结果。必须调用此方法。如果省略此调用，View 类将抛出运行时异常。*/
-```
-
-
-
-**绘制：**
-
-通过实现*onDraw()*方法进行view绘制，大多数视图共享一些常见的操作：
-
-- 使用 `drawText()` 绘制文本。通过调用 `setTypeface()` 指定字体，并通过调用 `setColor()` 指定文本颜色。
-- 使用 `drawRect()`、`drawOval()` 和 `drawArc()` 绘制基元形状。通过调用`setStyle()`更改形状的填充和/或轮廓。
-- 使用 `Path` 类绘制更复杂的形状。通过将线条和曲线添加到 `Path` 对象以定义形状，然后使用 `drawPath()` 绘制形状。与基元形状一样，路径可以只描绘轮廓或只进行填充，也可以两者兼具，具体取决于 `setStyle()`。
-- 通过创建 `LinearGradient` 对象定义渐变填充。调用 `setShader()` 可在填充的形状上使用 `LinearGradient`。
-- 使用 `drawBitmap()` 绘制位图。
 
 
 
@@ -2278,36 +1907,36 @@ private void init() {
 
 ```java
 protected void onDraw(Canvas canvas) {
-       super.onDraw(canvas);
+    super.onDraw(canvas);
 
-       // Draw the shadow
-       canvas.drawOval(
-               shadowBounds,
-               shadowPaint
-       );
+    // Draw the shadow
+    canvas.drawOval(
+        shadowBounds,
+        shadowPaint
+    );
 
-       // Draw the label text
-       canvas.drawText(data.get(currentItem).mLabel, textX, textY, textPaint);
+    // Draw the label text
+    canvas.drawText(data.get(currentItem).mLabel, textX, textY, textPaint);
 
-       // Draw the pie slices
-       for (int i = 0; i < data.size(); ++i) {
-           Item it = data.get(i);
-           piePaint.setShader(it.shader);
-           canvas.drawArc(bounds,
-                   360 - it.endAngle,
-                   it.endAngle - it.startAngle,
-                   true, piePaint);
-       }
-
-       // Draw the pointer
-       canvas.drawLine(textX, pointerY, pointerX, pointerY, textPaint);
-       canvas.drawCircle(pointerX, pointerY, pointerSize, mTextPaint);
+    // Draw the pie slices
+    for (int i = 0; i < data.size(); ++i) {
+        Item it = data.get(i);
+        piePaint.setShader(it.shader);
+        canvas.drawArc(bounds,
+                       360 - it.endAngle,
+                       it.endAngle - it.startAngle,
+                       true, piePaint);
     }
+
+    // Draw the pointer
+    canvas.drawLine(textX, pointerY, pointerX, pointerY, textPaint);
+    canvas.drawCircle(pointerX, pointerY, pointerSize, mTextPaint);
+}
 ```
 
 
 
-## 视图交互
+### 处理视图交互
 
 **处理输入手势**
 
@@ -2409,9 +2038,7 @@ public boolean onTouchEvent(MotionEvent event) {
 
 
 
-## 代码动态布局
 
-> 参考——https://blog.csdn.net/Sky_Cat/article/details/125557189
->
-> https://www.jianshu.com/p/bd645a85ec2d
+
+## 3D
 

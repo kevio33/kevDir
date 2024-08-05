@@ -1609,3 +1609,12 @@ LayoutInflater inflater = getLayoutInflater();
 LayoutInflater inflater = (LayoutInflater)getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 ```
 
+
+
+
+
+### 2.代码动态布局
+
+> 参考——https://blog.csdn.net/Sky_Cat/article/details/125557189
+>
+> https://www.jianshu.com/p/bd645a85ec2d

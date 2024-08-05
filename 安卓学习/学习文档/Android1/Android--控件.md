@@ -1459,6 +1459,12 @@ builder.show();
 
 ![1607601157067](Android--控件.assets/1607601157067.png)
 
+### Application不能作为dialog的context
+
+> https://mp.weixin.qq.com/s/Z2tjzWkZQfkBXoapNx_f-Q
+
+
+
 ## 13.ProgressBar
 
 <img src="https://gitee.com/kevinyong/kevin-gallery/raw/master/1607844381023.png" alt="1607844381023" style="zoom: 50%;" />
