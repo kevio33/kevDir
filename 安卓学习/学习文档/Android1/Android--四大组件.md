@@ -1,4 +1,4 @@
-## Application
+Application
 
 > [Context解释](https://juejin.cn/post/7258508878386855993)
 
@@ -1336,17 +1336,37 @@ Android应用中可以创建两种不同类型的链接：
 
 ### 二、Service
 
-> 参考： 
->
-> https://blog.csdn.net/hdhhd/article/details/80612726
+> [Service](https://developer.android.google.cn/develop/background-work/services?hl=zh-cn)
 
 **1.简介：**
 
 `service(服务)`是一个可以在后台执行长时间运行操作而没有用户界面的应用组件。服务可由其他应用组件启动（如Activity），服务一旦被启动将在后台一直运行，即使启动服务的组件（Activity）已销毁也不受影响。 此外，组件可以绑定到服务，以与之进行交互，甚至是执行进程间通信 (IPC)。 例如，服务可以处理网络事务、播放音乐，执行文件 I/O 或与内容提供程序交互，而所有这一切均可在后台进行 
 
-**2.两种状态**
+**2.两种类型**
 
-> **启动状态(未绑定状态)**
+服务可以分为前台服务和后台服务
+
+> 自Android 8.0（API 26）开始，Android系统开始执行严格的后台执行限制，后台应用不允许默默启动后台服务，只能启动前台服务，而前台应用则可以自由创建前台服务和后台服务。 
+
+**如何定义前台和后台**
+
+如果满足以下任意条件，应用将被视为处于前台：
+
+- 具有可见 Activity（不管该 Activity 已启动还是已暂停）
+- 具有前台 Service
+- 另一个前台应用已关联到该应用（不管是通过绑定到其中一个 Service，还是通过使用其中一个内容提供程序）。例如，如果另一个应用绑定到该应用的 Service，那么该应用处于前台：
+  - IME
+  - 壁纸 Service
+  - 通知侦听器
+  - 语音或文本 Service
+
+如果以上条件均不满足，应用将被视为处于后台。
+
+
+
+**3.两种状态**
+
+> **启动状态**
 >
 > 当应用组件（如 Activity）通过调用 `startService()`启动服务时，服务即处于“启动”状态。**一旦启动，服务即可在后台无限期运行，即使启动服务的组件已被销毁也不受影响，除非手动调用才能停止服务**， 已启动的服务通常是执行单一操作，而且不会将结果返回给调用方。
 >
@@ -1362,7 +1382,31 @@ Android应用中可以创建两种不同类型的链接：
 
  ![img](Android--四大组件.assets/service_lifecycle.png) 
 
-
+> **Service的重要方法：**
+>
+> ```
+> onStartCommand()
+> ```
+>
+> 调用 `startService()` 后会调用此方法（如果首次启动服务还会先调用start）。**执行此方法时，服务会启动并可在后台无限期运行**，多个startService会导致多次对调用该方法。
+>
+> ```
+> onBind()
+> ```
+>
+> 当另一个组件想要与服务绑定（例如执行 RPC）时，系统会通过调用 `bindService()` 来调用此方法。在此方法的实现中，**必须通过返回 `IBinder` 提供一个接口，供客户端用来与服务通信**。如果不想允许绑定，则应返回 null。
+>
+> ```
+> onCreate()
+> ```
+>
+> 首次创建服务时（在调用 `onStartCommand()` 或 `onBind()` 之前），系统会调用此方法来执行一次性设置过程。如果服务已在运行，则不会调用此方法。
+>
+> ```
+> onDestroy()
+> ```
+>
+> 当不再使用服务并将其销毁时，系统会调用此方法。应实现以清理所有资源，例如线程、注册的监听器或接收器。这是服务接收的最后一个调用。
 
 #### 1.启动状态：
 
@@ -1406,13 +1450,11 @@ Android应用中可以创建两种不同类型的链接：
 > </service>
 > ```
 
-
-
 - `android:exported`：代表是否能被其他应用隐式调用，其默认值是由service中有无intent-filter决定的，如果有intent-filter，默认值为true，否则为false。为false的情况下，即使有intent-filter匹配，也无法打开，即无法被其他应用隐式调用。
 - `android:name`：对应Service类名
 - `android:permission`：是权限声明
-- `android:process`：是否需要在单独的进程中运行,当设置为android:process=”:remote”时，代表Service在单独的进程中运行。注意“：”很重要，它的意思是指要在当前进程名称前面附加上当前的包名，所以“remote”和”:remote”不是同一个意思，前者的进程名称为：remote，而后者的进程名称为：App-packageName:remote。
-- `android:isolatedProcess` ：设置 true 意味着，服务会在一个特殊的进程下运行，这个进程与系统其他进程分开且没有自己的权限。与其通信的唯一途径是通过服务的API(bind and start)。
+- `android:process`：是否需要在单独的进程中运行,当设置为`android:process=”:remote”`时，代表Service在单独的进程中运行。注意`“：”`很重要，**它的意思是指要在当前进程名称前面附加上当前的包名**，所以“remote”和”:remote”不是同一个意思，前者的进程名称为：`remote`，而后者的进程名称为：`App-packageName:remote`。
+- `android:isolatedProcess` ：设置 true 意味着，服务会在一个特殊的进程下运行，这个进程与系统其他进程分开且没有自己的权限。与其通信的唯一途径是*通过服务的API(bind and start)***(没懂)**。
 - `android:enabled`：是否可以被系统实例化，默认为 true因为父标签 也有 enable 属性，所以必须两个都为默认值 true 的情况下服务才会被激活，否则不会激活。 
 
 
@@ -1421,18 +1463,6 @@ Android应用中可以创建两种不同类型的链接：
 
 ```java
 public class SimpleService extends Service {
- 
-    /**
-     * service绑定时才会调用
-     * 必须要实现的方法  
-     * @param intent
-     * @return
-     */
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
  
     /**
      * 首次创建服务时，系统将调用此方法来执行一次性设置程序（在调用 onStartCommand() 或 onBind() 之前调用）。
@@ -1498,7 +1528,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 }
 ```
 
-
+> 打印顺序：
+>
+> `onCreate`
+>
+> `onStartCommond`
 
 **⑤销毁service**
 
@@ -1982,7 +2016,9 @@ public void sayHello(View v) {
 
 
 
-#### 前台服务:
+#### 3.前台服务:
+
+> https://juejin.cn/post/7355554711166664756
 
 > **注意：**
 >
@@ -1990,136 +2026,192 @@ public void sayHello(View v) {
 
 - **前台服务被认为是用户主动意识到的一种服务，因此在内存不足时，系统也不会考虑将其终止。** 
 
-- **前台服务必须为状态栏提供通知，状态栏位于“正在进行”标题下方，这意味着除非服务停止或从前台删除，否则不能清除通知。**例如将从服务播放音乐的音乐播放器设置为在前台运行，这是因为用户明确意识到其操作。 状态栏中的通知可能表示正在播放的歌曲，并允许用户启动 Activity 来与音乐播放器进行交互。
+- **前台服务必须显示`Notification`，除非服务停止或从前台删除，否则不能清除通知。**
+
+> [ WorkManager](https://developer.android.google.cn/topic/libraries/architecture/workmanager?hl=zh-cn) API 提供了一种灵活的任务调度方法，并且能够根据需要[将这些作业作为前台服务运行](https://developer.android.google.cn/topic/libraries/architecture/workmanager/advanced/long-running?hl=zh-cn)。在许多情况下，使用 WorkManager 比直接使用前台服务更可取。 
 
 
 
-设置服务运行于前台:
+**`startForeground(int id, Notification notification)`** 
+该方法的作用是把当前服务设置为前台服务，其中id参数代表唯一标识通知的整型数，需要注意的是提供给 startForeground() 的整型 ID 不得为 0，而notification是一个状态栏的通知。
 
-- **`startForeground(int id, Notification notification)`** 
-  该方法的作用是把当前服务设置为前台服务，其中id参数代表唯一标识通知的整型数，需要注意的是提供给 startForeground() 的整型 ID 不得为 0，而notification是一个状态栏的通知。
-- **`stopForeground(boolean removeNotification)`** 
-  该方法是用来从前台删除服务，此方法传入一个布尔值，指示是否也删除状态栏通知，true为删除。 注意该方法并不会停止服务。 但是，如果在服务正在前台运行时将其停止，则通知也会被删除。
+**`stopForeground(boolean removeNotification)`** 
+该方法是用来从前台删除服务，此方法传入一个布尔值，指示是否也删除状态栏通知，true为删除。 注意该方法并不会停止服务。 但是，如果在服务正在前台运行时将其停止，则通知也会被删除。
 
-简单的案例:
 
-```java
-/**
- * Created by zejian
- * Time 2016/10/4.
- * Description:启动前台服务Demo
- */
-public class ForegroundService extends Service {
- 
-    /**
-     * id不可设置为0,否则不能设置为前台service
-     */
-    private static final int NOTIFICATION_DOWNLOAD_PROGRESS_ID = 0x0001;
- 
-    private boolean isRemove=false;//是否需要移除
- 
-    /**
-     * Notification
-     */
-    public void createNotification(){
-        //使用兼容版本
-        NotificationCompat.Builder builder=new NotificationCompat.Builder(this);
-        //设置状态栏的通知图标
-        builder.setSmallIcon(R.mipmap.ic_launcher);
-        //设置通知栏横条的图标
-        builder.setLargeIcon(BitmapFactory.decodeResource(getResources(),R.drawable.screenflash_logo));
-        //禁止用户点击删除按钮删除
-        builder.setAutoCancel(false);
-        //禁止滑动删除
-        builder.setOngoing(true);
-        //右上角的时间显示
-        builder.setShowWhen(true);
-        //设置通知栏的标题内容
-        builder.setContentTitle("I am Foreground Service!!!");
-        //创建通知
-        Notification notification = builder.build();
-        //设置为前台服务
-        startForeground(NOTIFICATION_DOWNLOAD_PROGRESS_ID,notification);
-    }
- 
- 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        int i=intent.getExtras().getInt("cmd");
-        if(i==0){
-            if(!isRemove) {
-                createNotification();
-            }
-            isRemove=true;
-        }else {
-            //移除前台服务
-            if (isRemove) {
-                stopForeground(true);
-            }
-            isRemove=false;
-        }
- 
-        return super.onStartCommand(intent, flags, startId);
-    }
- 
-    @Override
-    public void onDestroy() {
-        //移除前台服务
-        if (isRemove) {
-            stopForeground(true);
-        }
-        isRemove=false;
-        super.onDestroy();
-    }
- 
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
+
+
+
+##### 前台服务权限
+
+- 如果应用以 Android 9（API 级别 28）或更高版本为目标平台并使用前台服务，则需要在应用清单中请求。
+- 如果应用以 **API 级别 34** 或更高级别为目标平台，还必须针对前台服务将执行的工作类型请求适当的权限类型。**每种前台服务类型都有对应的权限类型**。例如，如果应用启动使用相机的前台服务，必须同时请求 [`FOREGROUND_SERVICE`](https://developer.android.google.cn/reference/android/Manifest.permission?hl=zh-cn#FOREGROUND_SERVICE) 和 [`FOREGROUND_SERVICE_CAMERA`](https://developer.android.google.cn/reference/android/Manifest.permission?hl=zh-cn#FOREGROUND_SERVICE_CAMERA) 权限。 
+
+```xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" ...>
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA"/>
+
+    <application ...>
+        ...
+    </application>
+</manifest>
+```
+
+
+
+##### 前台服务类型
+
+> - **API 级别 29 或更高级别**：必须使用 [`location`](https://developer.android.google.cn/develop/background-work/services/fg-service-types?hl=zh-cn#location) 服务类型声明所有使用位置信息的前台服务。
+> - **API 级别 30 或更高级别**：必须分别使用 [`camera`](https://developer.android.google.cn/develop/background-work/services/fg-service-types?hl=zh-cn#camera) 或 [`microphone`](https://developer.android.google.cn/develop/background-work/services/fg-service-types?hl=zh-cn#microphone) 服务类型声明所有使用摄像头或麦克风的前台服务。
+> - **API 级别 34 或更高级别**：必须声明所有前台服务及其服务类型。
+>
+> 如果尝试创建前台服务，但清单中未声明其类型，则系统会在调用 `startForeground()` 时抛出 [`MissingForegroundServiceTypeException`](https://developer.android.google.cn/reference/android/app/MissingForegroundServiceTypeException?hl=zh-cn)。
+
+对于每项服务，使用 [`android:foregroundServiceType` 属性]来声明服务所执行的工作类型。 
+
+例如，如果应用创建了用于播放音乐的前台服务，按如下方式声明该服务： 
+
+```xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" ...>
+  <application ...>
+
+    <service
+        android:name=".MyMediaPlaybackService"
+        android:foregroundServiceType="mediaPlayback"
+        android:exported="false">
+    </service>
+  </application>
+</manifest>
+```
+
+> **有多个类型，请使用 `|` 运算符将其分隔**
+>
+> ```xml
+> android:foregroundServiceType="camera|microphone"
+> ```
+
+
+
+##### 可以默认关闭Notification
+
+从 Android 13（API 级别 33）开始，默认情况下，**用户可以关闭与前台服务相关联的通知**。为此，用户可以在通知上做出滑动手势。(之前的版本，除非停止前台服务或从前台移除，否则通知不会被关闭。) 
+
+>  具体操作：使用 `Notification.Builder` 创建通知时将 `true` 传入 [`setOngoing()`](https://developer.android.google.cn/reference/android/app/Notification.Builder?hl=zh-cn#setOngoing(boolean)) 方法。 
+
+
+
+
+
+**在Android各个版本中，前后台服务和前后台应用的关系，比较复杂，分了四种情况 ：**
+
+##### “前台应用”启动“前台服务”
+
+ 前台应用启动服务限制不多，就是Android 8(API 26)的以后要用`startForegroundService`来启动"前台服务": 
+
+> 调用 `startForegroundService()`。该方法会创建后台服务，但会向系统表明该服务会将自身提升到前台。创建服务后，该服务必须在 5 秒内调用其 `startForeground()` 方法。 
+
+```kotlin
+fun startForegroundServiceFromForeground() {
+    val intent = Intent(context, AudioService::class.java)
+    if (Build.VERSION.SDK_INT >= 26) {
+        // Android8 必须通过startForegroundService开启前台服务，Android9 需要添加权限
+        context.startForegroundService(intent)
+    }else {
+        context.startService(intent)
     }
 }
 ```
 
-在ForegroundService类中，创建了一个notification的通知，并通过启动Service时传递过来的参数判断是启动前台服务还是关闭前台服务，最后在onDestroy方法被调用时，也应该移除前台服务。以下是ForegroundActivity的实现：
+```kotlin
+override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    super.onStartCommand(intent, flags, startId)
+    
+    val notification = mAudioPlayerManager.startNotification()
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        // 安卓10要添加一个参数，在manifest中配置
+        // 创建通知启动前台服务(要在5s内)
+        startForeground(
+            NOTIFICATION_ID,
+            notification,
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_MANIFEST
+        )
+    } else {
+        startForeground(NOTIFICATION_ID, notification)
+    }
 
-```java
-/**
- * Created by zejian
- * Time 2016/10/4.
- * Description:
- */
-public class ForegroundActivity extends Activity {
- 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_foreground);
-        Button btnStart= (Button) findViewById(R.id.startForeground);
-        Button btnStop= (Button) findViewById(R.id.stopForeground);
-        final Intent intent = new Intent(this,ForegroundService.class);
- 
- 
-        btnStart.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                intent.putExtra("cmd",0);//0,开启前台服务,1,关闭前台服务
-                startService(intent);
-            }
-        });
- 
- 
-        btnStop.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                intent.putExtra("cmd",1);//0,开启前台服务,1,关闭前台服务
-                startService(intent);
-            }
-        });
+    return START_STICKY
+}
+```
+
+> **startForground**包含的参数：
+>
+> - 服务
+> - 一个正整数，用于唯一标识状态栏中的通知
+> - `Notification`对象本身
+> - 前台服务类型，用于标识服务完成的工作
+
+##### “前台应用”启动“后台服务”
+
+ 前台应用启动后台服务，没有限制，但是当这个app进入后台，它只有几分钟的窗口期可以创建和使用服务。 
+
+```kotlin
+fun startBackgroundServiceFromForeground() {
+    val intent = Intent(context, AudioService::class.java)
+    context.startService(intent)
+}
+```
+
+
+
+##### “后台应用”启动“前台服务”
+
+对后台应用启动前台服务的限制比较多
+
+```kotlin
+fun startForegroundServiceFromBackgroud() {
+    val intent = Intent(context, AudioService::class.java)
+    if (Build.VERSION.SDK_INT >= 31) {
+        // Android12 后台调用startForegroundService被禁止，推荐使用WorkManager
+
+    }else if (Build.VERSION.SDK_INT >= 26) {
+        // Android8 禁止了后台启动前台服务，需要使用startForegroundService
+        context.startForegroundService(intent)
+    }else {
+        context.startService(intent)
     }
 }
 ```
 
-![这里写图片描述](https://gitee.com/kevinyong/kevin-pic-gall2/raw/master/20161004113551060)
+后台应用启动"前台服务"还是有应用场景的，比如播放器应用进入后台了，我这歌还得继续播放啊，不能被随随便便就回收资源了吧！
+
+和前面一样，Android8前使用startService，Android8以后用startForegroundService启动服务，在service里面5秒内发送通知到通知栏，转成前台服务即可。
+
+只不过在Android12直接把这功能给禁止了，后台应用不能再启动"前台服务"了，官方推荐使用WorkManager。
+
+
+
+##### “后台应用”启动“后台服务”
+
+Android 8以前，没有限制；Android 8之后进制，使用`JobScheduler`去处理后台任务
+
+```kotlin
+fun startBackgroundServiceFromBackground() {
+    // Android8 禁止了后台应用启动后台服务，推荐使用JobScheduler
+    if (Build.VERSION.SDK_INT >= 26) {
+        // 使用jobScheduler
+        
+    }else {
+        val intent = Intent(context, AudioService::class.java)
+        context.startService(intent)
+    }
+}
+```
+
+
+
+
 
 ##### 前台服务与后台服务区别
 
@@ -2129,6 +2221,139 @@ public class ForegroundActivity extends Activity {
 4. 生命周期：前台服务的生命周期比后台服务更长。当用户关闭应用程序时，后台服务可能会被系统杀死，而前台服务会继续运行，直到用户手动停止它或者系统资源紧张时才会被杀死。
 
 
+
+##### 示例：
+
+ 启动相机前台服务的示例： 
+
+```kotlin
+class MyCameraService: Service() {
+    
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        myStartForeground()
+        return Service.START_NOT_STICKY
+    }
+
+    private fun myStartForeground() {
+        // Before starting the service as foreground check that the app has the
+        // appropriate runtime permissions. In this case, verify that the user has
+        // granted the CAMERA permission.
+        val cameraPermission =
+        PermissionChecker.checkSelfPermission(this, Manifest.permission.CAMERA)
+        if (cameraPermission != PermissionChecker.PERMISSION_GRANTED) {
+            // Without camera permissions the service cannot run in the foreground
+            // Consider informing user or updating your app UI if visible.
+            stopSelf()
+            return
+        }
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+                //创建通道
+                val channel =  NotificationChannel(CHANNEL_ID, "Channel Name", NotificationManager.IMPORTANCE_DEFAULT)
+                channel.description = "shut the fuck up"
+                val manager = getSystemService(NotificationManager::class.java)
+                manager.createNotificationChannel(channel);
+                
+                //创建通知
+                val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+                    .setColor(Color.RED)
+                    .setSmallIcon(R.drawable.ic_launcher_foreground)
+                    // Create the notification to display while the service is running
+                    .build()
+                
+                ServiceCompat.startForeground(
+                    /* service = */ this,
+                    /* id = */ 100, // Cannot be 0
+                    /* notification = */ notification,
+                    /* foregroundServiceType = */
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
+                    } else {
+                        0
+                    },
+                )
+            }
+        } catch (e: Exception) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                && e is ForegroundServiceStartNotAllowedException) {
+                // App not in a valid state to start foreground service
+                // (e.g. started from bg)
+            }
+            // ...
+        }
+    }
+}
+```
+
+![1723379381836](Android--四大组件.assets/1723379381836.png)
+
+###### 问题：
+
+注意，从Android 8.0以上不可以使用空的通知，必须自定义notificationChannel。**否则会报错**
+
+```java
+if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    CharSequence name = getString(R.string.channel_name);
+    String description = getString(R.string.channel_description);
+    int importance = NotificationManager.IMPORTANCE_DEFAULT;
+    NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+    channel.setDescription(description);
+
+    
+    NotificationManager notificationManager = getSystemService(NotificationManager.class);
+    notificationManager.createNotificationChannel(channel);
+}
+```
+
+
+
+
+
+#### 4.停止服务
+
+通过`startService`启动的服务必须手动管理生命周期，通过两种方式停掉服务：
+
+- `stopSelf`：停掉自身，在服务内部调用
+- `stopService`：在其他组件调用，停掉整个服务（只要是调用过startService的都会被停止销毁）
+
+如果有多个启动服务的请求，那么完成第一个请求之后不应该停掉整个服务，而是应该通过`onStartCommond`中传入的`startId`来停掉已经完成的请求，例如：
+
+```kotlin
+class HelloService : Service() {
+
+    private var serviceLooper: Looper? = null
+    private var serviceHandler: ServiceHandler? = null
+
+    // Handler that receives messages from the thread
+    private inner class ServiceHandler(looper: Looper) : Handler(looper) {
+
+        override fun handleMessage(msg: Message) {
+            //通过startId停止当前请求，这样其他启动请求不会被终止
+            stopSelf(msg.arg1)
+        }
+    }
+
+    override fun onCreate() {
+        HandlerThread("ServiceStartArguments", Process.THREAD_PRIORITY_BACKGROUND).apply {
+            start()
+
+            // Get the HandlerThread's Looper and use it for our Handler
+            serviceLooper = looper
+            serviceHandler = ServiceHandler(looper)
+        }
+    }
+
+    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+        serviceHandler?.obtainMessage()?.also { msg ->
+            msg.arg1 = startId//传入startId，以标识该服务
+            serviceHandler?.sendMessage(msg)
+        }
+        return START_STICKY
+    }
+
+}
+```
 
 
 
@@ -2161,7 +2386,7 @@ public class ForegroundActivity extends Activity {
 
 
 
-#### service应用
+#### 应用场景
 
 1. 后台任务：Service可以用于执行长期运行的后台任务，例如下载文件、播放音乐、上传数据等。这些任务不需要用户的交互，但是需要在后台长期运行。
 2. 前台服务：Service也可以用于实现前台服务，例如播放音乐、记录音频、导航等。这些任务需要用户的交互，并且需要在屏幕关闭或应用程序退到后台时继续运行。
