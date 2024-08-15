@@ -390,6 +390,8 @@ private static final int DATABASE_VERSION = 1;//  将版本号 由 1 改为2
 ## 五、应用专属存储空间
 
 > https://blog.51cto.com/u_16213394/7063732
+>
+> [Android内部存储与外部存储(私有目录与公共目录)](https://blog.csdn.net/crazestone0614/article/details/130773818)
 
 ### 文件权限
 
@@ -409,14 +411,14 @@ private static final int DATABASE_VERSION = 1;//  将版本号 由 1 改为2
 > ```java
 > // 检查是否已经拥有读取文件的权限
 > if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
->     != PackageManager.PERMISSION_GRANTED) {
->     // 如果没有权限，则向用户申请权限
->     ActivityCompat.requestPermissions(this,
->             new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
->             REQUEST_CODE_READ_FILE);
+>        != PackageManager.PERMISSION_GRANTED) {
+>        // 如果没有权限，则向用户申请权限
+>        ActivityCompat.requestPermissions(this,
+>                                          new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+>                                          REQUEST_CODE_READ_FILE);
 > } else {
->     // 如果已经有权限，则进行文件读取操作
->     readFile();
+>        // 如果已经有权限，则进行文件读取操作
+>        readFile();
 > }
 > ```
 >
@@ -439,20 +441,58 @@ private static final int DATABASE_VERSION = 1;//  将版本号 由 1 改为2
 
 
 
-### 2.访问内部存储
+**存储：**
 
-> 这些目录的空间通常比较小。在将应用专属文件写入内部存储空间之前，应查询设备上的可用空间。
+在包含 Android 4.4 之后的设备中，很多中高端机器都将自己的机身存储扩展到了 8G 以上，将同一块存储空间从概念上分成了内部存储（internal storage) 和外部存储（external storage) 两部分，但其实它们都在手机内部。当然，依然可以插入 SD 卡来扩充存储空间，这部分的存储空间称为扩展的外部存储空间。只是现在机身存储都比较大，很少插入 SD 卡了。
+
+ ![img](Android--存储.assets/4c0a8c6e5d12754fa377441b928c1bb2.png) 
+
+ ![img](Android--存储.assets/cc4d685fe1d65c4721622684d288748f.png) 
+
+
+
+### 2.内部存储
+
+内部存储在逻辑上用目录来区分的话就是 /data 目录下的 data 文件夹：**`/data/data`** 
+
+ ![img](Android--存储.assets/9835999cb96ede7c3d103eab11f74ba0.png)
+
+#### (1)私有内部存储
+
+   **/data/data** 目录是按照应用的包名来组织的，每个应用在安装成功后，会自动创建新的目录（**data/data/package-name**），并且目录名称就是该应用的包名，所以每个应用都有专属的内部存储目录。当应用被卸载后，该目录都会被系统自动删除。 
+
+> 宿主应用访问自己的内部存储目录时不需要申请任何权限。因此这部分的存储也被称为：**内部存储私有目录**。 
 >
-> **内部存储是被保护起来的，每个应用有自己的内部存储，其他应用正常情况下无法访问**
->
-> 当应用被删除之后，就会删除该应用的内部存储目录
+> 用户访问需要ROOT
 
-#### (1)访问持久性文件
+**私有内部存储目录结构一般为**
 
-位置：`/data/user/0/{应用包名}/files`
+- app_webview：用于存储webview加载过程中的数据，如Cookie，LocalStorage等。
+- cache：用于存储使用应用过程中产生的缓存数据。
+- code_cache：存放运行时代码优化等产生的缓存。
+- databases：主要用于存储数据库类型的数据。
+- files：可以在该目录下存储文件。
+- lib：存放App依赖的so库。
+- shared_prefs：用于存储SharedPreference文件。
 
 ```java
-context.getFilesDir() 
+//获取的目录是/data/data/package_name，即应用内部存储的根目录
+context.getDataDir();
+ 
+//获取的目录是/data/data/package_name/files，即应用内部存储的files目录
+context.getFilesDir();
+ 
+//获取的目录是/data/data/package_name/cache，即应用内部存储的cache目录
+context.getCacheDir();
+ 
+//获取的目录是/data/data/package_name/name，如果该目录不存在，系统会自动创建该目录。
+context.getDir(String name, int mode) 
+ 
+//不同的mode
+MODE_APPEND：即向文件尾写入数据
+MODE_PRIVATE：即仅打开文件可写入数据
+MODE_WORLD_READABLE：所有程序均可读该文件数据，Api 17废弃
+MODE_WORLD_WRITABLE：即所有程序均可写入数据，Api 17废弃context.getFilesDir() 
 ```
 
 **访问和存储文件**
@@ -471,12 +511,6 @@ Array<String> files = context.fileList();
 
 
 #### (2)访问缓存文件
-
-位置：`/data/user/0/{应用包名}/cache`
-
-```java
-context.getCacheDir()
-```
 
 **创建缓存文件**
 
@@ -512,13 +546,16 @@ File cacheFile = new File(context.getCacheDir(), filename);
 
 
 
-### 3.访问外部存储
+### 3.外部存储
 
-> 外部存储：指的是设备外部扩展存储空间，例如TF卡、SD卡等。外部存储空间一般较大，但是访问速度较慢。外部存储空间可以用来存储用户的音乐、视频、图片等文件，也可以用来存储应用程序的数据。外部存储空间是公共的，所有应用程序都可以访问。但是，从安卓4.4版本开始，为了保护用户的隐私，对外部存储空间的访问做了一些限制，应用程序需要获取用户的授权才能访问外部存储空间。 
->
-> 外部存储也分为`私有外部存储`和`共有外部存储`
+通俗来说，外部存储空间就是我们打开手机系统“文件管理”后看到的内容，外部存储的最外层目录是 storage 文件夹，也可以是 mnt 文件夹，这个厂家不同也会有不同的结果。一般来说，在 storage 文件夹中有一个 sdcard 文件夹，和内部存储不同的是，外部存储根据存储特点的不同可分为三种类型：**私有目录、公共目录、其他目录**。其中，“私有目录”属于外部存储的“私有存储空间”，“公共目录”和“其他目录”属于外部存储的“共享空间”。
 
-#### 私有外部存储
+> - 私有目录：上图中的 Android 文件夹，这个文件夹打开之后里边有一个 data 文件夹，打开这个 data 文件夹，里边有许多包名组成的文件夹，这些文件夹是应用的私有目录。
+> - 公共目录：DCIM、Download、Music、Movies、Pictures、Ringtones 等这种系统为我们创建的文件夹；这些目录里的文件所有应用可以分享。
+> - 其他目录：除私有目录和公共目录之外的部分。比如各个 App 在 /sdcard/ 目录下创建的目录，如支付宝创建的目录：alipy/，微博创建的目录：com.sina.weibo/，qq创建的目录：com.tencent.mobileqq/等。
+>   
+
+#### 私有外部存储	
 
 位置：`/storage/emulated/0/Android/data/{应用包名}/files/Download`
 
@@ -569,10 +606,31 @@ externalCacheFile.delete();
 
 #### 公有外部存储
 
+DCIM、Download、Music、Movies、Pictures、Ringtones 等这种系统为我们创建的文件夹；这些目录里的文件所有应用可以分享。 
+
+> **所有APP都需要申请EXTERNAL_STORAGE权限，Android6.0开始动态申请权限**
+
 位置：`/storage/emulated/0`
 
 ```java
 Environment.getExternalStorageDirectory();
+
+/* 
+1.如果type为""，那么获取到的目录是外部存储的根目录即  /storage/emulated/0
+2.如果type为"test"，那么就在外部存储根目录下创建test目录，android官方推荐使用以下的type类型，我们在Sdcar的根目录下也经常可以看到下面的某些目录:
+public static String DIRECTORY_MUSIC = "Music";
+public static String DIRECTORY_PODCASTS = "Podcasts";
+public static String DIRECTORY_RINGTONES = "Ringtones";
+public static String DIRECTORY_ALARMS = "Alarms";
+public static String DIRECTORY_NOTIFICATIONS = "Notifications";
+public static String DIRECTORY_PICTURES = "Pictures";
+public static String DIRECTORY_MOVIES = "Movies";
+public static String DIRECTORY_DOWNLOADS = "Download";
+public static String DIRECTORY_DCIM = "DCIM";
+public static String DIRECTORY_DOCUMENTS = "Documents";
+*/
+Environment.getExternalStoragePublicDirectory(String type)
+
 ```
 
 ##### (1)验证存储空间可用性
