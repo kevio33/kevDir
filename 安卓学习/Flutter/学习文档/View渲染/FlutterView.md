@@ -273,6 +273,14 @@ class _StateProgressRing extends State<ProgressRing>
 >
 > > Android 内置了 Skia，但 iOS 没有，所以在打 iOS 安装包的时候，会把 Skia 一起打进去。这就导致了，用同一份 Flutter 代码打包之后，iOS 的包要比 Android 的包大一些。
 
+> **[!!!!2024年开始，谷歌陆续将flutter的渲染引擎由`Skia`改为`Impeller`](https://mp.weixin.qq.com/s/RNkxhD5cRBhrvg1lp8kRHA)**
+>
+> Impeller 是专门为 Flutter 而生，它主要核心就是优化 Flutter 架构的渲染过程，它渲染方法在 Flutter 上可以比 Skia 能更有效地利用 GPU，**让设备的硬件以更少的工作量来渲染动画和复杂的 UI 元素，从而提高渲染速度**。 
+>
+> -  **Impeller 会采用曲面细分和着色器编译来分解和提前优化图形渲染**，这样 Impeller 就可以减少设备上的硬件工作负载，从而实现更快的帧速率和更流畅的动画。 
+> -  **Impeller 还采用了新的分层架构来简化渲染过程**，架构允许 Engine 的每个组件以最大效率执行其特定任务，从而减少将 Flutter Widget 的转换为屏幕上的像素所需的步骤。 
+> - **Impeller还优化了抗锯齿 (Anti-Aliasing) 和裁剪 (Clip)的成本**
+
 ### (2)Flutter如何实现跨平台的
 
 > https://developer.aliyun.com/article/914437
