@@ -816,6 +816,43 @@ Singleton.singletonTest()
 
 ### 6.8密封类
 
+**密封类可以看作是多实例的枚举（枚举中所有的属性都是同一个枚举实例）**
+
+密封类用于表示受限类层次结构，当一个值可以具有**有限集合**中的一种类型，但不能具有任何其他类型时。
+
+密封类具有数量有限的直接子类，**所有子类都定义在与密封类本身相同的文件中** 
+
+> **密封类是抽象的，不能直接实例化，只能实例化密封类的子类**
+
+```kotlin
+//密封类及其子类
+//子类也可以写在外边，但写在里面更清晰
+sealed class RequestResult{
+    data class Success(val response: String) : RequestResult()
+    data class Failor(val error: Int) : RequestResult()
+    data class Loading(val progressBar: Double) : RequestResult()
+}
+```
+
+> 用来判断请求之后的状态
+
+**作用**
+
+密封类的一个常见用途是在 `when` 表达式中进行模式匹配。由于编译器知道所有可能的子类，因此可以确保所有情况都被处理。 
+
+```kotlin
+val request:RequestResult = RequestResult.Success("请求成功")
+val showResult = when (request) {//可以不再加else
+    is RequestResult.Success -> "请求成功"
+    is RequestResult.Failor -> "请求失败"
+    is RequestResult.Loading -> "请求中"
+}
+
+println(showResult)
+```
+
+
+
 
 
 ### 6.9委托
@@ -846,6 +883,102 @@ fun main() {
 
 ### 内联类
 
+内联类（Inline Class）是一种特殊的类，用于在不引入额外运行时开销的情况下封装基本类型。内联类的主要目的是提供类型安全和可读性，同时避免对象分配和引用的开销。 
+
+声明内联类，在类名称前使用`value`修饰符
+
+```kotlin
+@JvmInline //如果是jvm，那么需要声明该注释
+value class Password(private val s: String)
+```
+
+
+
+**特点：**
+
+- **内敛类的主构造函数只允许有一个参数**，在运行时候，将使用这个唯一属性来表示内联类的实例
+
+```kotlin
+// 不存在 'Password' 类的真实实例对象
+// 在运行时，'securePassword' 仅仅包含 'String'
+val securePassword = Password("Don't try this in production")
+```
+
+- 内联类也类似普通类，可以有`init块`、`副构造函数`、`其他成员属性`
+
+- 内敛类不能有`lateinit/delegate`属性
+
+- 内联类允许继承接口，**但内联类不能继承类和被继承**
+
+  ```kotlin
+  interface Printable {
+      fun prettyPrint(): String
+  }
+  
+  @JvmInline
+  value class Name(val s: String) : Printable {
+      override fun prettyPrint(): String = "Let's $s!"
+  }
+  
+  fun main() {
+      val name = Name("Kotlin")
+      println(name.prettyPrint()) // 仍然会作为一个静态方法被调用
+  }
+  ```
+
+  
+
+### 枚举类
+
+声明简单的枚举类
+
+```kotlin
+enum class Direction {
+    NORTH, SOUTH, WEST, EAST
+}
+```
+
+
+
+带参构造函数枚举
+
+```kotlin
+enum class Color(val colorName: String) {
+    RED("红"), GREEN("绿"), ORANGE("橙")
+}
+```
+
+
+
+带抽象方法的枚举
+
+```kotlin
+enum class Color(val colorName: String) {
+    RED("红") {
+        override fun signal() {
+            println("我是红红")
+        }
+    },
+    GREEN("绿") {
+        override fun signal() {
+
+            println("我是绿绿")
+        }
+    },
+    ORANGE("橙") {
+        override fun signal() {
+            println("我是橙橙")
+
+        }
+    };
+    abstract fun signal()
+}
+```
+
+
+
+
+
 
 
 ### getter \setter
@@ -857,15 +990,15 @@ kotlin默认会帮属性实现getter、setter方法。
 ```kotlin
 class Person(private val _name: String, private var _age: Int) {
     val name: String
-    get() = _name
+    	get() = _name
 
     var age: Int
-    get() = _age
-    set(value) {
-        if (value >= 0) {
-            _age = value
+    	get() = _age
+        set(value) {//setter必须变量是var
+            if (value >= 0) {
+                _age = value
+            }
         }
-    }
 }
 
 fun main() {
