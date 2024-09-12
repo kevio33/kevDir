@@ -857,7 +857,9 @@ println(showResult)
 
 ### 6.9委托
 
- 委托是实现继承的一个很好的替代方式 
+####  类委托
+
+委托是实现继承的一个很好的替代方式 
 
 例如： `Derived` 类可以通过将其所有公有成员都委托给指定对象来实现一个接口 `Base`： 
 
@@ -881,9 +883,153 @@ fun main() {
 
 
 
+#### 属性委托
+
+`kotlin`还允许将属性的实现委托给其他对象。这种机制可以简化代码，提高代码的可读性和可维护性。属性委托可以用于各种场景，如延迟初始化、观察属性变化、将属性存储在映射中等。 
+
+```kotlin
+class Example {
+    var p: String by Delegate()
+}
+```
+
+>  在 `by` 后面的表达式是该 *委托*， 因为属性对应的 `get()`（与 `set()`）会被委托给它的 `getValue()` 与 `setValue()` 方法。 属性的委托不必实现接口，但是需要提供一个 `getValue()` 函数（对于 `var` 属性还有 `setValue()`）。 
+
+**例如：**
+
+```kotlin
+class Delegate {
+    operator fun getValue(thisRef: Any?, property: KProperty<*>): String {
+        return "$thisRef, thank you for delegating '${property.name}' to me!"
+    }
+
+    operator fun setValue(thisRef: Any?, property: KProperty<*>, value: String) {
+        println("$value has been assigned to '${property.name}' in $thisRef.")
+    }
+}
+```
+
+```kotlin
+val e = Example()
+println(e.p)
+
+//输出
+Example@33a17727, thank you for delegating 'p' to me!
+
+
+
+e.p = "NEW"
+
+//输出
+NEW has been assigned to 'p' in Example@33a17727.
+```
+
+
+
+
+
+**kotlin标准库提供了一些常见的属性委托，例如`lazy`、`observable`、`vetoable`、`map`**
+
+①`lazy()`是接受一个`lambda` 并返回一个 `Lazy ` 实例的函数，返回的实例可以作为实现延迟属性的委托。 
+
+**只有第一次调用 `get()` 时，会执行已传递给 `lazy()` 的 lambda 表达式并记录结果。** 
+
+```kotlin
+val lazyValue: String by lazy {
+    println("computed!")
+    "Hello"
+}
+
+fun main() {
+    println(lazyValue)
+    println(lazyValue)
+}
+
+//输出
+computed!
+Hello
+Hello
+```
+
+> lazy委托有三种模式：
+>
+> - **`LazyThreadSafetyMode.SYNCHRONIZED`**：这是默认模式，是线程安全的。它使用 `synchronized` 关键字来确保多线程环境下的安全性。
+>
+> - **`LazyThreadSafetyMode.PUBLICATION`**：这种模式也是线程安全的，但它不使用锁。它**通过 `volatile` 关键字来确保可见性，但可能会导致多个线程同时初始化属性**。
+>
+> - **`LazyThreadSafetyMode.NONE`**：这种模式不是线程安全的。它不使用任何同步机制，适用于单线程环境或不需要线程安全的场景。
+>
+> ```kotlin
+> val lazyValue: String by lazy(LazyThreadSafetyMode.PUBLICATION) {
+>     println("Computed!")
+>     "Hello"
+> }
+> 
+> fun main() {
+>     println(lazyValue) // 输出: Computed! Hello
+>     println(lazyValue) // 输出: Hello
+> }
+> 
+> ```
+
+
+
+②`observable`委托
+
+ `observable` 委托用于观察属性的变化。每当属性的值发生变化时，会调用指定的回调函数。 
+
+```kotlin
+class User {
+    var name: String by Delegates.observable("<no name>") {
+        prop, old, new ->
+        println("$old -> $new")
+    }
+}
+
+fun main() {
+    val user = User()
+    user.name = "first"// 输出: <no name> -> first
+    user.name = "second"// 输出: first -> second
+}
+```
+
+
+
+③`vetoable`委托
+
+ `vetoable` 委托类似于 `observable`，但它允许在属性值发生变化时进行拦截和拒绝。 
+
+```kotlin
+class User {
+    var name: String by Delegates.vetoable("<no name>") {
+        prop, old, new ->
+        new.startsWith("a")
+    }
+}
+
+fun main() {
+    val user = User()
+    user.name = "alice"  // 成功
+    user.name = "bob"    // 失败，属性值不变
+    println(user.name)   // 输出: alice
+}
+```
+
+
+
+
+
+
+
+
+
 ### 内联类
 
-内联类（Inline Class）是一种特殊的类，用于在不引入额外运行时开销的情况下封装基本类型。内联类的主要目的是提供类型安全和可读性，同时避免对象分配和引用的开销。 
+
+
+内联类（Inline Class）是一种特殊的类，用于在不引入额外运行时开销的情况下封装基本类型。**内联类的主要目的是提供类型安全和可读性，同时避免对象分配和引用的开销**。 
+
+> **Kotlin 的内联类（Inline Class）是一种特殊的类，旨在减少包装类带来的性能开销。内联类在编译时会被“内联”，即在编译后的字节码中，内联类的实例会被替换为其包含的基本数据类型。这样可以避免装箱和拆箱操作，从而提高性能。**
 
 声明内联类，在类名称前使用`value`修饰符
 
@@ -891,8 +1037,6 @@ fun main() {
 @JvmInline //如果是jvm，那么需要声明该注释
 value class Password(private val s: String)
 ```
-
-
 
 **特点：**
 
