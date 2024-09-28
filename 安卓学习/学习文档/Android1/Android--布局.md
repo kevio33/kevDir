@@ -173,6 +173,42 @@ private ResultProfileBinding binding;
 
 
 
+##### RecyclerView使用
+
+```java
+public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAdapter.MyViewHolder> {
+    public static class MyViewHolder extends RecyclerView.ViewHolder {
+		//构造函数传入viewbinding
+        private RecyclerItemBinding viewBinding;
+        public MyViewHolder(@NonNull ViewBinding viewBinding) {
+            super(viewBinding.getRoot());
+            this.viewBinding = (RecyclerItemBinding) viewBinding;
+        }
+    }
+
+    @NonNull
+    @Override
+    public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        ViewBinding viewBinding = RecyclerItemBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+        return new MyViewHolder(viewBinding);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
+        holder.viewBinding.textViewRecyItem.setText("sssss");//通过viewbinding访问元素
+    }
+
+    @Override
+    public int getItemCount() {
+        return 10;
+    }
+}
+```
+
+
+
+
+
 #### ③databinding
 
 > [databinding详解](https://juejin.cn/post/6844904085800353805)
