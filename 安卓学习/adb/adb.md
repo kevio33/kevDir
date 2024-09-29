@@ -409,7 +409,7 @@ adb shell am start -a android.intent.action.VIEW
 
 
 
-#### 端口转发
+#### (9)端口转发
 
  使用 `forward` 命令设置任意端口转发，将特定主机端口上的请求转发到设备上的其他端口。以下示例设置了主机端口 6100 到设备端口 7100 的转发： 
 
@@ -424,3 +424,35 @@ adb forward tcp:6100 local:logd
 ```
 
 > 尝试确定发送到设备上指定端口的内容，上述做法可能会非常有用。系统会将收到的所有数据写入系统日志记录守护程序，并显示在设备日志中。 
+
+
+
+#### (10) 获取和显示系统服务的状态信息 
+
+`dumpsys` 是 Android 系统中的一个命令行工具，用于获取和显示系统服务的状态信息。它可以帮助开发者和测试人员调试和分析 Android 设备的各种系统服务。 
+
+```shell
+adb shell dumpsys <service>
+```
+
+
+
+**例如**
+
+```shell
+#查看窗口管理器状态：
+adb shell dumpsys window
+
+#查看电池状态：
+adb shell dumpsys battery
+
+#查看内存使用情况：
+adb shell dumpsys meminfo
+
+#查看活动管理器状态：
+adb shell dumpsys activity
+
+#查看 Wi-Fi 状态：
+adb shell dumpsys wifi
+```
+
