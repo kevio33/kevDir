@@ -606,7 +606,7 @@ git remote -v
 
 
 
-## 版本、撤销管理
+## 版本撤销管理
 
 ### （1）回退某个文件版本
 
@@ -757,6 +757,41 @@ git push -u origin <远程分支名> #将当前本地分支的内容推送到远
 ```
 
 
+
+## 版本管理
+
+### 本次提交追加到上次提交
+
+**场景一：commit一次,同时已经push，需要增加一次commit到上一次commit**
+
+```shell
+1.提交需要增加的commit记录，追加至上一次
+git commit --amend -m "注释"
+
+#也可以不要注释
+git commit --amend --no-edit
+
+2.强制覆盖推送到远程分支
+git push origin develop --force
+```
+
+**场景二：commit一次,但是未推到远程分支，需要增加一次commit到上一次commit**
+
+```shell
+1.提交需要增加的commit记录，追加至上一次
+git commit --amend -m "注释"
+
+2.正常推到远程分支
+git push origin develop
+```
+
+
+
+### 合并多次commit为一次
+
+> https://juejin.cn/post/7081250273703755789
+>
+> https://cloud.tencent.com/developer/article/1690638
 
 # 六.问题
 

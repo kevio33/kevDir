@@ -2044,7 +2044,7 @@ Kotlin中有4种修饰符，分别是`public`、`private`、`protected`和 `inte
 
 # 新特性
 
-### 字符串内嵌
+## 字符串内嵌
 
 避免使用`+`进行字符串的拼接
 
@@ -2073,7 +2073,7 @@ println("Cellphone(brand=$brand, price=$price)")
 
 
 
-### 默认参数
+## 默认参数
 
 ```kotlin
 fun printParams(num: Int, str: String = "hello") {
@@ -2100,7 +2100,7 @@ fun main() {
 
 
 
-### object关键字
+## object关键字
 
 > [object关键字的使用场景](https://blog.csdn.net/xlh1191860939/article/details/79460601)
 
@@ -2110,7 +2110,7 @@ object主要有以下三种使用场景：
 - **伴生对象**（Companion Object）
 - **对象表达式**（Object Expression）
 
-#### (1)对象声明
+### (1)对象声明
 
 语法含义：将类的声明和定义该类的单例对象结合在一起（即**通过object就实现了单例模式**） 
 
@@ -2142,7 +2142,7 @@ object RepositoryManager{
 
 
 
-#### (2)伴生对象（Companion object）
+### (2)伴生对象（Companion object）
 
 在Kotlin中是**没有static关键字**的，也就是意味着没有了`静态方法`和`静态成员`。那么在kotlin中如果要想表示这种概念，取而代之的是`包级别函数（package-level function）`和这里提到的`伴生对象`。
 
@@ -2194,7 +2194,7 @@ class Father{
 > >
 > > **也因为如此，所以一个类只允许有一个伴生对象**
 
-#### (3) **对象表达式（Object Expression）** 
+### (3) **对象表达式（Object Expression）** 
 
 在Java中，有匿名内部类
 
@@ -2342,7 +2342,7 @@ class MyTest {
 
 
 
-#### 三者初始化时机
+### 三者初始化时机
 
 a. `object declaration`：当第一次访问它时才初始化，是一种懒初始化
 
@@ -2354,13 +2354,13 @@ c. `object expression`：一旦它被执行，立马初始化
 
 
 
-### 类拓展
+## 类拓展
 
 Kotlin 能够对一个类或接口扩展新功能而无需继承该类或者使用像*装饰者*这样的设计模式。 这通过叫做*扩展*的特殊声明完成。 
 
 
 
-#### 拓展方法
+### 拓展方法
 
 例如，**要对MutableList拓展一个swap方法**
 
@@ -2380,7 +2380,7 @@ fun main(){
 
 
 
-##### 静态解析
+#### 静态解析
 
 类拓展是静态解析的，也就是**编译时候就已经根据接收者类型确定好要调用哪一个拓展方法**。比如下面例子
 
@@ -2407,7 +2407,7 @@ Shape
 
 
 
-##### 成员函数和拓展函数
+#### 成员函数和拓展函数
 
 如果一个类定义有一个成员函数与一个扩展函数，而这两个函数又有相同的接收者类型、 相同的名字，并且都适用给定的参数，这种情况*总是取成员函数*。 
 
@@ -2428,7 +2428,7 @@ fun main() {
 
 
 
-#### 拓展属性
+### 拓展属性
 
 ```kotlin
 class MyClass(val value: Int)
@@ -2451,7 +2451,7 @@ fun main() {
 
 
 
-#### 作用域
+### 作用域
 
 一般拓展作用域的在包级别，同一包下都可以调用
 
@@ -2480,7 +2480,7 @@ fun main() {
 
 
 
-#### 类内部拓展
+### 类内部拓展
 
 可以在一个类内部为另一个类声明扩展。在这样的扩展内部，有多个*隐式接收者*—— 其中的对象成员可以无需通过限定符访问。 
 
@@ -2525,7 +2525,7 @@ class Connection {
 
 
 
-### 限定this
+## 限定this
 
  如果 `this` 没有限定符，它指的是最内层的包含它的作用域。要引用其他作用域中的 `this`，请使用 *标签限定符*： 
 
@@ -2555,3 +2555,102 @@ class A { // 隐式标签 @A
 }
 ```
 
+
+
+## 延迟初始化
+
+> https://mp.weixin.qq.com/s/G3thHbxRZfNMR2jTxcYyxg
+
+### by lazy
+
+`by lazy` 是一种委托属性，用于延迟初始化一个只读属性。属性在第一次访问时才会被初始化，并且初始化操作只会执行一次。 
+
+`lazy` 的默认线程安全模式是 `LazyThreadSafetyMode.SYNCHRONIZED`，它确保多线程环境下属性只会被初始化一次。 
+
+```kotlin
+val myValue: String by lazy {
+    println("Computed only once")
+    "Hello, World!"
+}
+
+// 第一次访问 myValue，会触发初始化代码块执行
+println(myValue) // 输出: "Computed only once" 和 "Hello, World!"
+// 之后的访问不会重复执行初始化代码块
+println(myValue) // 输出: "Hello, World!"
+```
+
+
+
+> **惰性线程安全模式**：
+>
+> - `LazyThreadSafetyMode.SYNCHRONIZED`：默认值，确保多线程环境下属性只能被初始化一次。
+> - `LazyThreadSafetyMode.PUBLICATION`：允许多个线程在同一时间初始化，但只使用第一个完成的结果。
+> - `LazyThreadSafetyMode.NONE`：不进行任何同步，适用于单线程环境。
+>
+> ```kotlin
+> val valueSynchronized: String by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+>     "Synchronized"
+> }
+> 
+> val valuePublication: String by lazy(LazyThreadSafetyMode.PUBLICATION) {
+>     "Publication"
+> }
+> 
+> val valueNone: String by lazy(LazyThreadSafetyMode.NONE) {
+>     "None"
+> }
+> ```
+
+### lateinit
+
+`lateinit` 是一种延迟初始化的关键字，用于延迟初始化一个 `var` 可变属性。属性类型必须是非空的且不能是原始类型（如 `Int`, `Double`）。 
+
+`lateinit` 属性**不能有自定义的 getter 和 setter**，必须在使用之前显式初始化，否则会抛出 `UninitializedPropertyAccessException`。 
+
+```kotlin
+lateinit var myValue: String
+
+fun initialize() {
+    myValue = "Hello, World!"
+}
+
+// 使用之前必须显式初始化
+initialize()
+println(myValue) // 输出: "Hello, World!"
+```
+
+
+
+**检查初始化**
+
+ 可以使用 `::property.isInitialized` 语法检查变量是否初始化
+
+```kotlin
+if (::myValue.isInitialized) {
+    println(myValue)
+} else {
+    println("myValue is not initialized")
+}
+```
+
+**两者对比**
+
+| 特性                 | by lazy                                  | lateinit                                 |
+| -------------------- | ---------------------------------------- | ---------------------------------------- |
+| 适用类型             | `val`（只读属性）                        | `var`（可变属性）                        |
+| 初始化时机           | 第一次访问时                             | 必须手动初始化                           |
+| 线程安全             | 默认线程安全（可选择不同的线程安全模式） | 非线程安全                               |
+| Nullability          | 支持不可空类型                           | 支持不可空类型（不能用于原始类型）       |
+| 属性检查             | 不需要显式检查                           | 可以通过 `::property.isInitialized` 检查 |
+| 自定义 getter/setter | 不支持                                   | 不支持                                   |
+| 适用场景             | 用于只读且惰性初始化的属性               | 用于需要在构造函数之外初始化的可变属性   |
+
+`by lazy` 适用场景：
+
+- 需要惰性初始化不可变的属性。
+- 需要线程安全的初始化或者只在单线程中操作。
+
+`lateinit` 适用场景：
+
+- 需要在构造方法之后初始化的可变属性。
+- 需要在某个特定操作时才对属性进行赋值。
