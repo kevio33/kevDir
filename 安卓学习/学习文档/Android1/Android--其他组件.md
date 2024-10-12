@@ -152,7 +152,7 @@ class ExampleFragment extends Fragment {
 
 #### (1)概述
 
-FragmentManager类负责管理 Fragment、Fragment 返回堆栈。在运行时，`FragmentManager` 可以执行添加或移除 Fragment 等返回堆栈操作来响应用户互动。每一组更改作为一个`FragmentTransaction`，也就是说通过transaction来执行对frag的具体操作。
+FragmentManager类**负责管理 Fragment、Fragment BackStack**。在运行时，`FragmentManager` 可以执行添加或移除 Fragment 等返回堆栈操作来响应用户互动，每一组操作为一个`FragmentTransaction`
 
 #### (2)获取FM
 
@@ -224,34 +224,22 @@ ExampleFragment fragment = (ExampleFragment) fragmentManager.findFragmentByTag("
 
 #### (4)支持多个返回堆栈
 
-在某些情况下，您的应用可能需要支持多个返回堆栈。一个常见示例是，您的应用使用底部导航栏。`FragmentManager` 可让您通过 `saveBackStack()` 和 `restoreBackStack()` 方法支持多个返回堆栈。这两种方法使您可以通过保存一个返回堆栈并恢复另一个返回堆栈来在返回堆栈之间进行交换。
+在某些情况下，应用可能需要支持多个返回堆栈。**一个常见示例是：应用使用底部导航栏，每个tab对应一个fragment，需要有单独的一个BackStack**。
+
+`FragmentManager` 可通过 `saveBackStack()` 和 `restoreBackStack()` 方法支持多个返回堆栈。这两种方法可以通过保存一个返回堆栈并恢复另一个返回堆栈来在返回堆栈之间进行交换。
 
 > `saveBackStack()` 的工作方式类似于使用可选 `name` 参数调用 `popBackStack()`：弹出指定事务以及堆栈上在此之后的所有事务。不同之处在于 `saveBackStack()` [会保存弹出事务中所有 fragment 的状态](https://developer.android.google.cn/guide/fragments/saving-state)。
 
-例如，假设您之前使用 `addToBackStack()` 提交 `FragmentTransaction`，从而将 fragment 添加到返回堆栈：
+例如，假设使用 `addToBackStack()` 提交 `FragmentTransaction`，从而将 fragment 添加到返回堆栈：
 
 ```java
 supportFragmentManager.beginTransaction()
-  .replace(R.id.fragment_container, ExampleFragment.class, null)
-  // setReorderingAllowed(true) and the optional string argument for
-  // addToBackStack() are both required if you want to use saveBackStack().
-  .setReorderingAllowed(true)
-  .addToBackStack("replacement")
-  .commit();
-```
-
-在这种情况下，您可以通过调用 `saveState()` 来保存此 fragment 事务和 `ExampleFragment` 的状态：
-
-```java
-supportFragmentManager.saveBackStack("replacement");
-```
-
-> **注意**：您只能将 `saveBackStack()` 用于调用 `setReorderingAllowed(true)` 的事务，以确保可以将事务还原为单一原子操作。
-
-您可以使用相同的名称参数调用 `restoreBackStack()`，以**恢复所有弹出的事务以及所有保存的 fragment 状态**：
-
-```java
-supportFragmentManager.restoreBackStack("replacement");
+    .replace(R.id.fragment_container, ExampleFragment.class, null)
+    // setReorderingAllowed(true) and the optional string argument for
+    .setReorderingAllowed(true)
+    // addToBackStack() are both required if you want to use saveBackStack().
+    .addToBackStack("replacement")
+    .commit();
 ```
 
 
@@ -271,9 +259,10 @@ FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 fragmentTransaction.commit();//提交
 ```
 
-#### (1)常用方法
+**常用方法**
 
 - **add()** ：添加 Fragment 到 Activity 界面中；
+- **setReorderingAllowed** ： 启用 Fragment 事务的重排序功能 
 - **remove()**：移除 Activity 中的指定 Fragment；
 - **replace()** ：通过内部调用 remove() 和 add() 完成 Fragment 的修改；
 - **hide() 和 show()**：隐藏和显示 Activity 中的 Fragment；
@@ -281,6 +270,37 @@ fragmentTransaction.commit();//提交
 - **commit()**：提交事务，所有通过上述方法对 Fragment 的改动都必须通过调用 commit() 方法完成提交；
 - **detach()**，将一个fragment视图删除，但是**不摧毁fragment(与remove最大区别)**，就如stopped状态一样，fragmentmanager保存此fragment状态
 - **attach()**，将一个已经分离的fragment重新attach，并且创建UI视图
+
+#### (1) setReorderingAllowed 
+
+用于启用 Fragment 事务的重排序功能。这个方法允许在事务提交后，系统可以重新排序和优化 Fragment 的添加、移除和替换操作，以提高性能和减少不必要的视图层次结构变化。 
+
+在某些情况下，Fragment 事务可能会涉及多个操作（如添加、移除、替换等）。如果这些操作可以重新排序，系统可以优化这些操作的执行顺序，从而提高性能。例如，如果你在一个事务中先添加一个 Fragment，然后再替换它，系统可以将这两个操作合并为一个操作，从而减少视图层次结构的变化。
+
+```java
+public class MainActivity extends AppCompatActivity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        // 初始化按钮
+        Button button = findViewById(R.id.button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                transaction.setReorderingAllowed(true); // 启用重排序功能
+                transaction.replace(R.id.fragment_container, new MyFragment());
+                transaction.addToBackStack(null); // 将该操作添加到返回栈中
+                transaction.commit();
+            }
+        });
+    }
+}
+```
+
+
 
 #### (2)commit
 
@@ -781,11 +801,39 @@ public class FilterFragment extends Fragment {
 
 
 
-#### (3)使用Result API获取结果
+#### (3)使用Result API
+
+> https://juejin.cn/post/7024068278683172900
 
 在 fragment 版本 1.3.0 及更高版本中，每个 [`FragmentManager`]都实现了 [`FragmentResultOwner`]。这意味着，`FragmentManager` 可以充当 fragment 结果的集中存储区。此更改通过设置 fragment 结果并监听这些结果，而不要求组件直接相互引用，让这些组件能够相互通信。 
 
 > 这个的难点主要是获取的fragmentManager要正确
+
+**发送数据**
+
+如果 FragmentB 发送数据给 FragmentA，需要在 FragmentA 中注册 listener，通过 parent FragmentManager 发送数据 
+
+**接收数据**
+
+如果想在 Fragment 中接受数据，可以在 FragmentManager 中注册一个 FragmentResultListener，参数 requestKey 可以过滤掉 FragmentManager 发送的数据 
+
+
+
+**和LifeCycle绑定**
+
+可以通过简化后的时序图来分析lifecycle状态和fragment设置监听的顺序: 
+
+- 如果监听 Fragment 的生命周期，您可以在接收到新数据时安全地更新 UI，因为 view 的创建(onViewCreated() 方法在 onStart() 之前被调用)。
+
+  >  ![img](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5b2b2e0891dd4a92a5182d2521caa878~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp) 
+
+- 当生命周期处于 LifecycleOwner STARTED 的状态之前，如果有多个数据传递，只会接收到最新的值:
+
+  >  ![img](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/909fcd6edb3a48958f46150a884f6799~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp) 
+
+- 当生命周期处于 LifecycleOwner DESTROYED 时，它将自动移除 listener，如果想手动移除 listener，需要调用 FragmentManager.setFragmentResultListener() 方法，传递空的 FragmentResultListener
+
+  >  ![img](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/258ed547b6d248b6ade271a765417f06~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp) 
 
 **fragments之间传递结果**
 
@@ -880,6 +928,78 @@ class MainActivity extends AppCompatActivity {
 
 
 
+##### 源码分析
 
+将监听器和fragment的lifecycle进行绑定，这样将带来以下优点:
+
+- 在 Fragment 之间传递数据，不会持有对方的引用
+- 当生命周期处于 ON_START 时开始处理数据，避免当 Fragment 处于不可预知状态的时，可能发生未知的问题
+- 当生命周期处于 ON_DESTROY 时，移除监听
+
+ fragment和它的lifecycle是如何进行数据监听的绑定和解绑的呢: 
+
+```java
+@Override
+public final void setFragmentResultListener(@NonNull final String requestKey,
+                                            @NonNull final LifecycleOwner lifecycleOwner,
+                                            @NonNull final FragmentResultListener listener) {
+    final Lifecycle lifecycle = lifecycleOwner.getLifecycle();
+    //destroyed则直接返回
+    if (lifecycle.getCurrentState() == Lifecycle.State.DESTROYED) {
+        return;
+    }
+
+    LifecycleEventObserver observer = new LifecycleEventObserver() {
+        @Override
+        public void onStateChanged(@NonNull LifecycleOwner source,
+                                   @NonNull Lifecycle.Event event) {
+            //在start的时候进行方法调用
+            if (event == Lifecycle.Event.ON_START) {
+                // 一旦出于start状态，检查任何存储结果
+                Bundle storedResult = mResults.get(requestKey);
+                if (storedResult != null) {
+                    // 如果查询的结果不为空，则触发回调
+                    listener.onFragmentResult(requestKey, storedResult);
+                    // 清除结果
+                    clearFragmentResult(requestKey);
+                }
+            }
+
+            //destroy则移除监听
+            if (event == Lifecycle.Event.ON_DESTROY) {
+                lifecycle.removeObserver(this);
+                mResultListeners.remove(requestKey);
+            }
+        }
+    };
+```
+
+> 上面代码做了:
+>
+> - 获取 Lifecycle 去监听 Fragment 的生命周期的变化
+> - 当生命周期处于 ON_START 时开始处理数据，避免当 Fragment 处于不可预知状态的时，可能发生未知的问题
+> - 当生命周期处于 ON_DESTROY 时，移除监听
+> - 当生命周期处于 DESTROYED 则直接返回不作处理
+
+ 再看下如何发送数据的: 
+
+```java
+@Override
+public final void setFragmentResult(@NonNull String requestKey, @NonNull Bundle result) {
+    // 检查是否有监听器去监听requestkey结果
+    FragmentManager.LifecycleAwareResultListener resultListener = mResultListeners.get(requestKey);
+    // 如果生命周期started，则触发回调
+    if (resultListener != null && resultListener.isAtLeast(Lifecycle.State.STARTED)) {
+        resultListener.onFragmentResult(requestKey, result);
+    } else {
+        //否则 保存当前传输数据result
+        mResults.put(requestKey, result);
+    }
+}
+```
+
+> - 获取 requestKey 注册的 listener
+> - 当生命周期处于 STARTED 状态时，开始发送数据
+> - 否则保存当前传输的数据
 
 ## Navigation

@@ -1784,7 +1784,7 @@ public class MyViewPager extends ViewPager {
 >
 > https://juejin.cn/post/6844903895790157838#heading-6
 
-如果预加载多个页面的时，由于预加载的原因，多个页面同时会对网络进行请求，造成流量浪费，卡顿等问题，**懒加载解决的问题就是让页面上一些信息进行延迟加载，不至于同时进行太多并发的请求等** 
+如果存在多个页面，由于预加载的原因，多个页面同时会对网络进行请求，造成流量浪费，卡顿等问题，**懒加载解决的问题就是让页面上一些信息进行延迟加载，不至于同时进行太多并发的请求等** 
 
 > **viewpager1需要自定义实现懒加载，而viewpager2默认是实现了懒加载**
 
@@ -3268,7 +3268,7 @@ public static int growSize(int currentSize) {
 ####  Item 点击事件
 
 - RecyclerView不支持 item 点击事件，只能用回调接口来设置点击事件
-- ListView的 item 点击事件直接是setOnItemClickListener
+- ListView的 item 支持直接设置点击事件`setOnItemClickListener`
 
 #### 局部刷新
 
