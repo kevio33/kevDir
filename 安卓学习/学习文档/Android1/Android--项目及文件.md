@@ -96,6 +96,8 @@
 ## 3.3 build.gradle
 
 > [两个gradle文件区别](https://www.cnblogs.com/skynight/p/17616912.html)
+>
+> [gradle to DSL](https://mp.weixin.qq.com/s/U22oY79mxs9RJHvGjgVmTQ)
 
 ### 3.3.1 app的build.gradle
 
