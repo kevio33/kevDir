@@ -2123,7 +2123,7 @@ c.getAttr()          # 再次调用父类的方法 - 获取属性值
 **函数检测**
 
 - `issubclass(sub,sup) `- 布尔函数判断一个类是另一个类的子类或者子孙类
-- `isinstance(obj, Class) `-布尔函数如果obj是Class类的实例对象或者是一个Class子类的实例对象则返回true。
+- `isinstance(obj, Class) `-如果obj是Class类的实例对象或者是一个Class子类的实例对象则返回true。
 
 
 
