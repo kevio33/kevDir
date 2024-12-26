@@ -84,11 +84,11 @@ fun bitmapToByteArray(bitmap: Bitmap): ByteArray {
 
 ### 3.保存与转换
 
-[Bitmap转换为Byte数组](#bitmaptobyte)
+#### [Bitmap转换为Byte数组](#bitmaptobyte)
 
 
 
-Bitmap转换为文件
+#### Bitmap转换为文件
 
 ```kotlin
 fun bitmapToFile(bitmap: Bitmap, file: File): Boolean {
@@ -108,6 +108,45 @@ fun bitmapToFile(bitmap: Bitmap, file: File): Boolean {
     }
 }
 ```
+
+
+
+#### Bitmap与drawable互转
+
+**drawable to bitmap**
+
+**有三种方式：**
+
+- drawable文件画在canvas上面，然后通过canvas渲染到bitmap上
+- 将图片资源转换为DrawableBitmap然后通过drawableBitmap的getBitmap方法转换为bitmap
+
+```java
+//画在canvas上，然后渲染到bitmap上
+public Bitmap drawable2bitmap(Drawable drawable) {
+    //创建一个与Drawable大小相同的Bitmap
+    Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(),
+                                        drawable.getOpacity() != PixelFormat.OPAQUE ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565);
+
+    Canvas canvas = new Canvas(bitmap);
+
+    //设置Drawable的绘制边界为Bitmap的全尺寸
+    drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+    //在Canvas上绘制Drawable，渲染到Bitmap中
+    drawable.draw(canvas);
+
+    Log.d(TAG, "drawable2bitmap: " + bitmap.getWidth());
+	//返回转换的bitmap对象
+    return bitmap;
+```
+
+```java
+//通过bitmap对象创建的bitmapDrawable可以直接获取到其中的bitmap
+val bitmapDrawable = BitmapDrawable(resources, bitmap)
+val bitmap2 = bitmapDrawable.bitmap
+Log.d(TAG, "onCreate: " + bitmap2.width)
+```
+
+
 
 
 
@@ -202,17 +241,48 @@ bitmap提供了计算图片大小的方法
 
 **(1)手动设置缩放**
 
+**①设置options参数缩放**
+
 通过Bitmap的Options 对象，其中的 `inSampleSize`参数可以控制缩放的比例，`inSampleSize`的值代表图片的宽度、高度分别变为原来的 `1/inSampleSize `
 
 ```kotlin
 val bytes = assets.open("pic.jpg").readBytes()
 
 val options = BitmapFactory.Options()
-ptions.inSampleSize = 2
+options.inSampleSize = 2
 val bitmap = BitmapFactory.decosdeByteArray(bytes, 0, bytes.size, options)
 ```
 
 > **注意，inSampleSize 的值要求必须大于1，且只能是2的整数倍**
+
+**②通过matrix比例缩放**
+
+```java
+public static Bitmap changeBitmapSize(Bitmap bitmap, int newW, int newH) {
+    // 获取原始Bitmap的宽度和高度
+    int oldW = bitmap.getWidth();
+    int oldH = bitmap.getHeight();
+
+    // 计算宽度和高度的缩放比例
+    float scaleWidth = ((float) newW) / oldW;
+    float scaleHeight = ((float) newH) / oldH;
+
+    // 创建一个Matrix对象，用于定义缩放的转换
+    Matrix matrix = new Matrix();
+    // 设置Matrix的缩放比例
+    matrix.postScale(scaleWidth, scaleHeight);
+
+    // 使用Matrix对原始Bitmap进行缩放，生成新的Bitmap
+    // 参数说明：
+    // bitmap: 原始Bitmap
+    // 0, 0: 从原始Bitmap的左上角开始裁剪
+    // oldW, oldH: 裁剪区域的宽度和高度（即整个原始Bitmap）
+    // matrix: 定义缩放转换的Matrix对象
+    // true: 指定是否过滤Bitmap（开启抗锯齿效果，使缩放后的图像更平滑）
+    bitmap = Bitmap.createBitmap(bitmap, 0, 0, oldW, oldH, matrix, true);
+    return bitmap;
+}
+```
 
 **(2)Drawable自动缩放**
 
