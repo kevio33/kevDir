@@ -189,6 +189,13 @@ android {
                 'proguard-rules.pro'
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 }
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
@@ -291,6 +298,48 @@ release {
 `proguardFiles`用于指定混淆时使用的规则文件，这里指定了两个文件：第一个`proguard-android-optimize.txt`是在 
 
 `<Android SDK>/tools/proguard`目录下的，里面是所有项目通用的混淆规则；第二个 `proguard-rules.pro`是在当前项目的根目录下的，里面可以编写当前项目特有的混淆规则。
+
+
+
+#### compileOptions和kotlinOptions
+
+> https://juejin.cn/post/7223278436893327421
+
+**compileOptions 的 JDK**
+
+**定义：**
+
+- 与项目的代码编译相关的 JDK 配置。
+- `compileOptions` 中的 `sourceCompatibility` 和 `targetCompatibility` 确定了项目源码可以使用的 Java 特性以及生成的字节码的目标版本。
+
+**作用：**
+
+- 决定编译时的 Java 源代码语言级别（`sourceCompatibility`）。
+- 决定生成的字节码兼容的最低 Java 版本（`targetCompatibility`）。
+
+> **与gradle jdk区别是？**
+>
+> ![1735719173465](Android--项目及文件.assets/1735719173465.png)
+>
+> **Gradle JDK**
+>
+> **定义**：
+>
+> - 指的是**用于运行 Gradle 构建工具 的 JDK**。
+> - 这个 JDK 主要负责执行 Gradle 脚本和任务，如编译代码、生成 APK/Bundle、处理依赖项等。
+>
+> **作用**：
+>
+> - 决定了 Gradle 本身运行时使用的 Java 环境版本。
+> - **重要性**：Gradle 必须运行在支持的 JDK 版本上（Android Gradle 插件对 JDK 有最低版本要求）。
+>
+> **配置**：
+>
+> - 在 Android Studio中，可以通过以下方式设置 Gradle 的 JDK：
+>   1. File > Settings > Build, Execution, Deployment > Build Tools > Gradle > Gradle JDK。
+>   2. 通常推荐使用 Embedded JDK（由 Android Studio 提供）或指定其他版本的 JDK。
+>
+> **Gradle JDK 与项目编译时生成的字节码无直接关系，只影响构建工具本身的运行。**
 
 
 

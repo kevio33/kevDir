@@ -935,17 +935,12 @@ int measureSpec=MeasureSpec.makeMeasureSpec(size, mode);
 
 ```java
 protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-
+	//setMeasuredDimension(int measuredWidth, int measuredHeight) ：该方法用来设置View的宽高，在我们自定义View时也会经常用到。
     setMeasuredDimension(getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec),
                          getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec));
 }
 
-//setMeasuredDimension(int measuredWidth, int measuredHeight) ：该方法用来设置View的宽高，在我们自定义View时也会经常用到。
 //getDefaultSize(int size, int measureSpec)：该方法用来获取View默认的宽高。
-//getSuggestedMinimumWidth():当View没有设置背景时，默认大小就是mMinWidth，这个值对应Android:minWidth属性，如果没有设置时默认为0.如果有设置背景，则默认大小为mMinWidth和mBackground.getMinimumWidth()当中的较大值。
-```
-
-```java
 public static int getDefaultSize(int size, int measureSpec) {
     int result = size;
     int specMode = MeasureSpec.getMode(measureSpec);
@@ -963,6 +958,7 @@ public static int getDefaultSize(int size, int measureSpec) {
     return result;
 }
 
+//getSuggestedMinimumWidth():当View没有设置背景时，默认大小就是mMinWidth，这个值对应Android:minWidth属性，如果没有设置时默认为0.如果有设置背景，则默认大小为mMinWidth和mBackground.getMinimumWidth()当中的较大值。
 protected int getSuggestedMinimumWidth() {
     return (mBackground == null) ? mMinWidth : max(mMinWidth, mBackground.getMinimumWidth());
 }
@@ -2042,3 +2038,24 @@ public boolean onTouchEvent(MotionEvent event) {
 
 ## 3D
 
+
+
+
+
+# 问题
+
+## 1.绘制相关方法
+
+### invalidate
+
+`invalidate()` 方法通常是用于请求视图（View）重新绘制。它的作用是标记视图的某个区域为“需要重绘”，并会触发绘制过程。具体来说，`invalidate()` 默认情况下会触发**局部重绘**。 
+
+如果是在viewgroup里面调用，会触发其子view的重绘
+
+### requestLayout
+
+`requestLayout()` 会请求视图的布局（layout）重新计算，但它不会直接触发绘制过程（即 `onDraw()` 不会立即调用）。它通常用在视图尺寸或位置改变时。
+
+如果你在根视图上调用 `requestLayout()`，它会**导致整个视图树重新测量和布局**，然后可能触发后续的重绘。
+
+> **requestLayout：**会调用`onLayout`，`onSizeChanged`方法进行重新布局
