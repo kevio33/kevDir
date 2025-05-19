@@ -387,29 +387,7 @@ adb logcat -v time > D:\log.txt
 
 
 
-#### (8)发出shell命令
-
-在shell中，可以使用`am`发出命令，执行诸如启动Activity、强行停止进程、广播intent等等操作
-
-**在shell中的语法是：**
-
-```shell
-am command
-```
-
- 也可以直接从 `adb` 发出 activity 管理器命令，无需进入远程 shell。例如： 
-
-```shell
-adb shell am start -a android.intent.action.VIEW
-```
-
-> 更多am命令，参考——https://developer.android.com/tools/adb?hl=zh-cn#copyfiles
-
-
-
-
-
-#### (9)端口转发
+#### (8)端口转发
 
  使用 `forward` 命令设置任意端口转发，将特定主机端口上的请求转发到设备上的其他端口。以下示例设置了主机端口 6100 到设备端口 7100 的转发： 
 
@@ -427,7 +405,7 @@ adb forward tcp:6100 local:logd
 
 
 
-#### (10) 获取和显示系统服务的状态信息 
+#### (9) 获取和显示系统服务的状态信息 
 
 `dumpsys` 是 Android 系统中的一个命令行工具，用于获取和显示系统服务的状态信息。它可以帮助开发者和测试人员调试和分析 Android 设备的各种系统服务。 
 
@@ -456,3 +434,43 @@ adb shell dumpsys activity
 adb shell dumpsys wifi
 ```
 
+
+
+### 3.am 命令
+
+`am`是 Activity Manager 的缩写，它是 Android 系统的核心组件之一，负责管理以下操作：
+
+- 启动 Activity（应用界面）
+- 启动/停止 Service（后台服务）
+- 发送 Broadcast（广播）
+- 强制停止应用
+- 杀死后台进程
+- 其他与应用生命周期相关的操作。
+
+| **功能**         | **ADB 命令示例**                                  | **说明**                                 |
+| ---------------- | ------------------------------------------------- | ---------------------------------------- |
+| 启动 Activity    | `adb shell am start -n 包名/类名`                 | 启动指定应用的某个界面（Activity）。     |
+| 启动 Service     | `adb shell am startservice -n 包名/服务类名`      | 启动指定应用的后台服务。                 |
+| 发送广播         | `adb shell am broadcast -a 广播动作 -n 包名/类名` | 发送自定义或系统广播。                   |
+| 强制停止应用     | `adb shell am force-stop 包名`                    | 强制关闭应用的所有进程和组件。           |
+| 杀死后台进程     | `adb shell am kill 包名`                          | 杀死应用的后台进程（安全模式下）。       |
+| 杀死所有后台进程 | `adb shell am kill-all`                           | 杀死所有非前台进程。                     |
+| 修改屏幕分辨率   | `adb shell wm size 宽x高`                         | 通过 `am` 调用 `wm` 命令调整屏幕分辨率。 |
+
+ **发送一个自定义广播**
+
+广播action为`com.example.myapp.ACTION_BOOT_TEST`，发送给`com.yht.auto_boot/.myreceiver.MyReceiver2`
+
+```shell
+adb shell am broadcast -a com.example.myapp.ACTION_BOOT_TEST -n com.yht.auto_boot/.myreceiver.MyReceiver2
+```
+
+
+
+直接从 `adb` 发出 activity 管理器命令，无需进入远程 shell。例如： 
+
+```shell
+adb shell am start -a android.intent.action.VIEW
+```
+
+> 更多am命令，参考——https://developer.android.com/tools/adb?hl=zh-cn#copyfiles

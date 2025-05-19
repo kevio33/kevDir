@@ -2,7 +2,7 @@
 
 ## 1.快速教程
 
-通过看官方的tutorial，发现`jetpeck compose`和flutter差不多呀，都是声明性函数的方式无限嵌套构建UI布局
+通过看官方的tutorial，发现`jetpeck compose`和`flutter`差不多呀，都是声明性函数的方式无限嵌套构建UI布局
 
 ### 创建项目
 
