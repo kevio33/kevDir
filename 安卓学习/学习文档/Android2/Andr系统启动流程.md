@@ -1,6 +1,10 @@
+
+
+ ![Android系统启动流程](Andr系统启动流程.assets/68747470733a2f2f67697465652e636f6d2f7374696e6765727a6f752f7069632d6265642f7261772f6d61737465722f696d672f32303233303431373135343535362e706e67.png) 
+
 # 1.Zygote进程
 
-（1）**Zygote进程是所有的android进程的父进程**，包括SystemServer和各种应用进程都是通过Zygote进程fork出来的。目的是共享预加载的资源和类库，加快应用启动速度。
+（1）**Zygote进程是所有的android进程的父进程**，包括SystemServer和**各种应用进程**都是通过Zygote进程fork出来的。**目的是共享预加载的资源和类库，加快应用启动速度。**
 
 （2）**zygote进程又是init进程孵化出来的**
 
@@ -23,13 +27,13 @@
 
 init进程在启动Zygote进程时一般都会调用ZygoteInit类的main方法，该方法的具体实现包括：
 
-- 调用enableDdms()，设置DDMS可用。
+- 调用`enableDdms()`，设置DDMS可用。
 
   >  **DDMS**（Dalvik Debug Monitor Server）是 Android 开发工具包（SDK）中的一个调试工具，主要用于监控和调试运行在设备或模拟器上的 Android 应用程序。 
 
 - 然后调用preload方法实现预加载各种资源
 
-- 然后通过调用forkSystemServer使用fork系统调用，fork除SystemServer
+- 然后通过调用forkSystemServer使用fork系统调用，fork出SystemServer
 
 - 注册并启动socket
 
@@ -317,6 +321,12 @@ private static Runnable forkSystemServer(String abiList, String socketName,
 > }
 > ```
 
+
+
+### 总结
+
+![1747998191371](Andr系统启动流程.assets/1747998191371.png)
+
 # 2.SystemServer进程
 
 **SystemServer进程主要的作用是在这个进程中启动各种系统服务**，比如ActivityManagerService，PackageManagerService，WindowManagerService服务，以及各种系统性的服务其实都是在SystemServer进程中启动的，而当我们的应用需要使用各种系统服务的时候其实也是通过与SystemServer进程通讯获取各种服务对象的句柄的。
@@ -453,13 +463,11 @@ private void run() {
         // Check whether we failed to shut down last time we tried.
         // This call may not return.
         performPendingShutdown();
-
-        // Initialize the system context.
-        // 1.
+   
+        // 2.1.1.
         createSystemContext();
 
-        // Create the system service manager.
-        //2.
+        //2.1.2
         mSystemServiceManager = new SystemServiceManager(mSystemContext);
         mSystemServiceManager.setStartInfo(mRuntimeRestart,
                                            mRuntimeStartElapsedTime, mRuntimeStartUptime);
@@ -470,8 +478,7 @@ private void run() {
         traceEnd();  // InitBeforeStartServices
     }
 
-    // Start services.
-    //3.
+    //2.1.3
     try {
         traceBeginAndSlog("StartServices");
         startBootstrapServices();
