@@ -31,7 +31,7 @@ Android系统架构组件如下：
 > >
 > > - 更好的调试支持，包括专用采样分析器、详细的诊断异常和崩溃报告，并且能够设置观察点以监控特定字段
 > >
-> >   在 Android 版本 5.0（API 级别 21）之前，Dalvik 是 Android Runtime。如果您的应用在 ART 上运行效果很好，那么它应该也可在 Dalvik 上运行，但反过来不一定。
+> >   在 Android 版本 5.0（API 级别 21）之前，Dalvik 是 Android Runtime。如果应用在 ART 上运行效果很好，那么它应该也可在 Dalvik 上运行，但反过来不一定。
 > >
 > >   Android 还包含一套核心运行时库，可提供 Java API 框架所使用的 Java 编程语言中的大部分功能，包括一些 Java 8 语言功能。
 >

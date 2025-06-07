@@ -378,3 +378,115 @@ VSCode终端其实调用的是cmd.exe，所以当这里出现中文乱码的时�
 ## 11.变换窗口
 
 `win+上下左右键`
+
+
+
+# 四、远程连接服务器
+
+> 参考——https://blog.csdn.net/weixin_73757883/article/details/141141303
+
+## 1.连接linux服务器
+
+主要设计步骤包括：
+
+- Linux安装openssh-server
+- vscode安装remote-ssh
+- 配置vscode的ssh文件
+
+
+
+### linux安装openssh-server
+
+- 对于使用`apt`作为包管理工具的`Debian类系统`或者`Ubuntu`：
+
+```shell
+sudo apt-get remove openssh-server      # 先卸载，无论咋样都先做一下，以免出现问题
+sudo apt-get install openssh-server     # 安装
+sudo service ssh --full-restart     # 重启ssh 服务
+sudo systemctl enable ssh       # 自动启动
+```
+
+> 对于使用`yum`作为包管理工具的`CentOS`为代表的：
+>
+> ```shell
+> yum install -y openssl openssh-server   # 安装
+> systemctl restart sshd.service  # 重启 ssh 服务
+> systemctl enable sshd   # 自动启动
+> ```
+
+- 来配置一下文件：
+
+```shell
+sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup # 无论怎样，备份是个好习惯
+sudo vim /etc/ssh/sshd_config
+```
+
+ 文件内容需要修改的地方如下（把对应的内容添加上去或改一下，去掉前面的#注释符）： 
+
+```shell
+Port 22     # 默认连接端口为22
+PermitRootLogin yes
+PasswordAuthentication yes
+AllowUsers xxx # 这里的 "xxx" 改成你自己的登陆用户名
+RSAAuthentication yes
+PubKeyAUthentication yes
+```
+
+配置完成后重启ssh服务
+
+```shell
+sudo service ssh --full-restart
+```
+
+### vscode安装remote-ssh插件
+
+- 首先应用商店搜索插件
+
+
+
+- 然后配置ssh：
+
+  在vscode界面搜索界面输入`>`或者直接快捷键`ctrl+shift+p`，然后输入ssh，点击打开ssh配置文件
+
+  ![1749089289714](vscode使用note.assets/1749089289714.png)
+
+查看虚拟机的ip地址，然后再ssh配置文件输入如下内容
+
+![1749089365526](vscode使用note.assets/1749089365526.png)
+
+然后尝试远程连接虚拟机，还是刚才搜索界面输入ssh，然后点击连接当前窗口到主机，会提示输入虚拟机类型、密码，就可以连接到主机了。
+
+![1749089419692](vscode使用note.assets/1749089419692.png)
+
+![1749089476951](vscode使用note.assets/1749089476951.png)
+
+### linux端配置固定IP
+
+下载net-tools之后，进入netplan目录
+
+```shell
+sudo apt install net-tools -y  
+cd /etc/netplan
+# 备份旧的配置文件
+sudo cp 01-network-manager-all.yaml  01-network-manager-all.yaml.backup
+```
+
+修改文件
+
+```shell
+# 修改配置文件：
+sudo vim 01-network-manager-all.yaml
+
+network:
+  version: 2
+  renderer: NetworkManager
+  ethernets:
+    enp0s5:   # 网卡名称，通过ifconfig查看
+      dhcp4: no     # 关闭dhcp
+      dhcp6: no
+      addresses: [10.0.0.89/24]  # 静态ip，根据自己网络情况配置
+      gateway4: 10.0.0.1     # 网关，根据自己网络情况配置
+      nameservers:
+        addresses: [10.0.0.1, 114.114.114.114] #dns，根据自己网络情况配置
+```
+
