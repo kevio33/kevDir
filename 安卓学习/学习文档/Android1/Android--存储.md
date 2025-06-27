@@ -459,11 +459,18 @@ private static final int DATABASE_VERSION = 1;//  将版本号 由 1 改为2
 
 #### (1)私有内部存储
 
-   **/data/data** 目录是按照应用的包名来组织的，每个应用在安装成功后，会自动创建新的目录（**data/data/package-name**），并且目录名称就是该应用的包名，所以每个应用都有专属的内部存储目录。当应用被卸载后，该目录都会被系统自动删除。 
+   **/data/data** 目录是按照应用的包名来组织的，每个应用在安装成功后，会自动创建新的目录：
+
+- （**data/data/package-name**）
+
+
+并且目录名称就是该应用的包名，所以每个应用都有专属的内部存储目录。
+
+**当应用被卸载后，该目录都会被系统自动删除。** 
 
 > 宿主应用访问自己的内部存储目录时不需要申请任何权限。因此这部分的存储也被称为：**内部存储私有目录**。 
 >
-> 用户访问需要ROOT
+> **其他用户或应用无法直接访问，除非ROOT**
 
 **私有内部存储目录结构一般为**
 
@@ -548,16 +555,18 @@ File cacheFile = new File(context.getCacheDir(), filename);
 
 ### 3.外部存储
 
-通俗来说，外部存储空间就是我们打开手机系统“文件管理”后看到的内容，外部存储的最外层目录是 storage 文件夹，也可以是 mnt 文件夹，这个厂家不同也会有不同的结果。一般来说，在 storage 文件夹中有一个 sdcard 文件夹，和内部存储不同的是，外部存储根据存储特点的不同可分为三种类型：**私有目录、公共目录、其他目录**。其中，“私有目录”属于外部存储的“私有存储空间”，“公共目录”和“其他目录”属于外部存储的“共享空间”。
+外部存储的最外层目录是 storage 文件夹，也可以是 mnt 文件夹，这个厂家不同也会有不同的结果。一般来说，在 storage 文件夹中有一个 sdcard 文件夹。
+
+外部存储根据存储特点的不同可分为三种类型：**私有目录、公共目录、其他目录**。其中，“私有目录”属于外部存储的“私有存储空间”，“公共目录”和“其他目录”属于外部存储的“共享空间”。
 
 > - 私有目录：上图中的 Android 文件夹，这个文件夹打开之后里边有一个 data 文件夹，打开这个 data 文件夹，里边有许多包名组成的文件夹，这些文件夹是应用的私有目录。
 > - 公共目录：DCIM、Download、Music、Movies、Pictures、Ringtones 等这种系统为我们创建的文件夹；这些目录里的文件所有应用可以分享。
 > - 其他目录：除私有目录和公共目录之外的部分。比如各个 App 在 /sdcard/ 目录下创建的目录，如支付宝创建的目录：alipy/，微博创建的目录：com.sina.weibo/，qq创建的目录：com.tencent.mobileqq/等。
 >   
 
-#### 私有外部存储	
+#### 外部存储私有区域	
 
-位置：`/storage/emulated/0/Android/data/{应用包名}/files/Download`
+位置：**`/storage/emulated/0/Android/data/{应用包名}/files/Download`**
 
 ```java
 getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString();//需要有一个参数，指定访问该目录下的目录类型
@@ -604,13 +613,13 @@ externalCacheFile.delete();
 
 
 
-#### 公有外部存储
+#### 外部存储公共区域
+
+位置：`/storage/emulated/0`
 
 DCIM、Download、Music、Movies、Pictures、Ringtones 等这种系统为我们创建的文件夹；这些目录里的文件所有应用可以分享。 
 
 > **所有APP都需要申请EXTERNAL_STORAGE权限，Android6.0开始动态申请权限**
-
-位置：`/storage/emulated/0`
 
 ```java
 Environment.getExternalStorageDirectory();
@@ -687,7 +696,9 @@ File getAppSpecificAlbumStorageDir(Context context, String albumName) {
 
 ### 4.查询可用空间
 
-如果您事先知道要存储的数据量，您可以通过调用 [`getAllocatableBytes()`]查出设备可以为应用提供多少空间。`getAllocatableBytes()` 的返回值可能大于设备上的当前可用空间量。这是因为系统已识别出可以从其他应用的缓存目录中移除的文件。
+如果事先知道要存储的数据量，您可以通过调用 [`getAllocatableBytes()`]查出设备可以为应用提供多少空间。
+
+`getAllocatableBytes()` 的返回值可能大于设备上的当前可用空间量。这是因为系统已识别出可以从其他应用的缓存目录中移除的文件。
 
 如果有足够的空间保存您的应用数据，请调用 [`allocateBytes()`]。否则，您的应用可以请求用户从设备[移除一些文件]或从设备[移除所有缓存文件]。
 
@@ -779,7 +790,7 @@ try {
 
 > 如果是其他资源， 例如res/values、res/layout、res/drawable等目录下的资源，可以使用相应的资源ID来获取。 
 
-### 区别
+#### assets和res的区别
 
 **相同点：**
 
@@ -840,73 +851,7 @@ if (outputStream!=null){
 
 # 存储策略
 
-## 一、移动设备存储空间
-
-|                | 内容类型                                 | 访问方法                                                     | 所需权限                                                     | 其他应用是否可以访问？                          | 卸载应用时是否移除文件？ |
-| :------------- | :--------------------------------------- | :----------------------------------------------------------- | :----------------------------------------------------------- | :---------------------------------------------- | ------------------------ |
-| 应用专属文件   | 仅供您的应用使用的文件                   | ①从内部存储空间访问：可以使用 `getFilesDir()` 或 `getCacheDir()` 方法  ②从外部存储空间访问，可以使用 `getExternalFilesDir()` 或 `getExternalCacheDir()` 方法 | 从内部存储空间访问不需要任何权限 ，如果应用在搭载 Android 4.4（API 级别 19）或更高版本的设备上运行，从外部存储空间访问不需要任何权限 | 否                                              | 是                       |
-| 媒体           | 可共享的媒体文件（图片、音频文件、视频） | `MediaStore` API                                             | 在 Android 11（API 级别 30）或更高版本中，访问其他应用的文件需要 `READ_EXTERNAL_STORAGE`  在 Android 10（API 级别 29）中，访问其他应用的文件需要 `READ_EXTERNAL_STORAGE` 或 `WRITE_EXTERNAL_STORAGE`  在 Android 9（API 级别 28）或更低版本中，访问**所有**文件均需要相关权限 | 是，但其他应用需要 `READ_EXTERNAL_STORAGE` 权限 | 否                       |
-| 文档和其他文件 | 其他类型的可共享内容，包括已下载的文件   | 存储访问框架                                                 | 无                                                           | 是，可以通过系统文件选择器访问                  | 否                       |
-| 应用偏好设置   | 键值对                                   | Jetpack Preferences库                                        | 无                                                           | 否                                              | 是                       |
-| 数据库         | 结构化数据                               | Room 持久性库                                                | 无                                                           | 否                                              | 是                       |
-
-
-
-
-
-### 1.内部存储
-
-**随应用卸载被删除**
-
-**内部存储：不需要任何权限**
-
-> `/data/data/< applicationId,就是包名 >/shared_prefs`
-> `/data/data/< applicationId >/databases`
-> `/data/data/< applicationId >/files —— 通过context.getFilesDir() 获取该目录`
-> `/data/data/< applicationId >/cache —— 通过context.getCacheDir() 获取该目录`
-> Android SDK提供了几个常见的内部存储文件的权限
-
-Context.MODE_PRIVATE ：私有方式存储，其他应用无法访问，覆盖旧的同名文件
-Context.MODE_APPEND：私有方式存储，若有旧的同名文件，则在该文件上追加数据
-
-
-
-### 2.外部存储
-
-1. 外部存储：
-
-   > - 公有目录：存放一些下载的视频文件等，比如还有movies，fictures，music等公有的一些文件目录
-   > - 私有目录：随应用卸载被删除
-
-**公有目录：**
-
-`Environment.getExternalStoragePublicDirectory(int type)`：
-
->  这里的type类型不能为空：可以是DIRECTORY_MUSIC，DIRECTORY_MOVIES等 通过这个方法获取公有目录下相对应的文件
-> Environment.getExternalStorageDirectory()也可以获取。
-
-
-注：Environment是操作SD卡的工具类
-
-```java
-//publicDirectory路径为：/storage/emulated/0/Movies
-String publicDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES).getAbsolutePath();
-//sdPath路径为： /storage/emulated/0
-String sdPath = Environment.getExternalStorageDirectory().getAbsolutePath();
-```
-
-**私有目录**
-
-> /mnt/sdcard/Android/data/data/< applicationId >/cache 通过getExternalCacheDir().getAbsolutePath()得到的路径为：
-> /storage/emulated/0/Android/data/包名/cache等价于上面的路径。
-> /mnt/sdcard/Android/data/data/< applicationId >/files 通过getExternalFilesDir().getAbsolutePath()方法可以获取到路径为：
-> /storage/emulated/0/Android/data/包名/files等价于上面的路径。
-
-> 参考——https://blog.csdn.net/lu202032/article/details/119580314
-
-
-
-## 二、存储用例的最佳做法
+## 一、存储用例的最佳做法
 
 为了让用户更好地控制自己的文件并减少混乱，Android 10 针对应用推出了一种新的存储范例，称为[分区存储]
 

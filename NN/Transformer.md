@@ -32,13 +32,13 @@ Transformer 模型的核心思想是处理一系列的 tokens，并通过注意�
 ## 1.输入部分
 
 - Embedding
-- 位置嵌入
+- 位置编码
 
 ### Embedding
 
 
 
-### 位置嵌入
+### 位置编码
 
 自己理解的是：因为transformer是并行的，多头注意力机制，所以不是按顺序one by one，不共享一套参数(RNN共享)，**所以需要位置编码**
 

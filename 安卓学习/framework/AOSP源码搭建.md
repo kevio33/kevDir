@@ -66,8 +66,10 @@ repo sync
 ### 编译源码
 
 ```shell
+#命令一
 source build/envsetup.sh 
 
+#命令二
 lunch  
 26. aosp_x86_64-eng #选择x86
 
@@ -88,20 +90,39 @@ m #自动根据cpu情况选择线程数
 make -j16 #指定16线程
 ```
 
-> 第一次差不多2个半小时
+> 第一次差不多2个半小时，编译的结果在`out/target/product`下
 
 然后使用emulator命令起模拟器和Android系统：
 
 ```shell
 emulator -verbose -cores 4 -show-kernel
-#运行模拟器可以直接emulator命令
+#也可以不带参数运行模拟器可以直接emulator命令
 ```
 
-> **首次启动一定要带这几个参数，否则起不起来**
+> | 参数           | 说明                                                         |
+> | -------------- | ------------------------------------------------------------ |
+> | `emulator`     | 启动 Android 模拟器（假设你已经安装了 AVD，Android Virtual Device） |
+> | `-verbose`     | 以详细模式输出日志，可以看到模拟器启动过程中的调试信息，便于排查问题（模拟器本身运行问题） |
+> | `-cores 4`     | 指定模拟器使用的 CPU 核心数为 4 个（模拟多核设备）           |
+> | `-show-kernel` | 显示内核输出信息（通常用于调试内核启动过程）                 |
 
 ![1748926053374](AOSP源码搭建.assets/1748926053374.png)
 
-
+> 如果要持续输出日志：
+>
+> ```shell
+> emulator -logcat '*:e' #输出error的日志
+> ```
+>
+> **如果模拟器以及启动，可以在另一个终端打日志**
+>
+> ```shell
+> adb logcat *:E
+> 
+> adb logcat -s '*:E' -v color
+> ```
+>
+> 
 
 ### 初次修改源码
 
@@ -154,7 +175,7 @@ lunch sdk-eng
 make sdk
 ```
 
-> **这个编译sdk一直不成功，不知道是内存不足原因还是什么，直接放弃**
+> **！！！！！！这个编译sdk一直不成功，不知道是内存不足原因还是什么，直接放弃**
 
 ## 4.Product
 
@@ -178,48 +199,10 @@ You're building on Linux
 Lunch menu... pick a combo:
      1. aosp_arm-eng
      2. aosp_arm64-eng
-     3. aosp_blueline-userdebug
-     4. aosp_bonito-userdebug
-     5. aosp_car_arm-userdebug
-     6. aosp_car_arm64-userdebug
-     7. aosp_car_x86-userdebug
-     8. aosp_car_x86_64-userdebug
-     9. aosp_cf_arm64_phone-userdebug
-     10. aosp_cf_x86_64_phone-userdebug
-     11. aosp_cf_x86_auto-userdebug
-     12. aosp_cf_x86_phone-userdebug
-     13. aosp_cf_x86_tv-userdebug
-     14. aosp_coral-userdebug
-     15. aosp_coral_car-userdebug
-     16. aosp_crosshatch-userdebug
-     17. aosp_crosshatch_car-userdebug
-     18. aosp_flame-userdebug
-     19. aosp_marlin-userdebug
-     20. aosp_sailfish-userdebug
-     21. aosp_sargo-userdebug
-     22. aosp_taimen-userdebug
-     23. aosp_walleye-userdebug
-     24. aosp_walleye_test-userdebug
+...
      25. aosp_x86-eng
      26. aosp_x86_64-eng
-     27. beagle_x15-userdebug
-     28. car_x86_64-userdebug
-     29. fuchsia_arm64-eng
-     30. fuchsia_x86_64-eng
-     31. hikey-userdebug
-     32. hikey64_only-userdebug
-     33. hikey960-userdebug
-     34. hikey960_tv-userdebug
-     35. hikey_tv-userdebug
-     36. m_e_arm-userdebug
-     37. mini_emulator_arm64-userdebug
-     38. mini_emulator_x86-userdebug
-     39. mini_emulator_x86_64-userdebug
-     40. poplar-eng
-     41. poplar-user
-     42. poplar-userdebug
-     43. qemu_trusty_arm64-userdebug
-     44. uml-userdebug
+...
 
 Which would you like? [aosp_arm-eng]
 ```
@@ -228,8 +211,8 @@ Which would you like? [aosp_arm-eng]
 
 **product文件主要存在两个目录下面：**
 
-- build/target：存放模拟器相关的product文件
-- device：存放芯片以及方案厂商提供的product配置文件
+- `build/target`：存放模拟器相关的product文件
+- `device`：存放芯片以及方案厂商提供的product配置文件
 
 查看`build/target`目录下的结构：
 
@@ -249,7 +232,7 @@ Which would you like? [aosp_arm-eng]
 **选择aosp_x86_64-eng，主要关注下面文件：**
 
 - `/board/generic_x86_64/BoardConfig.mk` ： 用于硬件相关配置，包括硬件芯片架构配置、分区大小等等
-- `/product/AndroidProducts.mk` `/product/aosp_x86_64.mk`：用于配置 Product
+- `/product/AndroidProducts.mk` 、`/product/aosp_x86_64.mk`：用于配置 Product
 
 
 
@@ -291,7 +274,7 @@ WIFI_DRIVER_FW_PATH_AP      := "/dev/null"
 
 主要是定义了lunch所选择编译目标的判断逻辑
 
-```mak
+```makefile
 ifneq ($(TARGET_BUILD_APPS),)
 PRODUCT_MAKEFILES := \
     $(LOCAL_DIR)/aosp_arm64.mk \
@@ -358,9 +341,9 @@ COMMON_LUNCH_CHOICES 用于添加 lunch 时的选项，选项的名字由两部�
 
 ### 自制Product
 
-假设公司名叫Kevin，准备开发一款手机名叫Rice16
+**假设公司名叫Kevin，准备开发一款手机名叫Rice16**
 
-首先再device目录下添加如下目录和文件：
+首先在`device`目录下添加如下目录和文件：
 
 ```shell
 Kevin/
@@ -406,7 +389,7 @@ Kevin/
   > PRODUCT_COPY_FILES += \
   >     system/core/rootdir/init.zygote32_64.rc:root/init.zygote32_64.rc
   > 
-  > PRODUCT_NAME := Kevin
+  > PRODUCT_NAME := Rice16
   > PRODUCT_DEVICE := Rice16
   > PRODUCT_BRAND := Rice16
   > PRODUCT_MODEL := AOSP on x86_64 Rice16
@@ -459,7 +442,7 @@ Kevin/
 
 ### Android分区
 
-常用的四个分区：
+常用的四个分区（此分区是指在**编译之后根据源码组织结构、构建配置规则而生成的镜像文件**，并不是源码里直接存在的“分区目录” ）：
 
 - System 分区：
 
@@ -479,5 +462,578 @@ Kevin/
 
 
 
+### 添加可执行c/c++程序
+
+#### 源码添加
+
+首先在之前的`device/Kevin/Rice16`目录下创建如下结构：
+
+```shell
+hello
+├── Android.bp
+└── hello.cpp
+```
+
+```cpp
+#include <cstdio>
+
+int main()
+{
+    printf("Hello Android\n");
+    return 0;
+}
+```
+
+```json
+//Android.bp
+cc_binary{ //模块类型为可执行文件
+    name:"hello", //模块名hello
+    srcs:["hello.cpp"], //源文件列表
+    cflags:["-Werror"] //添加编译选项
+}
+```
 
 
+
+**①只进行单模块编译**，仅编译我们的hello目录
+
+```shell
+source build/envsetup.sh
+lunch #然后选择我们的Rice16-eng
+
+#在进入到hello目录
+cd device/Kevin/Rice16/hello/
+mm #单模块编译
+```
+
+
+
+**②进行整编**
+
+在`Rice16.mk`中，添加：
+
+```makefile
+PRODUCT_PACKAGES += hello
+```
+
+再次编译系统
+
+```shell
+source build/envsetup.sh
+lunch Rice14-eng
+make -j16
+```
+
+**会发现编译失败，这是因为：**
+
+> **默认情况下，我们的模块会被安装到 System 分区，编译系统限制了我们在 System 分区添加东西，理论上来说， System 分区应该只能由 Google 来添加和修改内容。** 
+
+因此解决思路有两个，**要么想办法继续安装到System分区，要么装到product分区。**
+
+- **装到System分区，可以观察google是怎么做的，然后效仿即可：**
+
+> - 找个原生系统中预制的 app，看下它的 Android.mk 或者 Android.bp
+>- build/target 中搜一下这个 app 是怎么添加的
+> 
+> app一般定义在`packages/apps`目录中，就以Messaging为例，看它的Android.mk。
+>
+> 没什么特殊的，就是它的模块名叫messaging，那么打包出来就应该是`messaging.apk`
+>
+> ```makefile
+>LOCAL_PACKAGE_NAME := messaging
+> ```
+> 
+> 接着在`build/target`目录下搜索
+>
+> ```shell
+>kevin@kevin-pc:~/aosp$ grep -r "messaging.apk" build/target
+> build/target/product/gsi_common.mk:    system/app/messaging/messaging.apk \
+> ```
+> 
+> 查看`gsi_common.mk`，可以找到原因，是因为设置了白名单
+>
+> ```makefile
+>PRODUCT_ARTIFACT_PATH_REQUIREMENT_WHITELIST += \
+>  system/app/messaging/messaging.apk \
+>  system/app/WAPPushManager/WAPPushManager.apk \
+>     system/bin/healthd \
+>     system/etc/init/healthd.rc \
+>     system/etc/seccomp_policy/crash_dump.%.policy \
+>     system/etc/seccomp_policy/mediacodec.policy \
+>     system/etc/vintf/manifest/manifest_healthd.xml \
+>     system/lib/libframesequence.so \
+>     system/lib/libgiftranscode.so \
+>     system/lib64/libframesequence.so \
+>     system/lib64/libgiftranscode.so \
+>    ```
+>    
+> 因此效仿做法，写到`Kevin/Rice16/Rice16.mk`中
+>
+> ```makefile
+>PRODUCT_ARTIFACT_PATH_REQUIREMENT_WHITELIST += \
+>  system/bin/hello \
+> ```
+>    
+> 这次可以编译成功
+
+- **装到product分区，比较推荐的方式**
+
+> 在其 Android.bp 中添加 product_specific: true 即可： 
+>
+>  ```shell
+>cc_binary{
+>  name:"hello",
+>  srcs:["hello.cpp"],
+>     cflags:["-Werror"],
+>     product_specific: true
+>    }
+>    ```
+
+**这里给出一个安装位置配置的总结：**
+
+- System 分区
+  - Android.mk 默认就是输出到 system 分区，不用指定
+  - Android.bp 默认就是输出到 system 分区，不用指定
+- Vendor
+  - Android.mk ——LOCAL_VENDOR_MODULE := true
+  - Android.bp ——vendor: true
+- Odm 分区
+  - Android.mk ——LOCAL_ODM_MODULE := true
+  - Android.bp ——device_specific: true
+- product 分区
+  - Android.mk ——LOCAL_PRODUCT_MODULE := true
+  - Android.bp ——product_specific: true
+
+
+
+**验证是否可执行**
+
+加载编译环境，然后运行模拟器
+
+```shell
+source build/envsetup.sh
+lunch Rice16-eng
+emulator
+```
+
+再新开一个窗口，进入`adb shell`，可以看到在product的bin目录下会有hello
+
+```shell
+ls product/bin/
+hello
+```
+
+运行hello文件
+
+![1749368813063](AOSP源码搭建.assets/1749368813063.png)
+
+#### 可执行文件添加
+
+如果只有可执行文件，而没有源码，那应该如何添加呢：
+
+ BusyBox 是打包为单个二进制文件的核心 Unix 实用程序的集合。常用于嵌入式设备。 
+
+以添加BusyBox为例子：
+
+```shell
+wget https://busybox.net/downloads/binaries/1.30.0-i686/busybox
+```
+
+然后添加到aosp中，在`Rice16/`目录下
+
+```shell
+prebuilt/
+└── busybox
+    ├── Android.bp
+    └── busybox
+```
+
+Android.bp的内容
+
+```json
+cc_prebuilt_binary {
+    name: "busybox",
+    srcs: ["busybox"],
+    product_specific: true,
+}
+```
+
+并且在 `device/Kevin/Rice16/Rice16.mk` 中添加该模块 
+
+```shell
+PRODUCT_PACKAGES += hello\
+	busybox
+```
+
+然后编译代码，启动模拟器，并在adb shell中执行busybox
+
+```shell
+adb shell
+busybox
+```
+
+
+
+### 添加可执行Java程序
+
+#### 源码添加
+
+其实基本步骤和前面类似
+
+创建一个`hellojava`目录，并且bp和java代码
+
+```
+device/Kevin/Rice16/hellojava/
+├── Android.bp
+└── com
+    └── kevin
+        └── main
+            └── Hello.java
+```
+
+bp的内容
+
+```json
+java_library{
+    name:"Hello",
+    installable: true,
+    product_specific: true,
+    srcs:["**/*.java"],
+}
+```
+
+> 如果不指定 installable: true, 则编译出来的 jar 包里面是 .class 文件。这种包是没法安装到系统上的，只能给其他 java 模块作为 static_libs 依赖。 因为Android虚拟机只加载.dex文件
+
+java文件内容
+
+```java
+package com.kevin.main;
+
+public class Hello
+{
+	public static void main(String[] args) 
+	{
+		System.out.println("Hello Java");
+	}
+}
+```
+
+并且在`Rice16.mk`中添加
+
+```makefile
+PRODUCT_PACKAGES += hello\
+    Hello
+```
+
+之后重新编译并且启动虚拟机，然后可以看到`product/framework`目录下有打包好的jar文件
+
+![1749373526645](AOSP源码搭建.assets/1749373526645.png)
+
+运行：
+
+```shell
+# 配置 classpath
+export CLASSPATH=/product/framework/Hello.jar 
+app_process /product/framework/ com.kevin.main.Hello
+```
+
+> | 部分                               | 含义                                                         |
+> | ---------------------------------- | ------------------------------------------------------------ |
+> | `app_process`                      | Android 的一个工具，用于从 shell 启动 Java 程序，并运行在 Android 的进程环境中（不是标准 JVM，而是 ART/Dalvik） |
+> | `/product/framework/`              | 设置为 Java 类执行时的起始目录（影响 `HelloJava` 的类查找）  |
+> | `com.ahaoyuandaima.main.HelloJava` | 要运行的 Java 主类（必须含有 `public static void main(String[] args)` 方法） |
+
+#### 可执行jar包添加
+
+ 在 `device/kevin/Rice16/` 目录下创建以下的目录和文件： 
+
+```
+hellojavajar
+├── Android.bp
+└── Hello.jar
+```
+
+> Hello.jar是从 out/target/product/Rice16/system/product/framework/Hello.jar拷贝过来的
+
+android.bp内容
+
+```json
+java_import { //这里有变化
+    name: "hellojavajar",
+    installable: true,
+    jars: ["Hello.jar"],
+    product_specific: true,   
+}
+```
+
+为了避免冲突，把 hellojava 文件夹删除。在 `device/Jelly/Rice14/Rice14.mk` 中删除已添加的 hellojava 模块。并重新添加 javahellojar 模块 
+
+```makefile
+PRODUCT_PACKAGES += \
+    hellojavajar
+```
+
+然后重新编译，启动模拟器，再执行程序
+
+```shell
+# 配置 classpath
+export CLASSPATH=/product/framework/Hello.jar 
+app_process /product/framework/ com.kevin.main.Hello
+```
+
+
+
+## 6.添加配置文件与删除已有模块
+
+### 添加配置文件
+
+`PRODUCT_COPY_FILES` 是一个**预定义的构建系统变量**，用于指定在构建过程中需要复制的文件列表，用来复制构成中需要的配置。在前面提到的`Rice16.mk`等`mk`文件中
+
+```makefile
+PRODUCT_COPY_FILES += system/core/rootdir/init.zygote64_32.rc:system/etc/init/hw/init.zygote64_32.rc
+```
+
+> 这一行表示将源码中的 `system/core/rootdir/init.zygote64_32.rc` 拷贝到 Android 文件系统的 system/etc/init/hw/init.zygote64_32.rc 文件中。
+>
+> init.zygote64_32.rc 是 init 程序使用的一个配置文件
+
+**`PRODUCT_COPY_FILES`是预定义的变量，不可以轻易改名，可以通过自定义变量然后追加的方式**
+
+```makefile
+MY_FILES := \
+    system/core/rootdir/init.zygote64_32.rc:system/etc/init/hw/init.zygote64_32.rc \
+    vendor/foo/bar:system/etc/bar
+
+PRODUCT_COPY_FILES += $(MY_FILES)
+```
+
+
+
+### 删除已有模块
+
+以删除通信录(Contacts)为例。删掉其中的Contacts
+
+![1749435020552](AOSP源码搭建.assets/1749435020552.png)
+
+然后重新编译运行
+
+> 没成功过，修改了重新编译报错，不知道为什么
+
+
+
+## 7.添加系统APP
+
+在AS新建一个项目，包名:`com.yuandaima.firstsystemapp`
+
+然后在aosp源代码目录下创建同样的目录，如下：
+
+![1751029293737](AOSP源码搭建.assets/1751029293737.png)
+
+接着把创建好的AS项目对应目录下文件拷贝到aosp源码中
+
+修改manifest文件
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.yuandaima.firstsystemapp">
+
+    <application
+        android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/MySystemApp">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+    </application>
+
+</manifest>
+```
+
+修改`Android.bp`文件
+
+```
+android_app {
+    name: "FirstSystemApp",
+
+    srcs: ["src/**/*.java"],
+
+    resource_dirs: ["res"],
+
+    manifest: "AndroidManifest.xml",
+
+    platform_apis: true,
+    
+    sdk_version: "",
+
+    certificate: "platform",
+
+    product_specific: true,
+
+    //依赖
+    static_libs: ["androidx.appcompat_appcompat",
+                 "com.google.android.material_material",
+                 "androidx-constraintlayout_constraintlayout"],
+}
+```
+
+最后在Rice16.mk文件中添加product
+
+```makefile
+PRODUCT_PACKAGES += \
+    FirstSystemApp
+```
+
+重新编译然后运行
+
+> 这里我之前编译了很多次，都失败，报错都是没有使用theme，加上也说没找到。
+>
+> 之后不知道怎的又可以了，虽然编译成功但是app打不开，报错。最后删除了编译的目录重新编译才可以，真是一波三折啊。
+
+
+
+### 系统APP和普通APP区别
+
+- 系统APP可以使用更多API
+
+- 系统APP签名更复杂灵活
+
+- 系统APP能够使用更多权限
+
+- 系统APP能更轻松实现进程保活
+
+  > 添加参数即可
+  >
+  > ```xml
+  > <application
+  >     android:persistent="true">
+  > ```
+
+
+
+### 系统APP如何添加依赖
+
+在Android.bp中可以看到下面配置项目，这个就是添加的依赖
+
+```
+ //依赖
+    static_libs: ["androidx.appcompat_appcompat",
+                 "com.google.android.material_material",
+                 "androidx-constraintlayout_constraintlayout"],
+```
+
+试图搜索一下这些依赖的位置，发现常用的AndroidX库在` prebuilts/sdk/current/androidx `下面
+
+```shell
+find . -name "Android.bp" | xargs grep "androidx.appcompat_appcompat"
+```
+
+
+
+```
+android_library {
+    name: "androidx.recyclerview_recyclerview",
+    sdk_version: "31",
+    apex_available: [
+        "//apex_available:platform",
+        "//apex_available:anyapex",
+    ],
+    min_sdk_version: "14",
+    manifest: "manifests/androidx.recyclerview_recyclerview/AndroidManifest.xml",
+    static_libs: [
+        "androidx.recyclerview_recyclerview-nodeps",
+        "androidx.annotation_annotation",
+        "androidx.collection_collection",
+        "androidx.core_core",
+        "androidx.customview_customview",
+    ],
+    java_version: "1.7",
+}
+```
+
+ 引入的是一个 `android_library`，名字叫 `androidx.recyclerview_recyclerview`。maifest 文件在 `manifests/androidx.recyclerview_recyclerview/` 目录下，进入这个目录只有一个 `AndroidManifest.xml` 文件，并没有源码，再往下看Android.bp的依赖
+
+```
+android_library_import {
+    name: "androidx.recyclerview_recyclerview-nodeps",
+    aars: ["m2repository/androidx/recyclerview/recyclerview/1.1.0-alpha07/recyclerview-1.1.0-alpha07.aar"],
+    sdk_version: "current",
+    min_sdk_version: "14",
+    static_libs: [
+        "androidx.annotation_annotation",
+        "androidx.collection_collection",
+        "androidx.core_core",
+        "androidx.customview_customview",
+    ],
+}
+```
+
+可以看大aar库的位置，继续查找发现 `prebuilts/tools/common/m2` 目录下引入了大量的三方库 
+
+**因此总结来说：**
+
+当系统 App 需要引入一个库的时候，通常会在 `prebuilds` 目录下查找：
+
+- androidx 相关库引入，先在 `prebuilts/sdk/current/androidx `下寻找配置好的 bp 文件
+- 其他库引入，先在 `prebuilts/tools/common/m2 `下寻找寻找配置好的 bp 文件
+
+
+
+### 系统APP添加不存在的依赖
+
+#### Android库源码引入
+
+
+
+#### Android库以aar引入
+
+更多的时候 Android 库是以 aar 包的形式引入。
+
+假设 FirstSystemApp 需要引入 lottie 这个动画库。
+
+首先[这里](https://repo1.maven.org/maven2/com/airbnb/android/lottie/5.2.0/)下载好 lottie 库的 aar 打包文件。
+
+在 `device/Jelly/Rice14` 目录下创建如下的目录结构：
+
+```
+liblottie/
+├── Android.bp
+└── lottie-5.2.0.aar
+```
+
+ 其中 Android.bp 的内容如下： 
+
+```
+android_library_import {
+    name: "lib-lottie",
+    aars: ["lottie-5.2.0.aar"],
+    sdk_version: "current",
+}
+```
+
+ 然后修改 FirstSystemApp 中的 Android.bp 引入这个库： 
+
+```
+static_libs: ["androidx.appcompat_appcompat",
+                 "com.google.android.material_material",
+                 "androidx-constraintlayout_constraintlayout",
+                 "FirstSystemAndroidLibrary",
+                  "lib-lottie"],
+```
+
+
+
+#### 引入JNI项目
