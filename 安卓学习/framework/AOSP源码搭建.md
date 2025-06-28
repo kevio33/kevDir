@@ -187,9 +187,9 @@ make sdk
 
 
 
-### aosp预制product
+### *aosp预制product
 
-#### 通过`lunch`命令，可以查看aosp预制的product列表
+通过`lunch`命令，可以查看aosp预制的product列表
 
 ```shell
 lunch
@@ -209,7 +209,7 @@ Which would you like? [aosp_arm-eng]
 
 
 
-**product文件主要存在两个目录下面：**
+#### **product文件主要存在两个目录下面：**
 
 - `build/target`：存放模拟器相关的product文件
 - `device`：存放芯片以及方案厂商提供的product配置文件
@@ -339,7 +339,7 @@ COMMON_LUNCH_CHOICES 用于添加 lunch 时的选项，选项的名字由两部�
 
 > **上面是.mk文件的代码，涉及GNU make的语法，这里不具体说明了**
 
-### 自制Product
+### *自制Product
 
 **假设公司名叫Kevin，准备开发一款手机名叫Rice16**
 
@@ -440,7 +440,7 @@ Kevin/
 
 
 
-### Android分区
+### *Android分区
 
 常用的四个分区（此分区是指在**编译之后根据源码组织结构、构建配置规则而生成的镜像文件**，并不是源码里直接存在的“分区目录” ）：
 
@@ -462,7 +462,7 @@ Kevin/
 
 
 
-### 添加可执行c/c++程序
+### *添加可执行c/c++程序
 
 #### 源码添加
 
@@ -495,7 +495,15 @@ cc_binary{ //模块类型为可执行文件
 
 
 
-**①只进行单模块编译**，仅编译我们的hello目录
+**<a name=singlemodel>①只进行单模块编译</a>**，仅编译hello目录
+
+模拟器一定要以`-writable-system`启动，因为后面涉及到system分区覆盖重写
+
+```shell
+emulator -writable-system -selinux permissive
+```
+
+然后编译对应的模块
 
 ```shell
 source build/envsetup.sh
@@ -505,6 +513,17 @@ lunch #然后选择我们的Rice16-eng
 cd device/Kevin/Rice16/hello/
 mm #单模块编译
 ```
+
+之后重新挂载，重新写入system分区
+
+```shell
+adb root
+adb remount
+adb sync      # 将新的 system/framework/... 推送到模拟器
+adb reboot    # 重启模拟器让系统加载新的类文件
+```
+
+
 
 
 
@@ -674,7 +693,7 @@ busybox
 
 
 
-### 添加可执行Java程序
+### *添加可执行Java程序
 
 #### 源码添加
 
@@ -924,7 +943,7 @@ PRODUCT_PACKAGES += \
 
 
 
-### 系统APP如何添加依赖
+### *系统APP如何添加依赖
 
 在Android.bp中可以看到下面配置项目，这个就是添加的依赖
 
@@ -992,9 +1011,100 @@ android_library_import {
 
 
 
-### 系统APP添加不存在的依赖
+### *系统APP添加不存在的依赖
 
 #### Android库源码引入
+
+在Rice16目录下创建一个库，结构如下
+
+![1751099825904](AOSP源码搭建.assets/1751099825904.png)
+
+```java
+public class MyCustomView extends View {
+    public MyCustomView(Context context) {
+        super(context);
+    }
+
+    public MyCustomView(Context context, @Nullable AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    public MyCustomView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+    }
+
+    public MyCustomView(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+        super(context, attrs, defStyleAttr, defStyleRes);
+    }
+
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        float pointerX = 200f;
+        float pointerY = 200f;
+        float pointerSize = 50f; // 半径为 50 像素
+
+        Paint mTextPaint = new Paint();
+        mTextPaint.setColor(Color.BLUE);       // 设置颜色
+        mTextPaint.setStyle(Paint.Style.FILL); // 填充圆形（或 STROKE 描边）
+        mTextPaint.setAntiAlias(true);         // 抗锯齿，边缘更平滑
+
+        canvas.drawCircle(pointerX, pointerY, pointerSize, mTextPaint);
+    }
+}
+```
+
+`Android.bp`内容
+
+```json
+android_library  {
+    name: "FirstSystemView",
+    srcs: ["src/**/*.java"],
+    resource_dirs: ["res"],
+    manifest: "AndroidManifest.xml",
+    sdk_version: "current",
+    product_specific: true,
+    //依赖
+    static_libs: ["androidx.appcompat_appcompat",],
+    java_version: "1.7",
+    installable: true,
+}
+```
+
+`AndroidManifest.xml`
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+ package="com.yuandaima.firstsystemview">
+
+</manifest>
+```
+
+
+
+**然后在之前的FirstSystemApp中引入这个自定义库**
+
+```xml
+<com.yuandaima.firstsystemview.MyCustomView
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+    />
+```
+
+```java
+//依赖
+static_libs: ["androidx.appcompat_appcompat",
+              "com.google.android.material_material",
+              "androidx-constraintlayout_constraintlayout",
+              "FirstSystemView"],
+```
+
+之后重新编译即可：
+
+> 单独编译两个模块，然后重新挂载即可，单模块编译[参考](#singlemodel)
+
+<img src="AOSP源码搭建.assets/1751101763578.png" alt="1751101763578" style="zoom:67%;" />
 
 
 
@@ -1014,9 +1124,9 @@ liblottie/
 └── lottie-5.2.0.aar
 ```
 
- 其中 Android.bp 的内容如下： 
+ 其中 `Android.bp`的内容如下： 
 
-```
+```json
 android_library_import {
     name: "lib-lottie",
     aars: ["lottie-5.2.0.aar"],
@@ -1024,16 +1134,70 @@ android_library_import {
 }
 ```
 
- 然后修改 FirstSystemApp 中的 Android.bp 引入这个库： 
+ 然后在FirstSystemApp中的 Android.bp 引入这个库： 
 
-```
+```json
 static_libs: ["androidx.appcompat_appcompat",
-                 "com.google.android.material_material",
-                 "androidx-constraintlayout_constraintlayout",
-                 "FirstSystemAndroidLibrary",
-                  "lib-lottie"],
+              "com.google.android.material_material",
+              "androidx-constraintlayout_constraintlayout",
+              "FirstSystemView",
+              "lib-lottie"],
 ```
 
 
 
 #### 引入JNI项目
+
+
+
+
+
+## 补充
+
+### `Android.mk`和`Android.bp`
+
+`Android.mk` 和 `Android.bp` 是 Android 构建系统的两种配置语言
+
+本质上都是**描述模块如何被构建的脚本文件**，但背后代表了两个不同的构建系统。 
+
+| 对比项     | `Android.mk`                     | `Android.bp`                              |
+| ---------- | -------------------------------- | ----------------------------------------- |
+| 构建系统   | **Make**（旧系统）               | **Soong**（新系统，自 Android 8 起引入）  |
+| 语言       | 类似 GNU Makefile 脚本（命令式） | JSON 风格声明式语法                       |
+| 语法复杂度 | 高（容易写错，调试麻烦）         | 简洁（模块属性配置清晰）                  |
+| 构建入口   | `build/core/Makefile`            | `build/soong` 目录下由 `soong_build` 驱动 |
+| 是否推荐   | ❌ 已逐步淘汰                     | ✅ 官方推荐使用                            |
+| 转换工具   | 有 `androidmk` 工具可从 mk 转 bp | 没有反向转换工具                          |
+
+
+
+**互相转换**
+
+```shell
+androidmk Android.mk > Android.bp
+```
+
+二者还都可以通过工具转换为ninja支持的配置文件
+
+![1751102068585](AOSP源码搭建.assets/1751102068585.png)
+
+
+
+**构建流程图**
+
+```
+你写的 Android.bp
+        │
+        ▼
+[Soong 构建系统]
+        │   ← soong_build
+        ▼
+生成 build.ninja 构建脚本（超大一个）
+        │
+        ▼
+[Ninja 执行器]
+        │
+        ▼
+并发编译所有模块、产物输出到 out/
+```
+

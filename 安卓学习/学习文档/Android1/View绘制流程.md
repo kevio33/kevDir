@@ -1552,7 +1552,7 @@ View重绘和更新可以使用`invalidate()`和`requestLayout()`方法，其主
 
 #### (3)自定义属性值
 
-如需定义自定义属性，请向项目添加 `<declare-styleable> `资源。这些资源通常放在 `res/values/attrs.xml` 文件中。以下是 `attrs.xml` 文件的示例：
+如需定义自定义属性，添加 `<declare-styleable> `资源。这些资源通常放在 `res/values/attrs.xml` 文件中。以下是 `attrs.xml` 文件的示例：
 
 ```xml
 <resources>
@@ -1567,7 +1567,7 @@ View重绘和更新可以使用`invalidate()`和`requestLayout()`方法，其主
 <!--此代码声明了两个自定义属性（即 showText 和 labelPosition），它们属于一个名为 PieChart 的可设样式实体。按照惯例，这个可设样式实体的名称与定义自定义视图的类的名称相同。-->
 ```
 
-> 定义了自定义属性后，便可像内置属性一样在布局 XML 文件中使用它们。唯一的区别是自定义属性属于另一个命名空间。它们不属于 `http://schemas.android.com/apk/res/android` 命名空间，而是属于 `http://schemas.android.com/apk/res/[your package name]`。例如，下面展示了如何使用为 `PieChart` 定义的属性：
+> 定义了自定义属性后，便可像内置属性一样在布局 XML 文件中使用它们。唯一的区别是自定义属性属于另一个命名空间。它们不属于 `http://schemas.android.com/apk/res/android` 命名空间，而是属于 `http://schemas.android.com/apk/res/[your package name]`。例如，下面展示了如何为 `PieChart` 定义属性：
 
 ```xml
  <?xml version="1.0" encoding="utf-8"?>
@@ -1717,7 +1717,9 @@ public PieChart(Context context, AttributeSet attrs) {
 
 **添加属性和事件**
 
-属性是控制视图行为和外观的强大方式，但只能在视图初始化时读取。如需提供动态行为，请为每个自定义属性公开一个 getter 与 setter 属性对。以下代码段展示了 `PieChart` 公开名为 `showText` 的属性：
+属性只能在视图初始化时读取。
+
+**如需提供动态行为，请为每个自定义属性公开一个 getter 与 setter 属性对**。以下代码段展示了 `PieChart` 公开名为 `showText` 的属性：
 
 ```java
 public boolean isShowText() {
@@ -1730,26 +1732,89 @@ public void setShowText(boolean showText) {
     invalidate();
     requestLayout();
 }
-```
 
-
-
-#### (4)重写方法绘制
-
-如果自定义视图类继承了View，那需要重写三个方法来测量、定位、绘制视图
-
-```java
-public class CustomTextView extends View {
-    public void onMeasure(){
-        
+//onDraw处理不同属性的逻辑
+@Override
+protected void onDraw(Canvas canvas) {
+    if (showText) {
+        // 画字
     }
-    
-    
-    public
+
+    switch (labelPosition) {
+        case 0: // 左
+        case 1: // 右
+        ...
+    }
 }
 ```
 
+例如，以下代码绘制了 `PieChart`。它组合使用了文本、线条和形状。
 
+```java
+protected void onDraw(Canvas canvas) {
+    super.onDraw(canvas);
+
+    // Draw the shadow
+    canvas.drawOval(
+        shadowBounds,
+        shadowPaint
+    );
+
+    // Draw the label text
+    canvas.drawText(data.get(currentItem).mLabel, textX, textY, textPaint);
+
+    // Draw the pie slices
+    for (int i = 0; i < data.size(); ++i) {
+        Item it = data.get(i);
+        piePaint.setShader(it.shader);
+        canvas.drawArc(bounds,
+                       360 - it.endAngle,
+                       it.endAngle - it.startAngle,
+                       true, piePaint);
+    }
+
+    // Draw the pointer
+    canvas.drawLine(textX, pointerY, pointerX, pointerY, textPaint);
+    canvas.drawCircle(pointerX, pointerY, pointerSize, mTextPaint);
+}
+```
+
+> **动态添加到activity中，需要有一个父布局**
+>
+> ```java
+> @Override
+> protected void onCreate(Bundle savedInstanceState) {
+>     super.onCreate(savedInstanceState);
+>     setContentView(R.layout.activity_main);
+> 
+>     // 1. 获取父容器
+>     LinearLayout container = findViewById(R.id.container);
+> 
+>     // 2. 创建自定义 View
+>     MyCustomView myCustomView = new MyCustomView(this);
+> 
+>     // 3. 设置 LayoutParams（很关键，否则可能不显示）
+>     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+>         ViewGroup.LayoutParams.MATCH_PARENT,
+>         400 // 高度写死或换成 WRAP_CONTENT
+>     );
+>     myCustomView.setLayoutParams(params);
+> 
+>     // 4. 添加到布局中
+>     container.addView(myCustomView);
+> }
+> ```
+>
+> **或者xml文件添加**
+>
+> ```xml
+> <com.yuandaima.firstsystemview
+>         android:layout_width="200dp"
+>         android:layout_height="200dp"
+>     />
+> ```
+>
+> 
 
 
 
@@ -1759,7 +1824,7 @@ public class CustomTextView extends View {
 
 ### 自定义组合控件：
 
-自定义组合控件就是将多个控件组合成为一个新的控件，主要解决多次重复使用同一类型的布局。我们通过一个自定义HeaderView实例来了解自定义组合控件的用法。
+自定义组合控件就是将多个控件组合成为一个新的控件，主要解决多次重复使用同一类型的布局。通过一个自定义HeaderView实例来了解自定义组合控件的用法。
 
 ①编写布局文件：
 
@@ -1895,43 +1960,6 @@ private void setRightListener(OnClickListener onClickListener) {
 
 
 
-
-
-
-
-例如，以下代码绘制了 `PieChart`。它组合使用了文本、线条和形状。
-
-```java
-protected void onDraw(Canvas canvas) {
-    super.onDraw(canvas);
-
-    // Draw the shadow
-    canvas.drawOval(
-        shadowBounds,
-        shadowPaint
-    );
-
-    // Draw the label text
-    canvas.drawText(data.get(currentItem).mLabel, textX, textY, textPaint);
-
-    // Draw the pie slices
-    for (int i = 0; i < data.size(); ++i) {
-        Item it = data.get(i);
-        piePaint.setShader(it.shader);
-        canvas.drawArc(bounds,
-                       360 - it.endAngle,
-                       it.endAngle - it.startAngle,
-                       true, piePaint);
-    }
-
-    // Draw the pointer
-    canvas.drawLine(textX, pointerY, pointerX, pointerY, textPaint);
-    canvas.drawCircle(pointerX, pointerY, pointerSize, mTextPaint);
-}
-```
-
-
-
 ### 处理视图交互
 
 **处理输入手势**
@@ -1958,22 +1986,22 @@ public boolean onTouchEvent(MotionEvent event) {
       detector = new GestureDetector(PieChart.this.getContext(), new MyListener());//创建GestureDetector实例，传入继承的监听类
   ```
 
-  **无论是否使用该监听，都应该实现onDown方法并且返回true，因为因为所有手势都以 `onDown()` 消息开头，如果返回false，证明禁用该手势。**
+  **无论是否使用该监听，都应该实现onDown方法并且返回true，因为所有手势都以 `onDown()` 消息开头，如果返回false，证明禁用该手势。**
 
   实现 `GestureDetector.OnGestureListener` 并创建 `GestureDetector` 的实例后，您可以使用 `GestureDetector` 解读在 `onTouchEvent()` 中收到的轻触事件。
 
   ```java
   @Override
-      public boolean onTouchEvent(MotionEvent event) {
-         boolean result = detector.onTouchEvent(event);//通过手势处理触摸事件
-         if (!result) {
-             if (event.getAction() == MotionEvent.ACTION_UP) {
-                 stopScrolling();
-                 result = true;
-             }
-         }
-         return result;
+  public boolean onTouchEvent(MotionEvent event) {
+      boolean result = detector.onTouchEvent(event);//通过手势处理触摸事件
+      if (!result) {
+          if (event.getAction() == MotionEvent.ACTION_UP) {
+              stopScrolling();
+              result = true;
+          }
       }
+      return result;
+  }
   /*如果您向 onTouchEvent() 传递轻触事件，而该事件无法被识别为手势的一部分，它将返回 false。然后，您可以运行自定义手势检测代码。*/
   ```
 
@@ -2048,7 +2076,9 @@ public boolean onTouchEvent(MotionEvent event) {
 
 ### invalidate
 
-`invalidate()` 方法通常是用于请求视图（View）重新绘制。它的作用是标记视图的某个区域为“需要重绘”，并会触发绘制过程。具体来说，`invalidate()` 默认情况下会触发**局部重绘**。 
+`invalidate()` 方法通常是用于请求视图（View）重新绘制。它的作用是标记视图的某个区域为“需要重绘”，并会触发绘制过程。
+
+> 具体来说，`invalidate()` 默认情况下会触发**局部重绘**。 
 
 如果是在viewgroup里面调用，会触发其子view的重绘
 
