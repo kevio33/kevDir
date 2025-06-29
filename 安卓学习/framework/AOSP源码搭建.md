@@ -500,8 +500,15 @@ cc_binary{ //模块类型为可执行文件
 模拟器一定要以`-writable-system`启动，因为后面涉及到system分区覆盖重写
 
 ```shell
-emulator -writable-system -selinux permissive
+emulator -writable-system -selinux permissive -no-snapshot 
 ```
+
+> | 选项                    | 启动时     | 退出时     | 适用场景               |
+> | :---------------------- | :--------- | :--------- | :--------------------- |
+> | **`-no-snapshot`**      | 不加载快照 | 不保存快照 | 系统开发，修改系统分区 |
+> | **`-no-snapshot-load`** | 不加载快照 | 保存快照   | 创建新快照             |
+> | **`-no-snapshot-save`** | 加载快照   | 不保存快照 | 临时测试，不保留更改   |
+> | (默认)                  | 加载快照   | 保存快照   | 普通应用开发           |
 
 然后编译对应的模块
 
@@ -756,11 +763,11 @@ export CLASSPATH=/product/framework/Hello.jar
 app_process /product/framework/ com.kevin.main.Hello
 ```
 
-> | 部分                               | 含义                                                         |
-> | ---------------------------------- | ------------------------------------------------------------ |
-> | `app_process`                      | Android 的一个工具，用于从 shell 启动 Java 程序，并运行在 Android 的进程环境中（不是标准 JVM，而是 ART/Dalvik） |
-> | `/product/framework/`              | 设置为 Java 类执行时的起始目录（影响 `HelloJava` 的类查找）  |
-> | `com.ahaoyuandaima.main.HelloJava` | 要运行的 Java 主类（必须含有 `public static void main(String[] args)` 方法） |
+> | 部分                   | 含义                                                         |
+> | ---------------------- | ------------------------------------------------------------ |
+> | `app_process`          | Android 的一个工具，用于从 shell 启动 Java 程序，并运行在 Android 的进程环境中（不是标准 JVM，而是 ART/Dalvik） |
+> | `/product/framework/`  | 设置为 Java 类执行时的起始目录（影响 `HelloJava` 的类查找）  |
+> | `com.kevin.main.Hello` | 要运行的 Java 主类（必须含有 `public static void main(String[] args)` 方法） |
 
 #### 可执行jar包添加
 
@@ -1148,7 +1155,266 @@ static_libs: ["androidx.appcompat_appcompat",
 
 #### 引入JNI项目
 
+创建项目`FirstJni`，目录结构如下：
 
+![1751188703009](AOSP源码搭建.assets/1751188703009.png)
+
+`jni/Android.mk`中的内容
+
+```makefile
+LOCAL_PATH:= $(call my-dir)
+include $(CLEAR_VARS)
+
+LOCAL_MODULE_TAGS := optional
+
+# This is the target being built.
+LOCAL_MODULE:= myjnilib
+
+
+# All of the source files that we will compile.
+LOCAL_SRC_FILES:= \
+    native.cpp
+
+# All of the shared libraries we link against.
+LOCAL_LDLIBS := -llog
+
+# No static libraries.
+LOCAL_STATIC_LIBRARIES :=
+
+LOCAL_CFLAGS := -Wall -Werror
+
+LOCAL_NDK_STL_VARIANT := none
+
+LOCAL_SDK_VERSION := current
+
+LOCAL_PRODUCT_MODULE := true
+
+include $(BUILD_SHARED_LIBRARY)
+```
+
+
+
+`native-cpp`中内容
+
+```cpp
+#define LOG_TAG "simplejni native.cpp"
+#include <android/log.h>
+
+#include <stdio.h>
+
+#include "jni.h"
+
+#define ALOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__)
+#define ALOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+#define ALOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
+#define ALOGW(...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)
+#define ALOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+
+static jint
+add(JNIEnv* /*env*/, jobject /*thiz*/, jint a, jint b) {
+    int result = a + b;
+    ALOGI("%d + %d = %d", a, b, result);
+    return result;
+}
+
+static const char *classPathName = "com/example/android/simplejni/Native";
+
+static JNINativeMethod methods[] = {
+    {"add", "(II)I", (void*)add },
+};
+
+/*
+ * Register several native methods for one class.
+ */
+static int registerNativeMethods(JNIEnv* env, const char* className,
+                                 JNINativeMethod* gMethods, int numMethods)
+{
+    jclass clazz;
+
+    clazz = env->FindClass(className);
+    if (clazz == NULL) {
+        ALOGE("Native registration unable to find class '%s'", className);
+        return JNI_FALSE;
+    }
+    if (env->RegisterNatives(clazz, gMethods, numMethods) < 0) {
+        ALOGE("RegisterNatives failed for '%s'", className);
+        return JNI_FALSE;
+    }
+
+    return JNI_TRUE;
+}
+
+/*
+ * Register native methods for all classes we know about.
+ *
+ * returns JNI_TRUE on success.
+ */
+static int registerNatives(JNIEnv* env)
+{
+    if (!registerNativeMethods(env, classPathName,
+                               methods, sizeof(methods) / sizeof(methods[0]))) {
+        return JNI_FALSE;
+    }
+
+    return JNI_TRUE;
+}
+
+
+// ----------------------------------------------------------------------------
+
+/*
+ * This is called by the VM when the shared library is first loaded.
+ */
+
+typedef union {
+    JNIEnv* env;
+    void* venv;
+} UnionJNIEnvToVoid;
+
+jint JNI_OnLoad(JavaVM* vm, void* /*reserved*/)
+{
+    UnionJNIEnvToVoid uenv;
+    uenv.venv = NULL;
+    jint result = -1;
+    JNIEnv* env = NULL;
+
+    ALOGI("JNI_OnLoad");
+
+    if (vm->GetEnv(&uenv.venv, JNI_VERSION_1_4) != JNI_OK) {
+        ALOGE("ERROR: GetEnv failed");
+        goto bail;
+    }
+    env = uenv.env;
+
+    if (registerNatives(env) != JNI_TRUE) {
+        ALOGE("ERROR: registerNatives failed");
+        goto bail;
+    }
+
+    result = JNI_VERSION_1_4;
+
+    bail:
+    return result;
+}
+```
+
+
+
+`SimpleJni.java`内容
+
+```java
+package com.example.android.simplejni;
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.widget.TextView;
+
+public class SimpleJNI extends Activity {
+    /** Called when the activity is first created. */
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        TextView tv = new TextView(this);
+        int sum = Native.add(2, 3);
+        tv.setText("2 + 3 = " + Integer.toString(sum));
+        setContentView(tv);
+    }
+}
+
+class Native {
+    static {
+    	// The runtime will add "lib" on the front and ".o" on the end of
+    	// the name supplied to loadLibrary.
+        System.loadLibrary("myjnilib");
+    }
+
+    static native int add(int a, int b);
+}
+```
+
+
+
+`FirstJni/Android.mk`文件
+
+```makefile
+TOP_LOCAL_PATH:= $(call my-dir)
+
+# Build activity
+
+LOCAL_PATH:= $(TOP_LOCAL_PATH)
+include $(CLEAR_VARS)
+
+LOCAL_MODULE_TAGS := optional
+
+LOCAL_SRC_FILES := $(call all-subdir-java-files)
+
+LOCAL_PACKAGE_NAME := FirstJni
+
+LOCAL_JNI_SHARED_LIBRARIES := myjnilib
+
+LOCAL_PROGUARD_ENABLED := disabled
+
+LOCAL_SDK_VERSION := current
+
+LOCAL_DEX_PREOPT := false
+
+LOCAL_PRODUCT_MODULE := true
+
+include $(BUILD_PACKAGE)
+
+# ============================================================
+
+# Also build all of the sub-targets under this one: the shared library.
+include $(call all-makefiles-under,$(LOCAL_PATH))
+```
+
+
+
+`AndroidManifest.xml`文件中内容
+
+```xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      package="com.example.android.simplejni">
+    <application android:label="Simple JNI">
+        <activity android:name="SimpleJNI">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest> 
+```
+
+
+
+
+
+同时要在`Rice16.mk`文件中添加产品包：
+
+```makefile
+PRODUCT_PACKAGES += \
+    FirstSystemApp \
+    FirstJni \
+```
+
+
+
+最后重新编译运行
+
+> 这里第一次编译运行报错，报错原因是找不到`libmyjnilib.so`，去到`/system/product/app/FirstJni/lib/x86_64`下面发现so文件名字叫`myjnilib.so`
+>
+> ![1751189469805](AOSP源码搭建.assets/1751189469805.png)
+>
+> 难道按照规则不是应该自动加上`lib`前缀吗？询问DS之后，改名字为`libmyjnilib.so`
+>
+> ```shell
+> find out/ -name "myjnilib.so" -exec rename 's/myjnilib\.so$/libmyjnilib.so/' {} \;
+> ```
+>
+> 
+
+![1751189281703](AOSP源码搭建.assets/1751189281703.png)
 
 
 

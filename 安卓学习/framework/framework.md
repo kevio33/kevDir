@@ -141,7 +141,7 @@ android系统启动的大概流程：
 
 ### (1)init进程是什么？
 
-Linux系统的用户进程，是所有用户进程的鼻祖，进程号为1，它有许多重要的职责，比如创建[Zygote](#Zygote)孵化器和`属性服务`等。并且它是由多个源文件组成的，对应源码目录system/core/init中。
+是Linux系统的用户进程，是所有用户进程的鼻祖，进程号为1，它有许多重要的职责，比如创建[Zygote](#Zygote)孵化器和`属性服务`等。并且它是由多个源文件组成的，对应源码目录system/core/init中。
 
  ![android-booting](framework.assets/android-booting.jpg) 
 

@@ -36,7 +36,22 @@
 >
 > 
 
+### 2. .bashrc
 
+- **`.bashrc`**（全称：**Bash Run Commands**）是一个 **隐藏文件**（以 `.` 开头），位于用户的家目录下（`~/.bashrc`）。
+- 它是 **Bash Shell 的配置文件**，用于定义当前用户的 **Shell 环境、别名（alias）、函数、PATH变量** 等。
+- 每次 **打开新的终端窗口** 或 **登录Shell** 时，系统会自动执行 `.bashrc` 文件中的命令。
+
+ **常见用途**
+
+- **设置别名（alias）**（如 `alias ll='ls -alF'`）
+- **添加环境变量**（如 `export PATH=$PATH:/opt/android-studio/bin`）
+- **定义自定义函数**
+- **设置命令提示符（PS1）**
+- **启动时运行特定命令**（如 `neofetch`）
+
+> 注意：`.bashrc` 只对 **交互式非登录Shell** 生效，如果是登录Shell（如SSH登录），则会读取 `~/.bash_profile` 或 `~/.profile`。
+>
 
 ## 二、命令
 
