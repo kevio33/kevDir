@@ -385,7 +385,7 @@ VSCode终端其实调用的是cmd.exe，所以当这里出现中文乱码的时�
 
 > 参考——https://blog.csdn.net/weixin_73757883/article/details/141141303
 
-## 1.连接linux服务器
+## 4.1连接linux服务器
 
 主要设计步骤包括：
 
@@ -490,3 +490,102 @@ network:
         addresses: [10.0.0.1, 114.114.114.114] #dns，根据自己网络情况配置
 ```
 
+
+
+## 远程服务器连不了网情况
+
+> https://blog.csdn.net/chongbin007/article/details/126958840
+>
+> 
+
+### 问题描述
+
+对于有的服务器无法访问外网，在连接的时候会报错，例如：
+
+> Failed to download VS Code Server....
+
+这是因为服务器需要下载vscode远程连接需要的插件包，而服务器没联网就下载不了
+
+### 解决办法
+
+对于不同vscode版本，目前有两种解决方法
+
+首先查看**服务器的`.vscode-server/`目录**中尝试下载的内容是什么
+
+- 下载的tar.gz包带有`cli`
+- 下载的tar.gz包只带有server
+
+无论那种方法，都需要先查看vscode的`commitId`
+
+> help->about
+>
+> ![1751793733893](vscode使用note.assets/1751793733893.png)
+
+我们需要手动下载tar.gz包，然后传到服务器上，才可以
+
+
+
+#### 带有cli
+
+这应该是高版本vscode会下载的包
+
+在本机上的浏览器通过下面链接下载
+
+> ```
+> #cli包
+> https://vscode.download.prss.microsoft.com/dbazure/download/stable/${commit_id}/vscode_cli_alpine_x64_cli.tar.gz
+> 
+> #server包
+> https://vscode.download.prss.microsoft.com/dbazure/download/stable/${commit_id}/vscode-server-linux-x64.tar.gz
+> ```
+>
+> **commit_id替换为自己vscode的id**
+
+>  也可以在vscode的报错日志中找到要下载的`cli`链接
+
+下载完成后发送到远程服务器的`.vscode-server`目录下，然后解压重命名`cli`包
+
+```shell
+tar -zxvf vscode_cli_alpine_x64_cli.tar.gz
+mv code code-${commit_id} # 重命名，把:${commit_id}替换成自己的Commit ID
+```
+
+
+
+这个时候在尝试链接还是会报错，但是会创建目录`cli/servers/Stable-$commitId$`
+
+ ![在这里插入图片描述](vscode使用note.assets/1120ff3b0a0e4568984afee082a133da.png) 
+
+
+
+**接下来把server包解压，移动到Stable-CommitId中，解压之后重命名为server**
+
+```shell
+tar -zxvf vscode-server-linux-x64.tar.gz
+
+mv vscode-server-linux-x64 server
+
+mv server ./cli/server/Stable-${commit_id} # 把:${commit_id}替换成自己的Commit ID   
+```
+
+> 这个目录下除了解压的文件不可以有其他目录文件！
+
+之后重启vscode再连接就ok了
+
+
+
+#### 只带有server
+
+在`.vscode-server`目录下创建`bin`目录
+
+```shell
+mkdir ./vscode-server/bin
+```
+
+然后将`vscode-server-linux-x64.tar.gz`包放到bin目录下，解压并重命名为`CommitId`
+
+```shell
+mv vscode-server-linux-x64 ./vscode-server/bin/$commit-id$
+```
+
+最后删除压缩包，重新连接

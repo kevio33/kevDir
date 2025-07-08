@@ -530,7 +530,13 @@ adb sync      # 将新的 system/framework/... 推送到模拟器
 adb reboot    # 重启模拟器让系统加载新的类文件
 ```
 
-
+> - `adb remount`： 切换设备（或模拟器）上的 `/system`（以及其他可写分区）为可读写模式（read‑write）
+>
+>   ​                          这样就可以往 `/system` 分区推送或修改文件，比如替换系统框架、APK、配置等。 
+>
+> - `adb sync`： 把主机端编译输出目录（默认是 `out/target/product//system/`、`vendor/`、`data/` 等）下的                
+>
+>   ​                     文件，推送到设备对应的分区目录中去。 （如果只想同步某个分区：`adb sync system`）
 
 
 
@@ -580,8 +586,8 @@ make -j16
 >
 > ```makefile
 >PRODUCT_ARTIFACT_PATH_REQUIREMENT_WHITELIST += \
->  system/app/messaging/messaging.apk \
->  system/app/WAPPushManager/WAPPushManager.apk \
+>   system/app/messaging/messaging.apk \
+>   system/app/WAPPushManager/WAPPushManager.apk \
 >     system/bin/healthd \
 >     system/etc/init/healthd.rc \
 >     system/etc/seccomp_policy/crash_dump.%.policy \
@@ -597,7 +603,7 @@ make -j16
 >
 > ```makefile
 >PRODUCT_ARTIFACT_PATH_REQUIREMENT_WHITELIST += \
->  system/bin/hello \
+>         system/bin/hello \
 > ```
 >    
 > 这次可以编译成功
@@ -608,10 +614,10 @@ make -j16
 >
 >  ```shell
 >cc_binary{
->  name:"hello",
->  srcs:["hello.cpp"],
->     cflags:["-Werror"],
->     product_specific: true
+>      name:"hello",
+>      srcs:["hello.cpp"],
+>        cflags:["-Werror"],
+>        product_specific: true
 >    }
 >    ```
 
@@ -945,7 +951,7 @@ PRODUCT_PACKAGES += \
   >
   > ```xml
   > <application
-  >     android:persistent="true">
+  >          android:persistent="true">
   > ```
 
 
@@ -955,7 +961,7 @@ PRODUCT_PACKAGES += \
 在Android.bp中可以看到下面配置项目，这个就是添加的依赖
 
 ```
- //依赖
+     //依赖
     static_libs: ["androidx.appcompat_appcompat",
                  "com.google.android.material_material",
                  "androidx-constraintlayout_constraintlayout"],
@@ -1014,7 +1020,7 @@ android_library_import {
 当系统 App 需要引入一个库的时候，通常会在 `prebuilds` 目录下查找：
 
 - androidx 相关库引入，先在 `prebuilts/sdk/current/androidx `下寻找配置好的 bp 文件
-- 其他库引入，先在 `prebuilts/tools/common/m2 `下寻找寻找配置好的 bp 文件
+- 其他库引入，先在 `prebuilts/tools/common/m2 `下寻找配置好的 bp 文件
 
 
 
@@ -1192,7 +1198,7 @@ LOCAL_PRODUCT_MODULE := true
 include $(BUILD_SHARED_LIBRARY)
 ```
 
-
+> 和android ndk应用的cmake文件差不多配置，只是语法格式不一样
 
 `native-cpp`中内容
 
@@ -1467,3 +1473,138 @@ androidmk Android.mk > Android.bp
 并发编译所有模块、产物输出到 out/
 ```
 
+
+
+
+
+### aosp目录结构
+
+```shell
+tree -L 1
+.
+├── Android.bp -> build/soong/root.bp
+├── art 
+├── bionic
+├── bootable
+├── bootstrap.bash -> build/soong/bootstrap.bash
+├── build
+├── cts
+├── dalvik
+├── developers
+├── development
+├── device
+├── external
+├── frameworks
+├── hardware
+├── kernel
+├── libcore
+├── libnativehelper
+├── Makefile
+├── out
+├── packages
+├── pdk
+├── platform_testing
+├── prebuilts
+├── read-snapshot.txt
+├── sdk
+├── system
+├── test
+├── toolchain
+└── tools
+```
+
+- `.repo`： Git 仓库管理目录，包含 manifest 文件和 repo 工具自己的元数据 。用来进行运行repo进行仓库相关
+
+- `build`： Android 的构建系统相关脚本和规则（基于 Soong + Ninja 以及早期的 Make）。定义了如何编译整个系  统、各个模块之间的依赖等。 
+
+- `bionic`： Android 自己的 C 标准库实现（替代 glibc），以及动态 linker/loader。负责提供 C 语言运行时。 
+
+- `device`： 具体设备的配置和 Board Support Package（BSP）。每个厂商/型号都会有一个子目录，包含内核配置、设备树、产品 makefile 等。 
+
+- `developers`： *提供给Android开发者的一些样例，可以导入到AS中编译* 
+
+- `development`： 同developers类似，提供一些样例、工具 
+
+- `external`： 第三方开源库：Python、SQLite、libpng、openssl 等，Android 在此维护自己的版本。 
+
+- `frameworks`：Android Framework 层源码，包含核心库（`base/`）、原生层（`native/`）、Java 层（`opt/`、`av/`、`base/`、`services/` 等）。
+
+  - `frameworks/base/`：最核心的 Framework API 和系统服务。
+
+  - `frameworks/native/`：SurfaceFlinger、libgui 等底层图形组件。
+  - `frameworks/opt/`：可选特性组件，如 media、telephony 等。
+
+- `hardware`： 与硬件抽象层（HAL）相关的代码，定义了各硬件接口的 VTS、HIDL 或 AIDL 接口，以及部分参考实现。 
+
+- `packages`：系统自带 APK（应用）和命令行工具。
+
+  - `packages/apps/`：系统应用（Settings、Launcher、电话、浏览器 等）。
+  - `packages/services/`：某些后台服务或守护进程。
+
+- `prebuilts`： 预编译好的工具链、二进制 blobs（编译器、NDK、链接器、aapt 等）。让你在不同平台上编译时能用到统一版本的工具。 
+
+- `system`：与运行时环境密切相关的 C/C++ 组件和简单工具。
+
+  - `system/core/`：init、logd、vold 等启动流程和核心守护进程。
+  - `system/sepolicy/`：SELinux 策略定义。
+
+- `vendor`： 厂商私有定制部分，比如闭源驱动、私有应用、硬件配置等，通常不公开在 AOSP 主仓库，而是各厂商自行管理。 
+
+### 单模块编译
+
+`**mmm`和`mm`**
+
+`mmm`可以指定参数，而`mm`是编译当前进入到的目录
+
+| 特性       | mm                      | mmm                  |
+| ---------- | ----------------------- | -------------------- |
+| 目录指定   | 隐式——当前 shell 目录   | 显式——命令行里写路径 |
+| 多目录支持 | 不支持                  | 支持：`mmm   …`      |
+| 调用方式   | `cd some/path && mm`    | `mmm some/path`      |
+| 产物位置   | 与 `mmm some/path` 相同 | 同上                 |
+
+
+
+`mmm`和`mmma`
+
+`mmma`可以指定多个编译模块
+
+```shell
+# 在任意目录下，编译 packages/services/Car
+mmm packages/services/Car
+
+
+# 同时编译 Car 服务和 car-lib API
+mmma packages/services/Car/car-lib packages/services/Car/service
+```
+
+>  命令一会把 `packages/services/Car/` 目录下所有 `Android.bp`/`Android.mk` 定义的模块都编译一遍，包含： 
+
+
+
+**编译产物**
+
+如果可能是jar、apk、so，具体看配置
+
+> 如果是`car-lib`这张java API
+>
+> ```
+> out/target/product/<device>/obj/JAVA_LIBRARIES/car-lib_intermediates/javalib/car-lib.jar
+> out/target/product/<device>/obj/JAVA_LIBRARIES/service_intermediates/javalib/service.jar
+> ```
+>
+> 最终安装在镜像里的路径
+>
+> ```
+> out/target/product/<device>/system/framework/car-lib.jar
+> out/target/product/<device>/system/framework/service.jar
+> ```
+>
+> 
+
+>  `packages/apps/CarHome`、`CarSetupWizard` 这种才会输出 APK： 
+>
+> ```
+> out/target/product/<device>/system/app/CarHome/CarHome.apk
+> out/target/product/<device>/system/priv-app/CarSetupWizard/CarSetupWizard.apk
+> ```
