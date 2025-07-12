@@ -264,11 +264,11 @@ git checkout -b (branchname)#创建新分支并且切换到该分支下
 
 
 
-### 合并分支
+### !!合并分支
 
 > [merge和git rebase](https://dingjingmaster.github.io/2022/05/0002-rebase%E4%B8%8Emerge%E7%9A%84%E5%8C%BA%E5%88%AB/)
 
-合并分支非常重要，对于多个分支而言。有两个参数可以合并分支，要仔细区分他们的区别
+
 
 **先说结论：**
 
@@ -279,17 +279,15 @@ git checkout -b (branchname)#创建新分支并且切换到该分支下
 
 
 
-
-
 **场景**
 
-假设当前我们有master和feature分支，当你在专用分支上开发新 feature 时，然后另一个团队成员在 master 分支提交了新的 commits，这种属于正常的Git工作场景。如下图： 
+假设当前有master和feature分支，当你在专用分支上开发新 feature 时，然后另一个团队成员在 master 分支提交了新的 commits，这种属于正常的Git工作场景。如下图： 
 
  ![img](Git.assets/1.png) 
 
 #### merge
 
-使用merge合并master道feature
+使用merge合并master到feature
 
 ```shell
 git checkout feature
@@ -301,13 +299,11 @@ git merge feature master
 
  ![img](Git.assets/2.png) 
 
-由此可见，`git merge` 会在 `feature` 分支中新增一个新的 `merge commit`，然后将两个分支的历史联系在一起
+由此可见，**`git merge` 会在 `feature` 分支中新增一个新的 `merge commit`**，然后将两个分支的历史联系在一起
 
 - 使用 `merge` 是很好的方式，因为它是一种非破坏性的操作，对现有分支不会以任何方式被更改
-- 另一方面，这也意味着 `feature` 分支每次需要合并上游更改时候，都会产生一个额外的合并提交。
-- 如果 `master` 提交非常活跃，这可能会严重污染你的 `feature` 分支历史记录。不过这个问题可以使用高级选项 `git log` 来缓解
-
-
+- 另一方面，这也意味着 `feature` 分支**每次需要合并上游更改时候，都会产生一个额外的合并提交**。
+- 如果 `master` 提交非常活跃，这可能会严重污染你的 `feature` 分支历史记录。（不过这个问题可以使用高级选项 `git log` 来缓解）
 
 
 
@@ -330,9 +326,30 @@ git rebase feature master
 
 > **注意：此时master的5，7是新的提交记录，有新的commit id**
 
+**对于**
+
+```shell
+#当前分支情况
+A---B---C---F   (main)
+         \
+          D---E   (feature)
+
+
+
+git checkout feature
+git rebase main
+
+#rebase后
+A---B---C---F---D'---E'   (feature)
+                ^
+               main
+```
+
 - `rebase` 会将整个 `feature` 分支移动到 `master` 分支的顶端，从而有效地整合了所有 `master` 分支上的提交。
-- 但是，与`merge` 提交方式不同，`rebase`通过为原始分之中的每个提交创建全新的 commits 来重写项目历史记录，特点是仍然会在 `feature` 分支上形成线性提交。
-- `rebase` 的主要好处是可以获得更清晰的项目历史。首先，它消除了 `git merge` 所需的不必要的合并提交；其次，正如你在上图中所看到的，`rebase` 会产生完美线性的历史记录，你可以在 `feature` 分支上没有任何分叉的情况下一直追寻到项目的初始提交。
+- `rebase`通过为原始分支中的每个提交创建全新的 commits 来重写项目历史记录，**特点是会在 `feature` 分支上形成线性提交。**
+- `rebase` 的主要好处是可以获得更清晰的项目历史。
+  - 首先，它消除了 `git merge` 所需的不必要的合并提交；
+  - 其次，rebase会产生完美线性的历史记录，可以在` feature` 分支上没有任何分叉的情况下，一直追寻到项目的初始提交。
 
 
 
@@ -348,9 +365,7 @@ git rebase feature master
 
 ##### rebase黄金法则：
 
-**但是注意：不能在共享分支上运用rebase**
-
-所谓共享的分支，即是指那些存在于远端并且允许团队中的其他人进行Pull操作的分支，比如我们Git工作的master分支就是最常见的公共分支。
+> **注意：不能在共享分支(master\main)上运用rebase**
 
 假设现在Bob和Anna在同一个项目组中工作，项目所属的仓库和分支大概是下图这样：
 
@@ -787,7 +802,7 @@ git push origin develop
 >
 > https://cloud.tencent.com/developer/article/1690638
 
-# 六.问题
+# 问题
 
 ### 1.ssh同时绑定gitee和github
 
@@ -902,7 +917,17 @@ ssh -T git@gitee.com
 
 
 
-# 七.文件
+### 4.新仓库创建分支报错
+
+当初始化了一个本地仓库，然后想`git branch`一个新分支的时候报错
+
+```
+fatal: not a valid object name: 'main'
+```
+
+**这是因为本地没有任何提交，找不到从什么commit进行提交。解决办法是提交一次，在创建分支就好了**
+
+# 文件
 
 ### 1.`“.gitignore”`
 
